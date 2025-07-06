@@ -9,7 +9,7 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
-import { X, AlertTriangle, Bug } from 'lucide-react-native';
+import { X, TriangleAlert as AlertTriangle, Bug } from 'lucide-react-native';
 
 interface NegativeBadgeModalProps {
   visible: boolean;

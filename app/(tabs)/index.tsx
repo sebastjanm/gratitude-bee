@@ -10,7 +10,7 @@ import {
   Dimensions,
   Alert,
 } from 'react-native';
-import { Heart, Star, Smile, Compass, MessageCircle, Flame, Bug, AlertTriangle } from 'lucide-react-native';
+import { Heart, Star, Smile, Compass, MessageCircle, Flame, Bug, TriangleAlert as AlertTriangle } from 'lucide-react-native';
 import NegativeBadgeModal from '@/components/NegativeBadgeModal';
 
 const { width } = Dimensions.get('window');
