@@ -115,11 +115,6 @@ export default function AppreciationModal({
 
   const renderCategorySelection = () => (
     <View style={styles.categorySelection}>
-      <Text style={styles.modalTitle}>Select Appreciation</Text>
-      <Text style={styles.modalSubtitle}>
-        Select the type of appreciation you want to share
-      </Text>
-      
       {loading ? (
         <ActivityIndicator size="large" color="#FF8C42" style={{ flex: 1 }}/>
       ) : (
@@ -239,15 +234,24 @@ export default function AppreciationModal({
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
       <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-            <X color="#666" size={24} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Send Appreciation</Text>
-          <View style={styles.placeholder} />
-        </View>
-
-        {selectedCategory ? renderBadgeSelection() : renderCategorySelection()}
+        {selectedCategory ? (
+          renderBadgeSelection()
+        ) : (
+          <>
+            <View style={styles.header}>
+              <View style={styles.headerContent}>
+                <Text style={styles.headerTitle}>Send Appreciation</Text>
+                <Text style={styles.headerSubtitle}>
+                  Recognize your partner by sending a badge from one of the categories below.
+                </Text>
+              </View>
+              <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+                <X color="#666" size={24} />
+              </TouchableOpacity>
+            </View>
+            {renderCategorySelection()}
+          </>
+        )}
       </View>
     </Modal>
   );
@@ -260,24 +264,31 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
     paddingHorizontal: 20,
     paddingTop: 60,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    paddingBottom: 24,
+  },
+  headerContent: {
+    flex: 1,
+    marginRight: 16,
   },
   closeButton: {
     padding: 8,
+    marginRight: -8, // Align icon better with edge
   },
   headerTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
+    fontSize: 26,
+    fontFamily: 'Inter-Bold',
     color: '#333',
+    marginBottom: 8,
   },
-  placeholder: {
-    width: 40,
+  headerSubtitle: {
+    fontSize: 15,
+    fontFamily: 'Inter-Regular',
+    color: '#666',
+    lineHeight: 22,
   },
   categorySelection: {
     flex: 1,

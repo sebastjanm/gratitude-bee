@@ -102,4 +102,15 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
 *   **Description:**
     *   Implemented the `handleSendDontPanic` and `handleSendWisdom` functions to create `DONT_PANIC` and `WISDOM` events in the ledger.
     *   Updated the `send-notification` Edge Function to handle these new event types, ensuring the receiving partner is notified.
-*   **Next Step:** All core features are now implemented. Ready for testing and refinement. 
+*   **Next Step:** All core features are now implemented. Ready for testing and refinement.
+
+---
+
+### **Step 10: Database and UI Refinement**
+*   **Timestamp:** `2025-07-06T18:10:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   Addressed a schema design flaw by adding a `points_icon` column to the `appreciation_templates` table, decoupling the point type from the UI display.
+    *   Updated the `seed.sql` script to populate the new `points_icon` column and made it idempotent to prevent errors on re-runs.
+    *   Refactored `AppreciationModal.tsx` to use the dynamic `points_icon` from the database, removing the hardcoded emoji logic.
+*   **Next Step:** Comprehensive testing of all event-based flows and UI components. 

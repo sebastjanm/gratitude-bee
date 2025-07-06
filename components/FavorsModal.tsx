@@ -19,12 +19,11 @@ const { width } = Dimensions.get('window');
 
 interface FavorOption {
   id: string;
+  category_id: 'food' | 'errands' | 'help' | 'treats';
   title: string;
   description: string;
   points: number;
-  icon: any;
-  color: string;
-  category: 'food' | 'errands' | 'help' | 'treats';
+  icon: string;
 }
 
 const categoryDetails = {
@@ -33,19 +32,6 @@ const categoryDetails = {
   errands: { name: 'Errands', icon: ShoppingCart, color: '#4ECDC4' },
   help: { name: 'Home Help', icon: HomeIcon, color: '#FFEAA7' },
   treats: { name: 'Treats', icon: Gift, color: '#FF69B4' },
-};
-
-const getIconComponent = (iconName: string) => {
-  const iconMap: { [key: string]: any } = {
-    Coffee,
-    Utensils,
-    Gift,
-    ShoppingCart,
-    Car,
-    HandHeart,
-    HomeIcon,
-  };
-  return iconMap[iconName] || HandHeart;
 };
 
 interface FavorsModalProps {
@@ -83,13 +69,13 @@ export default function FavorsModal({
       Alert.alert('Error', 'Could not fetch favor options.');
       console.error(error);
     } else {
-      setFavorTemplates(data);
+      setFavorTemplates(data as FavorOption[]);
     }
     setLoading(false);
   };
 
   const filteredFavors = favorTemplates.filter(favor => 
-    selectedCategory === 'all' || favor.category === selectedCategory
+    selectedCategory === 'all' || favor.category_id === selectedCategory
   );
 
   const handleClose = () => {
@@ -205,7 +191,7 @@ export default function FavorsModal({
         </View>
       ) : (
         filteredFavors.map((favor) => {
-          const IconComponent = getIconComponent(favor.icon as string);
+          const categoryColor = categoryDetails[favor.category_id]?.color || '#FF8C42';
           const isSelected = selectedFavor?.id === favor.id;
           return (
             <TouchableOpacity
@@ -217,8 +203,8 @@ export default function FavorsModal({
               onPress={() => setSelectedFavor(favor)}
               activeOpacity={0.7}>
               <View style={styles.favorCardHeader}>
-                <View style={[styles.favorIcon, { backgroundColor: favor.color + '20' }]}>
-                  <IconComponent color={favor.color} size={24} />
+                <View style={[styles.favorIcon, { backgroundColor: categoryColor + '20' }]}>
+                  <Text style={styles.favorEmoji}>{favor.icon}</Text>
                 </View>
                 <View style={styles.favorInfo}>
                   <Text style={styles.favorTitle}>{favor.title}</Text>
@@ -232,8 +218,8 @@ export default function FavorsModal({
               
               {isSelected && (
                 <View style={styles.selectedIndicator}>
-                  <View style={[styles.selectedDot, { backgroundColor: favor.color }]} />
-                  <Text style={[styles.selectedText, { color: favor.color }]}>Selected</Text>
+                  <View style={[styles.selectedDot, { backgroundColor: categoryColor }]} />
+                  <Text style={[styles.selectedText, { color: categoryColor }]}>Selected</Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -321,30 +307,20 @@ export default function FavorsModal({
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
       <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-            <X color="#666" size={24} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Request a Favor</Text>
-          <View style={styles.favorPointsDisplay}>
-            <Coins color="#FFD700" size={20} />
-            <Text style={styles.favorPointsDisplayText}>{currentFavorPoints}</Text>
-          </View>
-        </View>
-
         {showCustomFavor ? (
           renderCustomFavorForm()
         ) : (
           <>
-            <View style={styles.heroSection}>
-              <View style={styles.heroIcon}>
-                <HandHeart color="#FF8C42" size={32} />
+            <View style={styles.header}>
+              <View style={styles.headerContent}>
+                <Text style={styles.headerTitle}>Request a Favor</Text>
+                <Text style={styles.headerSubtitle}>
+                  Use your favor points to ask for help. Your partner earns them when the favor is done.
+                </Text>
               </View>
-              <Text style={styles.heroTitle}>Ask for a Favor</Text>
-              <Text style={styles.heroSubtitle}>
-                Request help from your partner using favor points. When they complete 
-                the favor, they earn the points and you spend them.
-              </Text>
+              <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+                <X color="#666" size={24} />
+              </TouchableOpacity>
             </View>
 
             {renderCategoryFilter()}
@@ -369,12 +345,12 @@ export default function FavorsModal({
         {selectedFavor && !showCustomFavor && (
           <View style={styles.fixedSendButtonContainer}>
             <TouchableOpacity
-              style={[styles.fixedSendButton, { backgroundColor: selectedFavor.color }]}
+              style={[styles.fixedSendButton, { backgroundColor: categoryDetails[selectedFavor.category_id]?.color || '#FF8C42' }]}
               onPress={handleSendFavor}
               activeOpacity={0.8}>
               <HandHeart color="white" size={20} />
               <Text style={styles.fixedSendButtonText}>
-                Request "{selectedFavor.title}" ({selectedFavor.points} points)
+                Send request
               </Text>
             </TouchableOpacity>
           </View>
@@ -391,72 +367,42 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
     paddingHorizontal: 20,
     paddingTop: 60,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    paddingBottom: 24,
+  },
+  headerContent: {
+    flex: 1,
+    marginRight: 16,
   },
   closeButton: {
     padding: 8,
+    marginRight: -8, // Align icon better with edge
   },
   headerTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-  },
-  favorPointsDisplay: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF3E0',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#FFE0B2',
-  },
-  favorPointsDisplayText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Bold',
-    color: '#FF8C42',
-    marginLeft: 4,
-  },
-  heroSection: {
-    alignItems: 'center',
-    paddingVertical: 24,
-    paddingHorizontal: 20,
-  },
-  heroIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#FF8C42' + '20',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  heroTitle: {
-    fontSize: 24,
+    fontSize: 26,
     fontFamily: 'Inter-Bold',
     color: '#333',
     marginBottom: 8,
-    textAlign: 'center',
   },
-  heroSubtitle: {
-    fontSize: 14,
+  headerSubtitle: {
+    fontSize: 15,
     fontFamily: 'Inter-Regular',
     color: '#666',
-    textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 22,
   },
   categoryFilterContainer: {
-    marginBottom: 20,
+    paddingBottom: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
     position: 'relative',
   },
   categoryFilter: {
-    flex: 1,
+    paddingTop: 20,
   },
   categoryFilterContent: {
     paddingHorizontal: 20,
@@ -622,6 +568,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+  },
+  favorEmoji: {
+    fontSize: 24,
   },
   favorInfo: {
     flex: 1,
