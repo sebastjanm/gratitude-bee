@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,12 +11,47 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { Heart, Copy, Mail, Users, CircleCheck as CheckCircle, ArrowRight } from 'lucide-react-native';
+import { supabase } from '@/utils/supabase';
+import { useSession } from '@/providers/SessionProvider';
 
 export default function PartnerLinkScreen() {
-  const [inviteCode] = useState('LOVE2025BEE');
+  const { session } = useSession();
+  const [inviteCode, setInviteCode] = useState('');
   const [partnerCode, setPartnerCode] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [partnerName, setPartnerName] = useState('');
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (session) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('invite_code, partner_id')
+          .eq('id', session.user.id)
+          .single();
+
+        if (error) {
+          Alert.alert('Error', 'Could not fetch your profile.');
+        } else if (data) {
+          setInviteCode(data.invite_code);
+          if (data.partner_id) {
+            // If already connected, fetch partner's name
+            const { data: partnerData } = await supabase
+              .from('profiles')
+              .select('display_name')
+              .eq('id', data.partner_id)
+              .single();
+            if (partnerData) {
+              setPartnerName(partnerData.display_name);
+              setIsConnected(true);
+            }
+          }
+        }
+      }
+    };
+    fetchProfile();
+  }, [session]);
 
   const inviteLink = `https://gratitudebee.app/invite/${inviteCode}`;
 
@@ -37,7 +72,8 @@ export default function PartnerLinkScreen() {
         title: 'Join me on GratitudeBee',
       });
     } catch (error) {
-      console.error('Error sharing:', error);
+      const message = error instanceof Error ? error.message : 'Something went wrong.';
+      Alert.alert('Error sharing', message);
     }
   };
 
@@ -50,14 +86,19 @@ export default function PartnerLinkScreen() {
     setLoading(true);
     
     try {
-      // Mock connection process
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const { data, error } = await supabase.functions.invoke('connect-partner', {
+        body: { inviteCode: partnerCode },
+      });
+
+      if (error) throw error;
+      
+      setPartnerName(data.partnerName);
       setIsConnected(true);
       
       setTimeout(() => {
         Alert.alert(
           'Connected Successfully!',
-          'You and your partner are now connected. Start sharing appreciation badges together!',
+          `You and ${data.partnerName} are now connected. Start sharing appreciation badges together!`,
           [
             {
               text: 'Start Appreciating',
@@ -67,7 +108,8 @@ export default function PartnerLinkScreen() {
         );
       }, 1000);
     } catch (error) {
-      Alert.alert('Connection Failed', 'Invalid invite code. Please check and try again.');
+      const message = error instanceof Error ? error.message : 'Invalid invite code. Please check and try again.';
+      Alert.alert('Connection Failed', message);
     } finally {
       setLoading(false);
     }
@@ -86,11 +128,11 @@ export default function PartnerLinkScreen() {
           </View>
           <Text style={styles.successTitle}>Connected!</Text>
           <Text style={styles.successSubtitle}>
-            You and your partner are now linked together
+            You and {partnerName} are now linked together
           </Text>
           <View style={styles.partnerInfo}>
             <Users color="#4ECDC4" size={24} />
-            <Text style={styles.partnerText}>Alex & Sarah</Text>
+            <Text style={styles.partnerText}>{session?.user.user_metadata.display_name} & {partnerName}</Text>
           </View>
         </View>
       </View>

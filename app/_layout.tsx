@@ -1,22 +1,35 @@
-import { useEffect } from 'react';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { useFrameworkReady } from '@/hooks/useFrameworkReady';
-import * as SplashScreen from 'expo-splash-screen';
-import { useFonts } from 'expo-font';
-import {
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
-} from '@expo-google-fonts/inter';
+// This file was created by the assistant.
+// It sets up the root layout and session provider.
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
+import React, { useEffect } from 'react';
+import { Slot, router, useSegments } from 'expo-router';
+import { SessionProvider, useSession } from '../providers/SessionProvider';
+import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
+import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
+
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
-  useFrameworkReady();
+const InitialLayout = () => {
+  const { session, loading } = useSession();
+  const segments = useSegments();
 
+  useEffect(() => {
+    if (loading) return;
+
+    const inTabsGroup = segments[0] === '(tabs)';
+
+    if (session && !inTabsGroup) {
+      router.replace('/(tabs)');
+    } else if (!session && inTabsGroup) {
+      router.replace('/(auth)/auth');
+    }
+  }, [session, loading, segments]);
+
+  return <Slot />;
+};
+
+export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     'Inter-Regular': Inter_400Regular,
     'Inter-Medium': Inter_500Medium,
@@ -35,13 +48,9 @@ export default function RootLayout() {
   }
 
   return (
-    <>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
+    <SessionProvider>
+      <InitialLayout />
       <StatusBar style="auto" />
-    </>
+    </SessionProvider>
   );
 }

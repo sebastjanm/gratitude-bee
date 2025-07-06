@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { Heart, Mail, Lock, User, Eye, EyeOff } from 'lucide-react-native';
-import { MockAuth } from '@/utils/mockAuth';
+import { supabase } from '@/utils/supabase';
 
 export default function AuthScreen() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -32,33 +32,51 @@ export default function AuthScreen() {
 
     try {
       if (isSignUp) {
-        const result = await MockAuth.signUp(email, password, displayName);
-        
-        if (result.success) {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              display_name: displayName,
+            },
+          },
+        });
+
+        if (error) {
+          Alert.alert('Sign Up Failed', error.message);
+        } else {
           Alert.alert(
             'Verification Email Sent',
             'Please check your email and click the verification link to complete your registration.',
             [
               {
                 text: 'OK',
-                onPress: () => router.push('/(auth)/welcome'),
+                onPress: () => {
+                  // Optionally, you could navigate to a holding screen
+                  // For now, we'll just clear the form
+                  setEmail('');
+                  setPassword('');
+                  setDisplayName('');
+                },
               },
             ]
           );
-        } else {
-          Alert.alert('Sign Up Failed', result.error || 'Something went wrong. Please try again.');
         }
       } else {
-        const result = await MockAuth.signIn(email, password);
-        
-        if (result.success) {
-          router.replace('/(tabs)');
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) {
+          Alert.alert('Sign In Failed', error.message);
         } else {
-          Alert.alert('Sign In Failed', result.error || 'Invalid email or password.');
+          router.replace('/(tabs)');
         }
       }
     } catch (error) {
-      Alert.alert('Error', 'Something went wrong. Please try again.');
+      const message = error instanceof Error ? error.message : 'Something went wrong.';
+      Alert.alert('Error', message);
     } finally {
       setLoading(false);
     }
@@ -66,14 +84,6 @@ export default function AuthScreen() {
 
   const handleForgotPassword = () => {
     router.push('/(auth)/forgot-password');
-  };
-
-  const handleUseTestAccount = () => {
-    const testCreds = MockAuth.getTestCredentials();
-    setEmail(testCreds.email);
-    setPassword(testCreds.password);
-    setDisplayName(testCreds.displayName);
-    setIsSignUp(false);
   };
 
   return (
@@ -182,10 +192,6 @@ export default function AuthScreen() {
           </Text>
         )}
       </ScrollView>
-        <TouchableOpacity style={styles.testAccountButton} onPress={handleUseTestAccount}>
-          <Text style={styles.testAccountText}>Use Test Account</Text>
-        </TouchableOpacity>
-
     </KeyboardAvoidingView>
   );
 }
