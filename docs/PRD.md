@@ -10,14 +10,17 @@ The core purpose is to build a "bank of goodwill" between partners, making grati
 
 ## 2. Core Concepts
 
-The application revolves around a few key concepts:
+The application revolves around a few key concepts, detailed further in our [Points & Economy System](./PointsEconomy.md) documentation.
 
-*   **Appreciation Badges:** These are positive acknowledgments that one partner sends to another. They are categorized to cover different aspects of a relationship, such as Kindness, Support, and Humor. Each badge has a title, description, and a value ("BeeCount").
-*   **Hornets (Negative Badges):** A tool for accountability. When a partner's actions are hurtful or problematic, a "Hornet" can be sent. This action is not about punishment but about flagging a significant issue that needs to be addressed. Sending a Hornet cancels out a number of previously earned positive badges.
-*   **Favors:** A system where partners can request help from each other using "favor points." When a favor is completed, the partner who did the favor earns the points. This creates a balanced system of give-and-take.
-*   **Don't Panic:** A feature for sending immediate comfort and reassurance during stressful moments. It provides pre-defined calming messages to support a partner when they need it most.
-*   **Relationship Wisdom:** A set of pre-defined, non-confrontational responses for common relationship scenarios, acknowledging the wisdom of compromise and partnership intelligence (e.g., "Yes, Dear," "I'm Sorry").
-*   **Pings:** An urgent, non-verbal "nudge" to get a partner's attention for time-sensitive check-ins, such as confirming their safety.
+*   **Appreciation Badges:** Positive acknowledgments sent between partners. Each badge belongs to a category and carries a specific point value, which contributes to the receiver's category-specific **Appreciation Points** balance.
+*   **Hornets (Negative Badges):** A tool for accountability. Sending a Hornet deducts a significant number of points from the receiver's **Hornet Stings** balance.
+*   **Favors:** A system where partners can request help using **Favor Points**. The requester "spends" points, and the completer "earns" them, maintaining a balanced internal economy.
+*   **Pings:** Urgent, non-verbal nudges. A small point value is awarded to the receiver upon responding, encouraging prompt communication.
+*   **Message-Only Events:** Actions like "Don't Panic" and "Relationship Wisdom" are logged for timeline history but carry no point value.
+*   **User Wallets:** Each user has a wallet that tracks their distinct point balances for Appreciations, Favors, and Hornets.
+*   **Event Ledger:** Every interaction (badge sent, favor requested, etc.) is recorded as an immutable event in a central ledger. This provides a complete historical record, capturing who sent what to whom, when it happened, and any associated message or data. This ledger is the source of truth for the Timeline and all analytics.
+*   **Dynamic Event Templates:** All badge, favor, and hornet types are defined in the database and manageable by an admin, allowing for dynamic content updates without requiring an app release.
+*   **Push Notifications:** All significant partner interactions (new badges, favor requests, pings, etc.) trigger an immediate push notification to the receiving user's device to ensure timely communication.
 
 ---
 
@@ -31,7 +34,7 @@ The authentication flow guides the user through signing up, logging in, and conn
 *   **Welcome Screen:** A screen that introduces the app's value proposition to new users.
 *   **Authentication Screen:** A unified screen for both Sign Up and Sign In, using an email/password combination.
 *   **Forgot Password:** A standard flow for users to reset their password.
-*   **Partner Link:** A crucial step where a user can invite their partner to connect their accounts via a unique link, enabling the core functionality of the app.
+*   **Partner Link:** A crucial step for connecting with a partner. A user can either **share their unique, auto-generated invite code** with their partner, or they can **enter the invite code** they received from their partner. This ensures a secure and unambiguous link between the two accounts.
 
 ### 3.2. Main Application (Tabs)
 
@@ -86,8 +89,9 @@ This screen contains user account information, settings, and app-level actions.
 *   **User Info:** Displays the user's name and their partner's connection status.
 *   **Personal Stats:** A summary of the user's personal activity (Badges Sent, Badges Received, etc.).
 *   **Settings:**
-    *   **Connection:** Options to invite a partner and export the relationship history as a "Memory Book."
-    *   **Notifications:** Toggles for daily reminders and random "nudges."
+    *   **Admin Panel:** (Visible to admins only) An interface to manage all event templates, including adding, editing, or deleting appreciation badges, favors, and hornets.
+    *   **Connection:** Displays the user's invite code to share with their partner. Options to invite a partner and export the relationship history as a "Memory Book."
+    *   **Notifications:** Toggles for daily reminders and random "nudges," and management of the user's Expo Push Token.
     *   **Goals:** Setting and tracking weekly badge goals.
     *   **Support:** Access to Help/FAQs and the Sign Out function.
 

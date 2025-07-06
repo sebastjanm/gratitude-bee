@@ -20,49 +20,51 @@ The Appreciation Modal is where users can select and send positive badges to the
 
 ### 1.2. Appreciation Badges
 
+Each badge has a predefined push notification message.
+
 #### Support Badges
-| Badge ID          | Title              | Description                                  | BeeCount |
-| :---------------- | :----------------- | :------------------------------------------- | :------- |
-| `amazing-work`    | Amazing Work       | Recognizing exceptional effort and dedication| 3        |
-| `you-are-best`    | You Are The Best   | Ultimate appreciation for being incredible   | 5        |
-| `believe-in-you`  | I Believe In You   | Encouraging during challenging times         | 2        |
-| `proud-of-you`    | So Proud Of You    | Celebrating achievements and milestones      | 4        |
+| Badge ID          | Title              | Description                                  | BeeCount | Notification Text                                         |
+| :---------------- | :----------------- | :------------------------------------------- | :------- | :-------------------------------------------------------- |
+| `amazing-work`    | Amazing Work       | Recognizing exceptional effort and dedication| 3        | "sent you an 'Amazing Work' badge!"                       |
+| `you-are-best`    | You Are The Best   | Ultimate appreciation for being incredible   | 5        | "thinks you are the best!"                                |
+| `believe-in-you`  | I Believe In You   | Encouraging during challenging times         | 2        | "wants you to know they believe in you!"                  |
+| `proud-of-you`    | So Proud Of You    | Celebrating achievements and milestones      | 4        | "is so proud of you!"                                     |
 
 #### Kindness Badges
-| Badge ID           | Title                   | Description                          | BeeCount |
-| :----------------- | :---------------------- | :----------------------------------- | :------- |
-| `thank-you-much`   | Thank You Very Much     | Deep gratitude for thoughtful actions| 1        |
-| `thanks-coffee`    | Thanks For Coffee       | Appreciating morning thoughtfulness  | 2        |
-| `gentle-heart`     | Your Gentle Heart       | Recognizing natural compassion       | 3        |
-| `caring-soul`      | Beautiful Caring Soul   | Honoring deep empathy and care       | 4        |
+| Badge ID           | Title                   | Description                          | BeeCount | Notification Text                                         |
+| :----------------- | :---------------------- | :----------------------------------- | :------- | :-------------------------------------------------------- |
+| `thank-you-much`   | Thank You Very Much     | Deep gratitude for thoughtful actions| 1        | "is very thankful for you!"                               |
+| `thanks-coffee`    | Thanks For Coffee       | Appreciating morning thoughtfulness  | 2        | "is thankful for the coffee!"                             |
+| `gentle-heart`     | Your Gentle Heart       | Recognizing natural compassion       | 3        | "appreciates your gentle heart."                          |
+| `caring-soul`      | Beautiful Caring Soul   | Honoring deep empathy and care       | 4        | "thinks you have a beautiful, caring soul."               |
 
 #### Humor Badges
-| Badge ID            | Title                 | Description                             | BeeCount |
-| :------------------ | :-------------------- | :-------------------------------------- | :------- |
-| `lol`               | LOL                   | Simple moment of laughter               | 1        |
-| `rofl`              | ROFL                  | Rolling on the floor laughing           | 3        |
-| `made-me-laugh`     | Made Me Laugh         | Bringing joy with perfect timing        | 2        |
-| `silly-dance`       | Silly Dance Master    | Spontaneous moments of pure fun         | 3        |
-| `comedy-genius`     | Comedy Genius         | Natural talent for making others smile  | 4        |
-| `brightened-day`    | Brightened My Day     | Turning ordinary moments into joy       | 3        |
+| Badge ID            | Title                 | Description                             | BeeCount | Notification Text                                         |
+| :------------------ | :-------------------- | :-------------------------------------- | :------- | :-------------------------------------------------------- |
+| `lol`               | LOL                   | Simple moment of laughter               | 1        | "thought that was hilarious!"                             |
+| `rofl`              | ROFL                  | Rolling on the floor laughing           | 3        | "is rolling on the floor laughing!"                       |
+| `made-me-laugh`     | Made Me Laugh         | Bringing joy with perfect timing        | 2        | "is still laughing about that."                           |
+| `silly-dance`       | Silly Dance Master    | Spontaneous moments of pure fun         | 3        | "loved your silly dance!"                                 |
+| `comedy-genius`     | Comedy Genius         | Natural talent for making others smile  | 4        | "thinks you're a comedy genius."                          |
+| `brightened-day`    | Brightened My Day     | Turning ordinary moments into joy       | 3        | "wanted to say you brightened their day."                 |
 
 #### Adventure Badges
-| Badge ID             | Title                    | Description                          | BeeCount |
-| :------------------- | :----------------------- | :----------------------------------- | :------- |
-| `sunset-walk`        | Perfect Sunset Walk      | Creating magical shared moments      | 3        |
-| `new-place`          | Found New Place          | Discovering hidden gems together     | 4        |
-| `spontaneous-trip`   | Spontaneous Adventure    | Embracing unexpected journeys        | 5        |
-| `nature-lover`       | Nature Connection        | Sharing love for the outdoors        | 2        |
+| Badge ID             | Title                    | Description                          | BeeCount | Notification Text                                         |
+| :------------------- | :----------------------- | :----------------------------------- | :------- | :-------------------------------------------------------- |
+| `sunset-walk`        | Perfect Sunset Walk      | Creating magical shared moments      | 3        | "loved that sunset walk with you."                        |
+| `new-place`          | Found New Place          | Discovering hidden gems together     | 4        | "is excited about the new place you found."               |
+| `spontaneous-trip`   | Spontaneous Adventure    | Embracing unexpected journeys        | 5        | "is still thinking about your spontaneous adventure."     |
+| `nature-lover`       | Nature Connection        | Sharing love for the outdoors        | 2        | "appreciates your connection with nature."                |
 
 #### Love Notes Badges
-| Badge ID              | Title                    | Description                          | BeeCount |
-| :-------------------- | :----------------------- | :----------------------------------- | :------- |
-| `you-are-everything`  | You Are My Everything    | Complete devotion and love           | 3        |
-| `thinking-of-you`     | Thinking Of You          | Constant presence in thoughts        | 1        |
-| `sweet-message`       | Sweet Message            | Perfect words at the right time      | 2        |
-| `morning-text`        | Beautiful Morning Text   | Starting the day with love           | 3        |
-| `love-letter`         | Heartfelt Love Letter    | Deep emotional expression            | 5        |
-| `encouraging-words`   | Encouraging Words        | Lifting spirits with kindness        | 3        |
+| Badge ID              | Title                    | Description                          | BeeCount | Notification Text                                         |
+| :-------------------- | :----------------------- | :----------------------------------- | :------- | :-------------------------------------------------------- |
+| `you-are-everything`  | You Are My Everything    | Complete devotion and love           | 3        | "wants you to know you're their everything."              |
+| `thinking-of-you`     | Thinking Of You          | Constant presence in thoughts        | 1        | "is thinking of you."                                     |
+| `sweet-message`       | Sweet Message            | Perfect words at the right time      | 2        | "loved your sweet message."                               |
+| `morning-text`        | Beautiful Morning Text   | Starting the day with love           | 3        | "is smiling because of your morning text."                |
+| `love-letter`         | Heartfelt Love Letter    | Deep emotional expression            | 5        | "is touched by your heartfelt letter."                    |
+| `encouraging-words`   | Encouraging Words        | Lifting spirits with kindness        | 3        | "is grateful for your encouraging words."                 |
 
 ---
 
@@ -124,7 +126,7 @@ The Hornet Modal is for accountability and addressing issues.
 
 ## 4. Don't Panic Modal Content
 
-This modal provides messages of comfort and reassurance.
+This modal provides messages of comfort and reassurance. The notification text is the message itself.
 
 ### 4.1. Panic Triggers (Informational Icons)
 
@@ -149,7 +151,7 @@ This modal provides messages of comfort and reassurance.
 
 ## 5. Relationship Wisdom Modal Content
 
-This modal offers non-confrontational responses for common situations.
+This modal offers non-confrontational responses for common situations. These events carry **no point value**. The notification text is the title of the wisdom.
 
 | Wisdom ID                 | Title                        | Description                                     |
 | :------------------------ | :--------------------------- | :---------------------------------------------- |
@@ -162,7 +164,7 @@ This modal offers non-confrontational responses for common situations.
 
 ## 6. Ping Modal Content
 
-This modal is for sending urgent but simple nudges.
+This modal is for sending urgent but simple nudges. A small point value (e.g., 1 point) is awarded to the receiver upon responding. The notification text is the title of the ping.
 
 | Ping ID         | Title                   | Description                                          |
 | :-------------- | :---------------------- | :--------------------------------------------------- |

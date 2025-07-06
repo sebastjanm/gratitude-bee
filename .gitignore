@@ -5,3 +5,10 @@ node_modules
 
 expo-env.d.ts
 # @end expo-cli
+.expo/
+.npm/
+.pnp/
+.pnp.js
+
+# Environment variables
+.env
