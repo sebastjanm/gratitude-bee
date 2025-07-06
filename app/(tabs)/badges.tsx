@@ -129,6 +129,16 @@ const mockBadges: Badge[] = [
     icon: Heart,
     color: '#6366F1',
   },
+  {
+    id: '11',
+    name: 'I\'m Sorry',
+    category: 'im-sorry',
+    tier: 'bronze',
+    earnedDate: '2025-01-05',
+    description: 'Sincere apology for being late to dinner',
+    icon: Heart,
+    color: '#F87171',
+  },
 ];
 
 const categories = [
@@ -143,6 +153,7 @@ const categories = [
   { id: 'yes-dear', name: 'Yes Dear', icon: Crown },
   { id: 'happy-wife', name: 'Happy Wife', icon: Home },
   { id: 'dont-panic', name: 'Don\'t Panic', icon: Heart },
+  { id: 'im-sorry', name: 'I\'m Sorry', icon: Heart },
 ];
 
 export default function BadgesScreen() {

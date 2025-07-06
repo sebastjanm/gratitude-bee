@@ -138,6 +138,17 @@ const mockEvents: TimelineEvent[] = [
     icon: Heart,
     color: '#6366F1',
   },
+  {
+    id: '11',
+    type: 'sent',
+    badgeName: 'I\'m Sorry',
+    category: 'im-sorry',
+    message: 'I\'m truly sorry for being late. You deserve better ❤️',
+    timestamp: '2025-01-05T18:30:00Z',
+    partnerName: 'Sarah',
+    icon: Heart,
+    color: '#F87171',
+  },
   { id: 'dont-panic', name: 'Don\'t Panic', icon: Heart },
 ];
 

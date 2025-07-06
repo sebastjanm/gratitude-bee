@@ -352,6 +352,42 @@ const appreciationCategories: SubCategory[] = [
       },
     ],
   },
+  {
+    id: 'relationship-wisdom',
+    name: 'Relationship Wisdom',
+    icon: Crown,
+    color: '#8B5CF6',
+    badges: [
+      {
+        id: 'whatever-you-say-so-be-it',
+        title: 'Whatever You Say, So Be It',
+        description: 'Graceful acceptance of your perspective',
+        beeCount: 2,
+        icon: '🤝',
+      },
+      {
+        id: 'yes-dear-wisdom',
+        title: 'Yes, Dear',
+        description: 'Wise partnership acknowledgment',
+        beeCount: 2,
+        icon: '👑',
+      },
+      {
+        id: 'happy-wife-happy-life-wisdom',
+        title: 'Happy Wife, Happy Life',
+        description: 'Understanding relationship priorities',
+        beeCount: 3,
+        icon: '🏠',
+      },
+      {
+        id: 'im-sorry-heartfelt',
+        title: 'I\'m Sorry',
+        description: 'Sincere apology and making amends',
+        beeCount: 1,
+        icon: '💔',
+      },
+    ],
+  },
 ];
 
 export default function AppreciationModal({

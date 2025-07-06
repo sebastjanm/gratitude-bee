@@ -100,6 +100,14 @@ const badgeCategories: BadgeCategory[] = [
     description: 'Calm reassurance after stress',
     count: 2,
   },
+  {
+    id: 'im-sorry',
+    name: 'I\'m Sorry',
+    icon: Heart,
+    color: '#F87171',
+    description: 'Heartfelt apologies and making amends',
+    count: 1,
+  },
 ];
 
 const mockRecentBadges = [

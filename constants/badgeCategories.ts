@@ -74,6 +74,14 @@ export const BADGE_CATEGORIES: BadgeCategory[] = [
     description: 'Calm reassurance after stress',
     count: 0,
   },
+  {
+    id: 'im-sorry',
+    name: 'I\'m Sorry',
+    icon: Heart,
+    color: '#F87171',
+    description: 'Heartfelt apologies and making amends',
+    count: 0,
+  },
 ];
 
 export const NEGATIVE_BADGE_CATEGORIES: BadgeCategory[] = [
