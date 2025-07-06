@@ -419,7 +419,11 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: '#666',
     textAlign: 'center',
-  }
+  },
+  quickSendContainer: {
+    marginHorizontal: 20,
+    marginBottom: 24,
+  },
   appreciationButton: {
     backgroundColor: 'white',
     borderRadius: 16,
