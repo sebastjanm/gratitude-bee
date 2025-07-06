@@ -181,36 +181,53 @@ export default function BadgesScreen() {
   };
 
   const renderCategoryFilter = () => (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      style={styles.categoryFilter}
-      contentContainerStyle={styles.categoryFilterContent}>
-      {categories.map((category) => {
-        const IconComponent = category.icon;
-        return (
-          <TouchableOpacity
-            key={category.id}
-            style={[
-              styles.categoryFilterItem,
-              selectedCategory === category.id && styles.selectedCategoryFilter,
-            ]}
-            onPress={() => setSelectedCategory(category.id)}>
-            <IconComponent
-              color={selectedCategory === category.id ? 'white' : '#666'}
-              size={14}
-            />
-            <Text
+    <View style={styles.categoryFilterContainer}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.categoryFilter}
+        contentContainerStyle={styles.categoryFilterContent}
+        decelerationRate="fast"
+        snapToInterval={88} // Width of button + margin
+        snapToAlignment="start">
+        {categories.map((category, index) => {
+          const IconComponent = category.icon;
+          const isSelected = selectedCategory === category.id;
+          return (
+            <TouchableOpacity
+              key={category.id}
               style={[
-                styles.categoryFilterText,
-                selectedCategory === category.id && styles.selectedCategoryFilterText,
-              ]}>
-              {category.name}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
-    </ScrollView>
+                styles.categoryFilterItem,
+                isSelected && styles.selectedCategoryFilter,
+                index === 0 && styles.firstCategoryItem,
+                index === categories.length - 1 && styles.lastCategoryItem,
+              ]}
+              onPress={() => setSelectedCategory(category.id)}
+              activeOpacity={0.7}>
+              <IconComponent
+                color={isSelected ? 'white' : '#666'}
+                size={16}
+                strokeWidth={isSelected ? 2.5 : 2}
+              />
+              <Text
+                style={[
+                  styles.categoryFilterText,
+                  isSelected && styles.selectedCategoryFilterText,
+                ]}
+                numberOfLines={1}>
+                {category.name}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+      
+      {/* Scroll indicators */}
+      <View style={styles.scrollIndicators}>
+        <View style={styles.leftScrollIndicator} />
+        <View style={styles.rightScrollIndicator} />
+      </View>
+    </View>
   );
 
   const renderBadge = (badge: Badge) => {
@@ -371,35 +388,87 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   categoryFilter: {
-    marginBottom: 16,
+    flex: 1,
   },
   categoryFilterContent: {
     paddingHorizontal: 20,
+    paddingVertical: 4,
+  },
+  categoryFilterContainer: {
+    marginBottom: 20,
+    position: 'relative',
   },
   categoryFilterItem: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: 'white',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    marginRight: 6,
+    borderRadius: 12,
+    width: 80,
+    height: 45, // 16:9 aspect ratio (80:45)
+    marginRight: 8,
     borderWidth: 1,
     borderColor: '#E0E0E0',
-    minHeight: 28,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  firstCategoryItem: {
+    marginLeft: 0,
+  },
+  lastCategoryItem: {
+    marginRight: 20,
   },
   selectedCategoryFilter: {
     backgroundColor: '#FF8C42',
     borderColor: '#FF8C42',
+    shadowColor: '#FF8C42',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+    transform: [{ scale: 1.02 }],
   },
   categoryFilterText: {
-    fontSize: 11,
-    fontFamily: 'Inter-Medium',
+    fontSize: 10,
+    fontFamily: 'Inter-SemiBold',
     color: '#666',
-    marginLeft: 4,
+    marginTop: 2,
+    textAlign: 'center',
+    lineHeight: 12,
   },
   selectedCategoryFilterText: {
     color: 'white',
+  },
+  scrollIndicators: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    pointerEvents: 'none',
+  },
+  leftScrollIndicator: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 20,
+    background: 'linear-gradient(to right, rgba(255,248,240,0.8), transparent)',
+    borderTopRightRadius: 10,
+    borderBottomRightRadius: 10,
+  },
+  rightScrollIndicator: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: 20,
+    background: 'linear-gradient(to left, rgba(255,248,240,0.8), transparent)',
+    borderTopLeftRadius: 10,
+    borderBottomLeftRadius: 10,
   },
   badgesList: {
     flex: 1,
