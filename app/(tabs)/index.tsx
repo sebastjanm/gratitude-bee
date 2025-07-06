@@ -13,11 +13,13 @@ import {
   Easing,
 } from 'react-native';
 import { Heart, Star, Smile, Compass, MessageCircle, Flame, Bug, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, Crown, Chrome as Home } from 'lucide-react-native';
+import { HandHeart } from 'lucide-react-native';
 import NegativeBadgeModal from '@/components/NegativeBadgeModal';
 import DontPanicModal from '@/components/DontPanicModal';
 import UserWelcome from '@/components/UserWelcome';
 import AppreciationModal from '@/components/AppreciationModal';
 import RelationshipWisdomModal from '@/components/RelationshipWisdomModal';
+import FavorsModal from '@/components/FavorsModal';
 
 const { width } = Dimensions.get('window');
 
@@ -127,6 +129,8 @@ export default function HomeScreen() {
   const [showDontPanicModal, setShowDontPanicModal] = useState(false);
   const [showAppreciationModal, setShowAppreciationModal] = useState(false);
   const [showRelationshipWisdomModal, setShowRelationshipWisdomModal] = useState(false);
+  const [showFavorsModal, setShowFavorsModal] = useState(false);
+  const [favorPoints, setFavorPoints] = useState(45); // Mock favor points
   const [heartAnimation] = useState(new Animated.Value(1));
 
   React.useEffect(() => {
@@ -202,6 +206,20 @@ export default function HomeScreen() {
     );
   };
 
+  const handleSendFavor = (favorId: string, favorTitle: string, points: number, customMessage?: string) => {
+    // Mock favor sending - in real app this would sync with partner
+    console.log(`Sending favor request: ${favorTitle} for ${points} points`);
+    if (customMessage) {
+      console.log('Custom message:', customMessage);
+    }
+    
+    Alert.alert(
+      'Favor Requested! 🙏',
+      `Your "${favorTitle}" request has been sent to your partner for ${points} favor points.`,
+      [{ text: 'OK' }]
+    );
+  };
+
   const renderStreakCard = () => (
     <View style={styles.streakCard}>
       <View style={styles.streakHeader}>
@@ -267,6 +285,24 @@ export default function HomeScreen() {
 
   const renderQuickSend = () => (
     <View style={styles.quickSendContainer}>
+      <TouchableOpacity
+        style={styles.favorsButton}
+        onPress={() => setShowFavorsModal(true)}
+        activeOpacity={0.8}>
+        <View style={styles.favorsButtonContent}>
+          <HandHeart color="#8B5CF6" size={20} />
+          <Text style={styles.favorsButtonText}>Request a Favor</Text>
+          <View style={styles.favorPointsBadge}>
+            <Text style={styles.favorPointsBadgeText}>{favorPoints}</Text>
+          </View>
+        </View>
+        <Text style={styles.favorsButtonSubtext}>
+          Ask for help using your favor points
+        </Text>
+      </TouchableOpacity>
+      
+      <View style={styles.divider} />
+      
       <TouchableOpacity
         style={styles.appreciationButton}
         onPress={() => setShowAppreciationModal(true)}
@@ -484,6 +520,51 @@ const styles = StyleSheet.create({
     color: '#FF8C42',
   },
   appreciationButtonSubtext: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: '#666',
+    textAlign: 'center',
+  },
+  favorsButton: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: '#E5E3FF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  favorsButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  favorsButtonText: {
+    fontSize: 18,
+    fontFamily: 'Inter-SemiBold',
+    color: '#8B5CF6',
+    marginLeft: 12,
+    flex: 1,
+  },
+  favorPointsBadge: {
+    backgroundColor: '#8B5CF6',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    minWidth: 32,
+    alignItems: 'center',
+  },
+  favorPointsBadgeText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Bold',
+    color: 'white',
+  },
+  favorsButtonSubtext: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     color: '#666',
