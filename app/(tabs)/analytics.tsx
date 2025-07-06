@@ -10,7 +10,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChartBar as BarChart3, TrendingUp, Calendar, Award, Heart, Bug, Target, Zap, Clock, Users } from 'lucide-react-native';
+import { ChartBar as BarChart3, TrendingUp, Calendar, Award, Heart, Bug, Target, Zap, Clock, Users, Filter, ChevronDown } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -54,11 +54,31 @@ const mockMonthlyStats = {
 const periodFilters = [
   { id: 'week', name: 'This Week', icon: Calendar },
   { id: 'month', name: 'This Month', icon: Calendar },
+  { id: '3months', name: 'Last 3 Months', icon: Calendar },
+  { id: '6months', name: 'Last 6 Months', icon: Calendar },
   { id: 'all', name: 'All Time', icon: Clock },
 ];
 
+const categoryFilters = [
+  { id: 'all', name: 'All Categories', icon: Award },
+  { id: 'kindness', name: 'Kindness', icon: Heart },
+  { id: 'support', name: 'Support', icon: Target },
+  { id: 'humor', name: 'Humor', icon: Zap },
+  { id: 'adventure', name: 'Adventure', icon: Users },
+  { id: 'words', name: 'Love Notes', icon: Heart },
+];
+
+const badgeTypeFilters = [
+  { id: 'all', name: 'All Types', icon: Award },
+  { id: 'positive', name: 'Positive Only', icon: Heart },
+  { id: 'negative', name: 'Hornets Only', icon: Bug },
+];
+
 export default function AnalyticsScreen() {
-  const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'all'>('month');
+  const [selectedPeriod, setSelectedPeriod] = useState<string>('month');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedBadgeType, setSelectedBadgeType] = useState<string>('all');
+  const [showFilters, setShowFilters] = useState(false);
 
   const mainStats: StatCard[] = [
     {
@@ -103,29 +123,74 @@ export default function AnalyticsScreen() {
     { name: 'Hornets', sent: 2, received: 1, color: '#FF4444' },
   ];
 
-  const renderPeriodSelector = () => (
-    <View style={styles.categoryFilterContainer}>
+  const renderFilterHeader = () => (
+    <View style={styles.filterHeaderContainer}>
+      <TouchableOpacity 
+        style={styles.filterToggleButton}
+        onPress={() => setShowFilters(!showFilters)}
+        activeOpacity={0.7}>
+        <Filter color="#666" size={20} />
+        <Text style={styles.filterToggleText}>Filters</Text>
+        <ChevronDown 
+          color="#666" 
+          size={16} 
+          style={[
+            styles.chevronIcon,
+            showFilters && styles.chevronIconRotated
+          ]} 
+        />
+      </TouchableOpacity>
+      
+      <View style={styles.activeFiltersContainer}>
+        {selectedPeriod !== 'month' && (
+          <View style={styles.activeFilterChip}>
+            <Text style={styles.activeFilterText}>
+              {periodFilters.find(f => f.id === selectedPeriod)?.name}
+            </Text>
+          </View>
+        )}
+        {selectedCategory !== 'all' && (
+          <View style={styles.activeFilterChip}>
+            <Text style={styles.activeFilterText}>
+              {categoryFilters.find(f => f.id === selectedCategory)?.name}
+            </Text>
+          </View>
+        )}
+        {selectedBadgeType !== 'all' && (
+          <View style={styles.activeFilterChip}>
+            <Text style={styles.activeFilterText}>
+              {badgeTypeFilters.find(f => f.id === selectedBadgeType)?.name}
+            </Text>
+          </View>
+        )}
+      </View>
+    </View>
+  );
+
+  const renderFilterSection = (title: string, filters: any[], selectedValue: string, onSelect: (value: string) => void) => (
+    <View style={styles.filterSection}>
+      <Text style={styles.filterSectionTitle}>{title}</Text>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={styles.categoryFilter}
-        contentContainerStyle={styles.categoryFilterContent}
+        style={styles.filterScrollView}
+        contentContainerStyle={styles.filterScrollContent}
         decelerationRate="fast"
-        snapToInterval={88}
+        snapToInterval={100}
         snapToAlignment="start">
-        {periodFilters.map((filter, index) => {
+        {filters.map((filter, index) => {
           const IconComponent = filter.icon;
-          const isSelected = selectedPeriod === filter.id;
+          const isSelected = selectedValue === filter.id;
           return (
             <TouchableOpacity
               key={filter.id}
               style={[
-                styles.categoryFilterItem,
-                isSelected && styles.selectedCategoryFilter,
-                index === 0 && styles.firstCategoryItem,
-                index === periodFilters.length - 1 && styles.lastCategoryItem,
+                styles.filterItem,
+                isSelected && styles.selectedFilterItem,
+                index === 0 && styles.firstFilterItem,
+                index === filters.length - 1 && styles.lastFilterItem,
               ]}
-              onPress={() => setSelectedPeriod(filter.id as typeof selectedPeriod)}
+              onPress={() => onSelect(filter.id)}
               activeOpacity={0.7}>
               <IconComponent
                 color={isSelected ? 'white' : '#666'}
@@ -134,8 +199,8 @@ export default function AnalyticsScreen() {
               />
               <Text
                 style={[
-                  styles.categoryFilterText,
-                  isSelected && styles.selectedCategoryFilterText,
+                  styles.filterItemText,
+                  isSelected && styles.selectedFilterItemText,
                 ]}
                 numberOfLines={1}>
                 {filter.name}
@@ -144,26 +209,38 @@ export default function AnalyticsScreen() {
           );
         })}
       </ScrollView>
-      
-      {/* Scroll indicators */}
-      <View style={styles.scrollIndicators}>
-        <LinearGradient
-          colors={['rgba(255,248,240,0.8)', 'transparent']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.leftScrollIndicator}
-          pointerEvents="none"
-        />
-        <LinearGradient
-          colors={['transparent', 'rgba(255,248,240,0.8)']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.rightScrollIndicator}
-          pointerEvents="none"
-        />
-      </View>
     </View>
   );
+
+  const renderExpandedFilters = () => {
+    if (!showFilters) return null;
+    
+    return (
+      <View style={styles.expandedFiltersContainer}>
+        {renderFilterSection('Time Period', periodFilters, selectedPeriod, setSelectedPeriod)}
+        {renderFilterSection('Category', categoryFilters, selectedCategory, setSelectedCategory)}
+        {renderFilterSection('Badge Type', badgeTypeFilters, selectedBadgeType, setSelectedBadgeType)}
+        
+        <View style={styles.filterActions}>
+          <TouchableOpacity 
+            style={styles.clearFiltersButton}
+            onPress={() => {
+              setSelectedPeriod('month');
+              setSelectedCategory('all');
+              setSelectedBadgeType('all');
+            }}>
+            <Text style={styles.clearFiltersText}>Clear All</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.applyFiltersButton}
+            onPress={() => setShowFilters(false)}>
+            <Text style={styles.applyFiltersText}>Apply Filters</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
 
   const renderMainStats = () => (
     <View style={styles.statsGrid}>
@@ -341,7 +418,8 @@ export default function AnalyticsScreen() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {renderPeriodSelector()}
+        {renderFilterHeader()}
+        {renderExpandedFilters()}
         {renderMainStats()}
         {renderWeeklyBreakdown()}
         {renderCategoryBreakdown()}
@@ -383,27 +461,20 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  categoryFilterContainer: {
+  filterHeaderContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginHorizontal: 20,
     marginBottom: 24,
-    position: 'relative',
   },
-  categoryFilter: {
-    flex: 1,
-  },
-  categoryFilterContent: {
-    paddingHorizontal: 0,
-    paddingVertical: 4,
-  },
-  categoryFilterItem: {
-    flexDirection: 'column',
+  filterToggleButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     backgroundColor: 'white',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderRadius: 12,
-    width: 88,
-    height: 52,
-    marginRight: 12,
     borderWidth: 1,
     borderColor: '#E0E0E0',
     shadowColor: '#000',
@@ -411,25 +482,90 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 1,
+  },
+  filterToggleText: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    color: '#666',
+    marginLeft: 8,
+    marginRight: 4,
+  },
+  chevronIcon: {
+    transform: [{ rotate: '0deg' }],
+  },
+  chevronIconRotated: {
+    transform: [{ rotate: '180deg' }],
+  },
+  activeFiltersContainer: {
+    flexDirection: 'row',
+    flex: 1,
+    justifyContent: 'flex-end',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  activeFilterChip: {
+    backgroundColor: '#FF8C42',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  activeFilterText: {
+    fontSize: 12,
+    fontFamily: 'Inter-SemiBold',
+    color: 'white',
+  },
+  expandedFiltersContainer: {
+    backgroundColor: 'white',
+    marginHorizontal: 20,
+    marginBottom: 24,
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  filterSection: {
+    marginBottom: 20,
+  },
+  filterSectionTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#333',
+    marginBottom: 12,
+  },
+  filterScrollView: {
+    flex: 1,
+  },
+  filterScrollContent: {
+    paddingHorizontal: 4,
+    paddingVertical: 4,
+    gap: 8,
+  },
+  filterItem: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    width: 100,
+    height: 56,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
     minHeight: 44,
   },
-  firstCategoryItem: {
-    marginLeft: 0,
+  firstFilterItem: {
+    marginLeft: 4,
   },
-  lastCategoryItem: {
-    marginRight: 20,
+  lastFilterItem: {
+    marginRight: 4,
   },
-  selectedCategoryFilter: {
+  selectedFilterItem: {
     backgroundColor: '#FF8C42',
     borderColor: '#FF8C42',
-    shadowColor: '#FF8C42',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-    transform: [{ scale: 1.02 }],
   },
-  categoryFilterText: {
+  filterItemText: {
     fontSize: 11,
     fontFamily: 'Inter-SemiBold',
     color: '#666',
@@ -438,34 +574,40 @@ const styles = StyleSheet.create({
     lineHeight: 13,
     paddingHorizontal: 2,
   },
-  selectedCategoryFilterText: {
+  selectedFilterItemText: {
     color: 'white',
   },
-  scrollIndicators: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    pointerEvents: 'none',
+  filterActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    gap: 12,
   },
-  leftScrollIndicator: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: 24,
-    borderTopRightRadius: 12,
-    borderBottomRightRadius: 12,
+  clearFiltersButton: {
+    flex: 1,
+    backgroundColor: '#F8F9FA',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
-  rightScrollIndicator: {
-    position: 'absolute',
-    right: 0,
-    top: 0,
-    bottom: 0,
-    width: 24,
-    borderTopLeftRadius: 12,
-    borderBottomLeftRadius: 12,
+  clearFiltersText: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    color: '#666',
+  },
+  applyFiltersButton: {
+    flex: 1,
+    backgroundColor: '#FF8C42',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  applyFiltersText: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    color: 'white',
   },
   statsGrid: {
     flexDirection: 'row',
