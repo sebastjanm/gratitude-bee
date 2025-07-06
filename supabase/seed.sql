@@ -1,53 +1,62 @@
 -- Gratitude Bee - Database Seed Script
--- Version: 1.1
+-- Version: 1.2
 --
 -- This script populates the template tables with the initial
 -- content for the application. Run this script in the Supabase SQL Editor
 -- after running the initial schema migration.
 --
+-- Changes:
+-- - Made script idempotent by deleting existing data before insertion.
+
+-- =================================================================
+-- 0. CLEAR EXISTING TEMPLATE DATA
+-- =================================================================
+DELETE FROM public.appreciation_templates;
+DELETE FROM public.favor_templates;
+DELETE FROM public.hornet_templates;
 
 -- =================================================================
 -- 1. APPRECIATION TEMPLATES
 -- =================================================================
 
 -- Support Badges
-INSERT INTO public.appreciation_templates (id, category_id, title, description, points, notification_text, icon, point_unit) VALUES
-('amazing-work', 'support', 'Amazing Work', 'Recognizing exceptional effort and dedication', 3, 'sent you an ''Amazing Work'' badge!', '🏆', 'bee'),
-('you-are-best', 'support', 'You Are The Best', 'Ultimate appreciation for being incredible', 5, 'thinks you are the best!', '🌟', 'bee'),
-('believe-in-you', 'support', 'I Believe In You', 'Encouraging during challenging times', 2, 'wants you to know they believe in you!', '💪', 'bee'),
-('proud-of-you', 'support', 'So Proud Of You', 'Celebrating achievements and milestones', 4, 'is so proud of you!', '🎉', 'bee');
+INSERT INTO public.appreciation_templates (id, category_id, title, description, points, points_icon, notification_text, icon, point_unit) VALUES
+('amazing-work', 'support', 'Amazing Work', 'Recognizing exceptional effort and dedication', 3, '🐝', 'sent you an ''Amazing Work'' badge!', '🏆', 'support'),
+('you-are-best', 'support', 'You Are The Best', 'Ultimate appreciation for being incredible', 5, '🐝', 'thinks you are the best!', '🌟', 'support'),
+('believe-in-you', 'support', 'I Believe In You', 'Encouraging during challenging times', 2, '🐝', 'wants you to know they believe in you!', '💪', 'support'),
+('proud-of-you', 'support', 'So Proud Of You', 'Celebrating achievements and milestones', 4, '🐝', 'is so proud of you!', '🎉', 'support');
 
 -- Kindness Badges
-INSERT INTO public.appreciation_templates (id, category_id, title, description, points, notification_text, icon, point_unit) VALUES
-('thank-you-much', 'kindness', 'Thank You Very Much', 'Deep gratitude for thoughtful actions', 1, 'is very thankful for you!', '🙏', 'butterfly'),
-('thanks-coffee', 'kindness', 'Thanks For Coffee', 'Appreciating morning thoughtfulness', 2, 'is thankful for the coffee!', '☕', 'butterfly'),
-('gentle-heart', 'kindness', 'Your Gentle Heart', 'Recognizing natural compassion', 3, 'appreciates your gentle heart.', '💖', 'butterfly'),
-('caring-soul', 'kindness', 'Beautiful Caring Soul', 'Honoring deep empathy and care', 4, 'thinks you have a beautiful, caring soul.', '❤️', 'butterfly');
+INSERT INTO public.appreciation_templates (id, category_id, title, description, points, points_icon, notification_text, icon, point_unit) VALUES
+('thank-you-much', 'kindness', 'Thank You Very Much', 'Deep gratitude for thoughtful actions', 1, '🦋', 'is very thankful for you!', '🙏', 'kindness'),
+('thanks-coffee', 'kindness', 'Thanks For Coffee', 'Appreciating morning thoughtfulness', 2, '🦋', 'is thankful for the coffee!', '☕', 'kindness'),
+('gentle-heart', 'kindness', 'Your Gentle Heart', 'Recognizing natural compassion', 3, '🦋', 'appreciates your gentle heart.', '💖', 'kindness'),
+('caring-soul', 'kindness', 'Beautiful Caring Soul', 'Honoring deep empathy and care', 4, '🦋', 'thinks you have a beautiful, caring soul.', '❤️', 'kindness');
 
 -- Humor Badges
-INSERT INTO public.appreciation_templates (id, category_id, title, description, points, notification_text, icon, point_unit) VALUES
-('lol', 'humor', 'LOL', 'Simple moment of laughter', 1, 'thought that was hilarious!', '😂', 'smily'),
-('rofl', 'humor', 'ROFL', 'Rolling on the floor laughing', 3, 'is rolling on the floor laughing!', '🤣', 'smily'),
-('made-me-laugh', 'humor', 'Made Me Laugh', 'Bringing joy with perfect timing', 2, 'is still laughing about that.', '😄', 'smily'),
-('silly-dance', 'humor', 'Silly Dance Master', 'Spontaneous moments of pure fun', 3, 'loved your silly dance!', '💃', 'smily'),
-('comedy-genius', 'humor', 'Comedy Genius', 'Natural talent for making others smile', 4, 'thinks you''re a comedy genius.', '🤡', 'smily'),
-('brightened-day', 'humor', 'Brightened My Day', 'Turning ordinary moments into joy', 3, 'wanted to say you brightened their day.', '😊', 'smily');
+INSERT INTO public.appreciation_templates (id, category_id, title, description, points, points_icon, notification_text, icon, point_unit) VALUES
+('lol', 'humor', 'LOL', 'Simple moment of laughter', 1, '😊', 'thought that was hilarious!', '😂', 'humor'),
+('rofl', 'humor', 'ROFL', 'Rolling on the floor laughing', 3, '😊', 'is rolling on the floor laughing!', '🤣', 'humor'),
+('made-me-laugh', 'humor', 'Made Me Laugh', 'Bringing joy with perfect timing', 2, '😊', 'is still laughing about that.', '😄', 'humor'),
+('silly-dance', 'humor', 'Silly Dance Master', 'Spontaneous moments of pure fun', 3, '😊', 'loved your silly dance!', '💃', 'humor'),
+('comedy-genius', 'humor', 'Comedy Genius', 'Natural talent for making others smile', 4, '😊', 'thinks you''re a comedy genius.', '🤡', 'humor'),
+('brightened-day', 'humor', 'Brightened My Day', 'Turning ordinary moments into joy', 3, '😊', 'wanted to say you brightened their day.', '😊', 'humor');
 
 -- Adventure Badges
-INSERT INTO public.appreciation_templates (id, category_id, title, description, points, notification_text, icon, point_unit) VALUES
-('sunset-walk', 'adventure', 'Perfect Sunset Walk', 'Creating magical shared moments', 3, 'loved that sunset walk with you.', '🌅', 'tent'),
-('new-place', 'adventure', 'Found New Place', 'Discovering hidden gems together', 4, 'is excited about the new place you found.', '🗺️', 'tent'),
-('spontaneous-trip', 'adventure', 'Spontaneous Adventure', 'Embracing unexpected journeys', 5, 'is still thinking about your spontaneous adventure.', '🚀', 'tent'),
-('nature-lover', 'adventure', 'Nature Connection', 'Sharing love for the outdoors', 2, 'appreciates your connection with nature.', '🌿', 'tent');
+INSERT INTO public.appreciation_templates (id, category_id, title, description, points, points_icon, notification_text, icon, point_unit) VALUES
+('sunset-walk', 'adventure', 'Perfect Sunset Walk', 'Creating magical shared moments', 3, '⛺', 'loved that sunset walk with you.', '🌅', 'adventure'),
+('new-place', 'adventure', 'Found New Place', 'Discovering hidden gems together', 4, '⛺', 'is excited about the new place you found.', '🗺️', 'adventure'),
+('spontaneous-trip', 'adventure', 'Spontaneous Adventure', 'Embracing unexpected journeys', 5, '⛺', 'is still thinking about your spontaneous adventure.', '🚀', 'adventure'),
+('nature-lover', 'adventure', 'Nature Connection', 'Sharing love for the outdoors', 2, '⛺', 'appreciates your connection with nature.', '🌿', 'adventure');
 
 -- Love Notes Badges
-INSERT INTO public.appreciation_templates (id, category_id, title, description, points, notification_text, icon, point_unit) VALUES
-('you-are-everything', 'words', 'You Are My Everything', 'Complete devotion and love', 3, 'wants you to know you''re their everything.', '💞', 'heart'),
-('thinking-of-you', 'words', 'Thinking Of You', 'Constant presence in thoughts', 1, 'is thinking of you.', '💭', 'heart'),
-('sweet-message', 'words', 'Sweet Message', 'Perfect words at the right time', 2, 'loved your sweet message.', '💌', 'heart'),
-('morning-text', 'words', 'Beautiful Morning Text', 'Starting the day with love', 3, 'is smiling because of your morning text.', '☀️', 'heart'),
-('love-letter', 'words', 'Heartfelt Love Letter', 'Deep emotional expression', 5, 'is touched by your heartfelt letter.', '📜', 'heart'),
-('encouraging-words', 'words', 'Encouraging Words', 'Lifting spirits with kindness', 3, 'is grateful for your encouraging words.', '🤗', 'heart');
+INSERT INTO public.appreciation_templates (id, category_id, title, description, points, points_icon, notification_text, icon, point_unit) VALUES
+('you-are-everything', 'words', 'You Are My Everything', 'Complete devotion and love', 3, '❤️', 'wants you to know you''re their everything.', '💞', 'words'),
+('thinking-of-you', 'words', 'Thinking Of You', 'Constant presence in thoughts', 1, '❤️', 'is thinking of you.', '💭', 'words'),
+('sweet-message', 'words', 'Sweet Message', 'Perfect words at the right time', 2, '❤️', 'loved your sweet message.', '💌', 'words'),
+('morning-text', 'words', 'Beautiful Morning Text', 'Starting the day with love', 3, '❤️', 'is smiling because of your morning text.', '☀️', 'words'),
+('love-letter', 'words', 'Heartfelt Love Letter', 'Deep emotional expression', 5, '❤️', 'is touched by your heartfelt letter.', '📜', 'words'),
+('encouraging-words', 'words', 'Encouraging Words', 'Lifting spirits with kindness', 3, '❤️', 'is grateful for your encouraging words.', '🤗', 'words');
 
 
 -- =================================================================

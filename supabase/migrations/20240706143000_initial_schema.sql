@@ -154,6 +154,7 @@ CREATE TABLE public.appreciation_templates (
     title text NOT NULL,
     description text,
     points integer DEFAULT 1,
+    points_icon text,
     point_unit text,
     icon text,
     notification_text text,

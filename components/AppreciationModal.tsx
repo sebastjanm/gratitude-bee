@@ -23,6 +23,7 @@ interface BadgeOption {
   description: string;
   points: number;
   point_unit: string;
+  points_icon: string;
   icon: string;
 }
 
@@ -90,6 +91,7 @@ export default function AppreciationModal({
                   description: badge.description,
                   points: badge.points,
                   point_unit: badge.point_unit,
+                  points_icon: badge.points_icon,
                   icon: badge.icon,
               });
           }
@@ -196,7 +198,7 @@ export default function AppreciationModal({
                     <Text style={styles.badgeTitle}>{badge.title}</Text>
                     <View style={styles.badgeCountRow}>
                       <Text style={styles.badgeCountText}>
-                        {badge.points} {badge.point_unit === 'bee' ? '🐝' : badge.point_unit === 'butterfly' ? '🦋' : badge.point_unit === 'smily' ? '😊' : badge.point_unit === 'tent' ? '⛺' : '❤️'}
+                        {badge.points} {badge.points_icon}
                       </Text>
                     </View>
                   </View>
