@@ -159,4 +159,15 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
     *   Created `QRCodeModal.tsx` to display a user's invite code and `QRScannerModal.tsx` to handle scanning.
     *   Refactored `partner-link.tsx` to integrate the new QR modals, simplify the UI, and fix a bug where it was querying a non-existent `profiles` table.
     *   Corrected the same database query bug in `profile.tsx`.
-*   **Next Step:** Final QA testing on all application features. 
+*   **Next Step:** Final QA testing on all application features.
+
+---
+
+### **Step 15: Post-Launch Debugging & Refinement**
+*   **Timestamp:** `2025-07-06T19:00:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   **RLS Policies:** Resolved a critical bug preventing new user sign-ups by adding the necessary `INSERT` policies to the `users` and `wallets` tables. Provided a backfill script to sync existing `auth.users` with the `public.users` table after a database reset.
+    *   **Invite Code UX:** Replaced non-user-friendly UUID invite codes with short, 8-character alphanumeric codes. Created a backfill script to update codes for existing users.
+    *   **Clipboard API:** Fixed a native module crash (`RNCClipboard not found`) by replacing an incorrect third-party clipboard library with the official `expo-clipboard` package, removing the need for a custom development build.
+*   **Next Step:** Continued application monitoring and stability improvements. 
