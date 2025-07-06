@@ -674,8 +674,8 @@ const styles = StyleSheet.create({
   },
   badgeCardHeader: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 8,
+    alignItems: 'center',
+    marginBottom: 12,
   },
   badgeIconAndTitle: {
     flexDirection: 'row',
@@ -689,7 +689,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF8F0',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 16,
     borderWidth: 2,
     borderColor: '#FFE0B2',
   },
@@ -719,10 +719,12 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: '#666',
     lineHeight: 18,
-    marginBottom: 12,
+    marginLeft: 64, // Align with text content
+    marginBottom: 8,
   },
   badgeFooter: {
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
+    marginLeft: 64, // Align with text content
   },
   selectedIndicator: {
     flexDirection: 'row',
