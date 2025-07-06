@@ -284,7 +284,7 @@ export default function BadgesScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Badge Collection</Text>
+        <Text style={styles.title}>Your's Badge collection </Text>
         <Text style={styles.subtitle}>
           Beautiful moments you've shared together
         </Text>
