@@ -8,15 +8,16 @@ export default function UserWelcome() {
   if (!currentUser) return null;
 
   const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
+    return 'Hi';
+  };
+
+  const getFirstName = (fullName: string) => {
+    return fullName.split(' ')[0];
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.greeting}>{getGreeting()}, {currentUser.displayName}! 🌅</Text>
+      <Text style={styles.greeting}>{getGreeting()} {getFirstName(currentUser.displayName)}! 🌅</Text>
       <Text style={styles.subtitle}>
         {currentUser.partnerName 
           ? `Ready to brighten ${currentUser.partnerName}'s day?`
