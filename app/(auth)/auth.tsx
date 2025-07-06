@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { Heart, Mail, Lock, User, Eye, EyeOff } from 'lucide-react-native';
+import { MockAuth } from '@/utils/mockAuth';
 
 export default function AuthScreen() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -31,23 +32,30 @@ export default function AuthScreen() {
 
     try {
       if (isSignUp) {
-        // Mock sign up process
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        const result = await MockAuth.signUp(email, password, displayName);
         
-        Alert.alert(
-          'Verification Email Sent',
-          'Please check your email and click the verification link to complete your registration.',
-          [
-            {
-              text: 'OK',
-              onPress: () => router.push('/(auth)/welcome'),
-            },
-          ]
-        );
+        if (result.success) {
+          Alert.alert(
+            'Verification Email Sent',
+            'Please check your email and click the verification link to complete your registration.',
+            [
+              {
+                text: 'OK',
+                onPress: () => router.push('/(auth)/welcome'),
+              },
+            ]
+          );
+        } else {
+          Alert.alert('Sign Up Failed', result.error || 'Something went wrong. Please try again.');
+        }
       } else {
-        // Mock sign in process
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        router.replace('/(tabs)');
+        const result = await MockAuth.signIn(email, password);
+        
+        if (result.success) {
+          router.replace('/(tabs)');
+        } else {
+          Alert.alert('Sign In Failed', result.error || 'Invalid email or password.');
+        }
       }
     } catch (error) {
       Alert.alert('Error', 'Something went wrong. Please try again.');
@@ -58,6 +66,14 @@ export default function AuthScreen() {
 
   const handleForgotPassword = () => {
     router.push('/(auth)/forgot-password');
+  };
+
+  const handleUseTestAccount = () => {
+    const testCreds = MockAuth.getTestCredentials();
+    setEmail(testCreds.email);
+    setPassword(testCreds.password);
+    setDisplayName(testCreds.displayName);
+    setIsSignUp(false);
   };
 
   return (
@@ -180,6 +196,10 @@ export default function AuthScreen() {
           )}
         </View>
       </ScrollView>
+        <TouchableOpacity style={styles.testAccountButton} onPress={handleUseTestAccount}>
+          <Text style={styles.testAccountText}>Use Test Account</Text>
+        </TouchableOpacity>
+
     </KeyboardAvoidingView>
   );
 }
@@ -324,5 +344,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-Medium',
     color: '#FF8C42',
+  },
+  testAccountButton: {
+    backgroundColor: '#F0F9FF',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+  },
+  testAccountText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    color: '#3B82F6',
   },
 });

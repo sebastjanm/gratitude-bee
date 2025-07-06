@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { User, Settings, Bell, Heart, Target, Calendar, Share2, CircleHelp as HelpCircle, Smartphone, LogOut } from 'lucide-react-native';
+import { MockAuth } from '@/utils/mockAuth';
 
 export default function ProfileScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -46,10 +47,19 @@ export default function ProfileScreen() {
       'Are you sure you want to sign out?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Sign Out', style: 'destructive', onPress: () => router.replace('/(auth)/auth') },
+        { 
+          text: 'Sign Out', 
+          style: 'destructive', 
+          onPress: () => {
+            MockAuth.signOut();
+            router.replace('/(auth)/auth');
+          }
+        },
       ]
     );
   };
+
+  const currentUser = MockAuth.getCurrentUser();
 
   const renderUserInfo = () => (
     <View style={styles.userInfoContainer}>
@@ -62,8 +72,10 @@ export default function ProfileScreen() {
         </View>
       </View>
       <View style={styles.userDetails}>
-        <Text style={styles.userName}>Alex Johnson</Text>
-        <Text style={styles.userSubtitle}>Connected with Sarah ❤️</Text>
+        <Text style={styles.userName}>{currentUser?.displayName || 'User'}</Text>
+        <Text style={styles.userSubtitle}>
+          {currentUser?.partnerName ? `Connected with ${currentUser.partnerName} ❤️` : 'No partner connected'}
+        </Text>
       </View>
     </View>
   );

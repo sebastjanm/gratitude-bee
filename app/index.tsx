@@ -1,8 +1,8 @@
 import { Redirect } from 'expo-router';
+import { MockAuth } from '@/utils/mockAuth';
 
 export default function Index() {
-  // In a real app, you would check authentication state here
-  const isAuthenticated = false;
+  const isAuthenticated = MockAuth.isAuthenticated();
   
   if (isAuthenticated) {
     return <Redirect href="/(tabs)" />;

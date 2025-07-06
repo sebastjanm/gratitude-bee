@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { ArrowLeft, Mail, CircleCheck as CheckCircle } from 'lucide-react-native';
+import { MockAuth } from '@/utils/mockAuth';
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
@@ -24,9 +25,13 @@ export default function ForgotPasswordScreen() {
     setLoading(true);
     
     try {
-      // Mock password reset process
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setEmailSent(true);
+      const result = await MockAuth.sendPasswordReset(email);
+      
+      if (result.success) {
+        setEmailSent(true);
+      } else {
+        Alert.alert('Error', result.error || 'Something went wrong. Please try again.');
+      }
     } catch (error) {
       Alert.alert('Error', 'Something went wrong. Please try again.');
     } finally {

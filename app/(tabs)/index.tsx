@@ -13,6 +13,7 @@ import {
 import { Heart, Star, Smile, Compass, MessageCircle, Flame, Bug, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, Crown, Chrome as Home } from 'lucide-react-native';
 import NegativeBadgeModal from '@/components/NegativeBadgeModal';
 import DontPanicModal from '@/components/DontPanicModal';
+import UserWelcome from '@/components/UserWelcome';
 
 const { width } = Dimensions.get('window');
 
@@ -250,10 +251,7 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.welcomeText}>Good morning! 🌅</Text>
-          <Text style={styles.headerSubtitle}>
-            Ready to brighten your partner's day?
-          </Text>
+          <UserWelcome />
         </View>
 
         {renderStreakCard()}
