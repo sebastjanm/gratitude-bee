@@ -9,6 +9,7 @@ import {
   Platform,
   Dimensions,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { ChartBar as BarChart3, TrendingUp, Calendar, Award, Heart, Bug, Target, Zap, Clock, Users } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
@@ -49,6 +50,12 @@ const mockMonthlyStats = {
   favoriteCategory: 'Humor',
   partnerFavoriteCategory: 'Kindness',
 };
+
+const periodFilters = [
+  { id: 'week', name: 'This Week', icon: Calendar },
+  { id: 'month', name: 'This Month', icon: Calendar },
+  { id: 'all', name: 'All Time', icon: Clock },
+];
 
 export default function AnalyticsScreen() {
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'all'>('month');
@@ -97,24 +104,64 @@ export default function AnalyticsScreen() {
   ];
 
   const renderPeriodSelector = () => (
-    <View style={styles.periodSelector}>
-      {(['week', 'month', 'all'] as const).map((period) => (
-        <TouchableOpacity
-          key={period}
-          style={[
-            styles.periodButton,
-            selectedPeriod === period && styles.selectedPeriodButton,
-          ]}
-          onPress={() => setSelectedPeriod(period)}>
-          <Text
-            style={[
-              styles.periodButtonText,
-              selectedPeriod === period && styles.selectedPeriodButtonText,
-            ]}>
-            {period === 'week' ? 'This Week' : period === 'month' ? 'This Month' : 'All Time'}
-          </Text>
-        </TouchableOpacity>
-      ))}
+    <View style={styles.categoryFilterContainer}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.categoryFilter}
+        contentContainerStyle={styles.categoryFilterContent}
+        decelerationRate="fast"
+        snapToInterval={88}
+        snapToAlignment="start">
+        {periodFilters.map((filter, index) => {
+          const IconComponent = filter.icon;
+          const isSelected = selectedPeriod === filter.id;
+          return (
+            <TouchableOpacity
+              key={filter.id}
+              style={[
+                styles.categoryFilterItem,
+                isSelected && styles.selectedCategoryFilter,
+                index === 0 && styles.firstCategoryItem,
+                index === periodFilters.length - 1 && styles.lastCategoryItem,
+              ]}
+              onPress={() => setSelectedPeriod(filter.id as typeof selectedPeriod)}
+              activeOpacity={0.7}>
+              <IconComponent
+                color={isSelected ? 'white' : '#666'}
+                size={16}
+                strokeWidth={isSelected ? 2.5 : 2}
+              />
+              <Text
+                style={[
+                  styles.categoryFilterText,
+                  isSelected && styles.selectedCategoryFilterText,
+                ]}
+                numberOfLines={1}>
+                {filter.name}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+      
+      {/* Scroll indicators */}
+      <View style={styles.scrollIndicators}>
+        <LinearGradient
+          colors={['rgba(255,248,240,0.8)', 'transparent']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.leftScrollIndicator}
+          pointerEvents="none"
+        />
+        <LinearGradient
+          colors={['transparent', 'rgba(255,248,240,0.8)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.rightScrollIndicator}
+          pointerEvents="none"
+        />
+      </View>
     </View>
   );
 
@@ -336,36 +383,89 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  periodSelector: {
-    flexDirection: 'row',
+  categoryFilterContainer: {
     marginHorizontal: 20,
     marginBottom: 24,
+    position: 'relative',
+  },
+  categoryFilter: {
+    flex: 1,
+  },
+  categoryFilterContent: {
+    paddingHorizontal: 0,
+    paddingVertical: 4,
+  },
+  categoryFilterItem: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: 'white',
     borderRadius: 12,
-    padding: 4,
+    width: 88,
+    height: 52,
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+    minHeight: 44,
   },
-  periodButton: {
-    flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    alignItems: 'center',
+  firstCategoryItem: {
+    marginLeft: 0,
   },
-  selectedPeriodButton: {
+  lastCategoryItem: {
+    marginRight: 20,
+  },
+  selectedCategoryFilter: {
     backgroundColor: '#FF8C42',
+    borderColor: '#FF8C42',
+    shadowColor: '#FF8C42',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+    transform: [{ scale: 1.02 }],
   },
-  periodButtonText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
+  categoryFilterText: {
+    fontSize: 11,
+    fontFamily: 'Inter-SemiBold',
     color: '#666',
+    marginTop: 3,
+    textAlign: 'center',
+    lineHeight: 13,
+    paddingHorizontal: 2,
   },
-  selectedPeriodButtonText: {
+  selectedCategoryFilterText: {
     color: 'white',
+  },
+  scrollIndicators: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    pointerEvents: 'none',
+  },
+  leftScrollIndicator: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 24,
+    borderTopRightRadius: 12,
+    borderBottomRightRadius: 12,
+  },
+  rightScrollIndicator: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: 24,
+    borderTopLeftRadius: 12,
+    borderBottomLeftRadius: 12,
   },
   statsGrid: {
     flexDirection: 'row',
