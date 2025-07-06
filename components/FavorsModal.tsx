@@ -9,7 +9,7 @@ import {
   TextInput,
   Dimensions,
 } from 'react-native';
-import { X, HandHeart, Coffee, ShoppingCart, Car, Home, Utensils, Gift, Plus, Coins } from 'lucide-react-native';
+import { X, HandHeart, Coffee, ShoppingCart, Car, Chrome as Home, Utensils, Gift, Plus, Coins } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
