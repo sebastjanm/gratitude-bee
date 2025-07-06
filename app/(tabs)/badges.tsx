@@ -314,7 +314,10 @@ export default function BadgesScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Your's Badge collection </Text>
+        <View style={styles.headerContent}>
+          <Award color="#FF8C42" size={28} />
+          <Text style={styles.title}>Badge Collection</Text>
+        </View>
         <Text style={styles.subtitle}>
           Beautiful moments you've shared together
         </Text>
@@ -352,11 +355,16 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'ios' ? 10 : 40,
     paddingBottom: 20,
   },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
   title: {
     fontSize: 28,
     fontFamily: 'Inter-Bold',
     color: '#333',
-    marginBottom: 8,
+    marginLeft: 12,
   },
   subtitle: {
     fontSize: 16,

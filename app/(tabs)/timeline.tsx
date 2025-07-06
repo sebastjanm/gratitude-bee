@@ -10,7 +10,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Heart, Star, Smile, Compass, MessageCircle, Filter, Calendar, Bug, X, CircleCheck as CheckCircle, Crown, Chrome as Home } from 'lucide-react-native';
+import { Heart, Star, Smile, Compass, MessageCircle, Filter, Calendar, Bug, X, CircleCheck as CheckCircle, Crown, Chrome as Home, Clock } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -336,7 +336,10 @@ export default function TimelineScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Appreciation Timeline</Text>
+        <View style={styles.headerContent}>
+          <Clock color="#FF8C42" size={28} />
+          <Text style={styles.title}>Appreciation Timeline</Text>
+        </View>
         <Text style={styles.subtitle}>
           Your beautiful journey together
         </Text>
@@ -377,11 +380,16 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'ios' ? 10 : 40,
     paddingBottom: 20,
   },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
   title: {
     fontSize: 28,
     fontFamily: 'Inter-Bold',
     color: '#333',
-    marginBottom: 8,
+    marginLeft: 12,
   },
   subtitle: {
     fontSize: 16,

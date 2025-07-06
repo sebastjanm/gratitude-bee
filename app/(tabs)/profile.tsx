@@ -142,7 +142,10 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Profile</Text>
+        <View style={styles.headerContent}>
+          <User color="#FF8C42" size={28} />
+          <Text style={styles.title}>Profile</Text>
+        </View>
         <TouchableOpacity style={styles.settingsButton}>
           <Settings color="#666" size={24} />
         </TouchableOpacity>
@@ -259,10 +262,15 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'ios' ? 10 : 40,
     paddingBottom: 20,
   },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   title: {
     fontSize: 28,
     fontFamily: 'Inter-Bold',
     color: '#333',
+    marginLeft: 12,
   },
   settingsButton: {
     padding: 8,
