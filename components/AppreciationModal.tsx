@@ -124,6 +124,22 @@ const appreciationCategories: SubCategory[] = [
     color: '#FFD93D',
     badges: [
       {
+        id: 'lol',
+        title: 'LOL',
+        description: 'Simple moment of laughter',
+        beeCount: 1,
+        icon: '😄',
+        tier: 'bronze',
+      },
+      {
+        id: 'rofl',
+        title: 'ROFL',
+        description: 'Rolling on the floor laughing',
+        beeCount: 3,
+        icon: '😄',
+        tier: 'silver',
+      },
+      {
         id: 'made-me-laugh',
         title: 'Made Me Laugh',
         description: 'Bringing joy with perfect timing',
@@ -203,6 +219,22 @@ const appreciationCategories: SubCategory[] = [
     icon: MessageCircle,
     color: '#A8E6CF',
     badges: [
+      {
+        id: 'you-are-everything',
+        title: 'You Are My Everything',
+        description: 'Complete devotion and love',
+        beeCount: 3,
+        icon: '❤️',
+        tier: 'gold',
+      },
+      {
+        id: 'thinking-of-you',
+        title: 'Thinking Of You',
+        description: 'Constant presence in thoughts',
+        beeCount: 1,
+        icon: '💓',
+        tier: 'silver',
+      },
       {
         id: 'sweet-message',
         title: 'Sweet Message',
