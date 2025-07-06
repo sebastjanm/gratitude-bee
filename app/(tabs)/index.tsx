@@ -419,6 +419,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: '#666',
     textAlign: 'center',
+  }
   appreciationButton: {
     backgroundColor: 'white',
     borderRadius: 16,
