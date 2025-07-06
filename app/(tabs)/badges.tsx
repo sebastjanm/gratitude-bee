@@ -9,6 +9,7 @@ import {
   Platform,
   Dimensions,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Heart, Star, Smile, Compass, MessageCircle, Trophy, Award, Bug, X, CircleCheck as CheckCircle, Crown, Chrome as Home } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
@@ -224,8 +225,20 @@ export default function BadgesScreen() {
       
       {/* Scroll indicators */}
       <View style={styles.scrollIndicators}>
-        <View style={styles.leftScrollIndicator} />
-        <View style={styles.rightScrollIndicator} />
+        <LinearGradient
+          colors={['rgba(255,248,240,0.8)', 'transparent']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.leftScrollIndicator}
+          pointerEvents="none"
+        />
+        <LinearGradient
+          colors={['transparent', 'rgba(255,248,240,0.8)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.rightScrollIndicator}
+          pointerEvents="none"
+        />
       </View>
     </View>
   );
@@ -456,7 +469,6 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 20,
-    background: 'linear-gradient(to right, rgba(255,248,240,0.8), transparent)',
     borderTopRightRadius: 10,
     borderBottomRightRadius: 10,
   },
@@ -466,7 +478,6 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 20,
-    background: 'linear-gradient(to left, rgba(255,248,240,0.8), transparent)',
     borderTopLeftRadius: 10,
     borderBottomLeftRadius: 10,
   },
