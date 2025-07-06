@@ -9,7 +9,7 @@ import {
   Platform,
   Dimensions,
 } from 'react-native';
-import { BarChart3, TrendingUp, Calendar, Award, Heart, Bug, Target, Zap, Clock, Users } from 'lucide-react-native';
+import { ChartBar as BarChart3, TrendingUp, Calendar, Award, Heart, Bug, Target, Zap, Clock, Users } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
