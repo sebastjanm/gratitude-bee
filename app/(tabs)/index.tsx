@@ -240,8 +240,6 @@ export default function HomeScreen() {
 
   const renderQuickSend = () => (
     <View style={styles.quickSendContainer}>
-      <Text style={styles.sectionTitle}>Send Appreciation</Text>
-      
       <TouchableOpacity
         style={styles.appreciationButton}
         onPress={() => setShowAppreciationModal(true)}
@@ -421,12 +419,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: '#666',
     textAlign: 'center',
-    lineHeight: 20,
-  },
-  quickSendContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 24,
-  },
   appreciationButton: {
     backgroundColor: 'white',
     borderRadius: 16,
