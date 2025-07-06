@@ -16,6 +16,7 @@ import { MockAuth } from '@/utils/mockAuth';
 
 export default function ProfileScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [nudgesEnabled, setNudgesEnabled] = useState(false);
   const [reminderTime, setReminderTime] = useState('09:00');
   const [weeklyGoal, setWeeklyGoal] = useState(21);
 
@@ -182,6 +183,18 @@ export default function ProfileScreen() {
                 onValueChange={setNotificationsEnabled}
                 trackColor={{ false: '#E0E0E0', true: '#FF8C42' }}
                 thumbColor={notificationsEnabled ? '#FFF' : '#FFF'}
+              />
+            )}
+            {renderSettingsItem(
+              Heart,
+              'Send a Nudge',
+              'Random reminders to think about your partner (9 AM - 8 PM)',
+              undefined,
+              <Switch
+                value={nudgesEnabled}
+                onValueChange={setNudgesEnabled}
+                trackColor={{ false: '#E0E0E0', true: '#FF8C42' }}
+                thumbColor={nudgesEnabled ? '#FFF' : '#FFF'}
               />
             )}
             {renderSettingsItem(
