@@ -490,10 +490,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'white',
     borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     marginRight: 8,
     borderWidth: 1,
+    minHeight: 44, // Apple HIG minimum touch target
   },
   selectedCategoryFilter: {
     backgroundColor: '#FF8C42',
@@ -514,13 +515,14 @@ const styles = StyleSheet.create({
   customFavorButton: {
     backgroundColor: 'white',
     borderRadius: 16,
-    padding: 16,
+    padding: 20,
     marginBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 2,
     borderColor: '#FFE0B2',
     borderStyle: 'dashed',
+    minHeight: 88, // Ensures 44pt minimum touch target with padding
   },
   customFavorIcon: {
     width: 48,
@@ -548,7 +550,7 @@ const styles = StyleSheet.create({
   favorCard: {
     backgroundColor: 'white',
     borderRadius: 16,
-    padding: 16,
+    padding: 20,
     marginBottom: 12,
     borderWidth: 2,
     borderColor: 'transparent',
@@ -557,6 +559,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
+    minHeight: 88, // Ensures 44pt minimum touch target with padding
   },
   selectedFavorCard: {
     borderColor: '#FF8C42',
@@ -565,7 +568,8 @@ const styles = StyleSheet.create({
   favorCardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
+    minHeight: 48, // Additional height for better touch experience
   },
   favorIcon: {
     width: 48,
@@ -705,10 +709,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'white',
     borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderWidth: 1,
     borderColor: '#E0E0E0',
+    minHeight: 44, // Apple HIG minimum touch target
+    minWidth: 44,  // Apple HIG minimum touch target
   },
   selectedPointsOption: {
     backgroundColor: '#FF8C42',
