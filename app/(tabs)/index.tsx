@@ -9,6 +9,8 @@ import {
   Platform,
   Dimensions,
   Alert,
+  Animated,
+  Easing,
 } from 'react-native';
 import { Heart, Star, Smile, Compass, MessageCircle, Flame, Bug, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, Crown, Chrome as Home } from 'lucide-react-native';
 import NegativeBadgeModal from '@/components/NegativeBadgeModal';
@@ -125,6 +127,31 @@ export default function HomeScreen() {
   const [showDontPanicModal, setShowDontPanicModal] = useState(false);
   const [showAppreciationModal, setShowAppreciationModal] = useState(false);
   const [showRelationshipWisdomModal, setShowRelationshipWisdomModal] = useState(false);
+  const [heartAnimation] = useState(new Animated.Value(1));
+
+  React.useEffect(() => {
+    const animateHeart = () => {
+      Animated.sequence([
+        Animated.timing(heartAnimation, {
+          toValue: 1.2,
+          duration: 800,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(heartAnimation, {
+          toValue: 1,
+          duration: 800,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        // Repeat animation after a pause
+        setTimeout(animateHeart, 2000);
+      });
+    };
+
+    animateHeart();
+  }, [heartAnimation]);
 
   const handleSendBadge = (categoryId: string, badgeId?: string, badgeTitle?: string) => {
     // Mock badge sending - in real app this would sync with partner
@@ -245,8 +272,13 @@ export default function HomeScreen() {
         onPress={() => setShowAppreciationModal(true)}
         activeOpacity={0.8}>
         <View style={styles.appreciationButtonContent}>
-          <Heart color="#FF8C42" size={24} />
-          <Text style={styles.appreciationButtonText}>Choose Appreciation Badge</Text>
+          <Animated.View style={[
+            styles.animatedHeartContainer,
+            { transform: [{ scale: heartAnimation }] }
+          ]}>
+            <Heart color="#FF8C42" size={24} fill="#FF8C42" />
+          </Animated.View>
+          <Text style={styles.appreciationButtonText}>Send Appreciation</Text>
         </View>
         <Text style={styles.appreciationButtonSubtext}>
           Browse categories and select the perfect badge
@@ -443,11 +475,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 8,
   },
+  animatedHeartContainer: {
+    marginRight: 12,
+  },
   appreciationButtonText: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
     color: '#FF8C42',
-    marginLeft: 12,
   },
   appreciationButtonSubtext: {
     fontSize: 14,
