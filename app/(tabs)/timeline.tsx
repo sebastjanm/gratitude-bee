@@ -150,6 +150,7 @@ const mockEvents: TimelineEvent[] = [
     color: '#F87171',
   },
   { id: 'dont-panic', name: 'Don\'t Panic', icon: Heart },
+  { id: 'relationship-wisdom', name: 'Relationship Wisdom', icon: Crown },
 ];
 
 export default function TimelineScreen() {

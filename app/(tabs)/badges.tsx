@@ -149,11 +149,9 @@ const categories = [
   { id: 'adventure', name: 'Adventure', icon: Compass },
   { id: 'words', name: 'Love Notes', icon: MessageCircle },
   { id: 'hornet', name: 'Hornets', icon: Bug },
-  { id: 'whatever-you-say', name: 'Whatever You Say', icon: CheckCircle },
-  { id: 'yes-dear', name: 'Yes Dear', icon: Crown },
-  { id: 'happy-wife', name: 'Happy Wife', icon: Home },
   { id: 'dont-panic', name: 'Don\'t Panic', icon: Heart },
   { id: 'im-sorry', name: 'I\'m Sorry', icon: Heart },
+  { id: 'relationship-wisdom', name: 'Relationship Wisdom', icon: Crown },
 ];
 
 export default function BadgesScreen() {

@@ -15,6 +15,7 @@ import NegativeBadgeModal from '@/components/NegativeBadgeModal';
 import DontPanicModal from '@/components/DontPanicModal';
 import UserWelcome from '@/components/UserWelcome';
 import AppreciationModal from '@/components/AppreciationModal';
+import RelationshipWisdomModal from '@/components/RelationshipWisdomModal';
 
 const { width } = Dimensions.get('window');
 
@@ -123,6 +124,7 @@ export default function HomeScreen() {
   const [showNegativeModal, setShowNegativeModal] = useState(false);
   const [showDontPanicModal, setShowDontPanicModal] = useState(false);
   const [showAppreciationModal, setShowAppreciationModal] = useState(false);
+  const [showRelationshipWisdomModal, setShowRelationshipWisdomModal] = useState(false);
 
   const handleSendBadge = (categoryId: string, badgeId?: string, badgeTitle?: string) => {
     // Mock badge sending - in real app this would sync with partner
@@ -158,6 +160,17 @@ export default function HomeScreen() {
     Alert.alert(
       'Don\'t Panic Sent',
       'Your calming message has been sent to your partner.',
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleSendWisdom = (wisdomId: string, wisdomTitle: string) => {
+    // Mock wisdom sending - in real app this would sync with partner
+    console.log(`Sending ${wisdomTitle} wisdom to partner`);
+    
+    Alert.alert(
+      'Wisdom Sent',
+      `Your "${wisdomTitle}" response has been sent to your partner.`,
       [{ text: 'OK' }]
     );
   };
@@ -247,6 +260,9 @@ export default function HomeScreen() {
       
       <View style={styles.divider} />
       {renderDontPanicButton()}
+      
+      <View style={styles.divider} />
+      {renderRelationshipWisdomButton()}
     </View>
   );
 
@@ -261,6 +277,21 @@ export default function HomeScreen() {
       </View>
       <Text style={styles.dontPanicButtonSubtext}>
         Send calm reassurance after stress
+      </Text>
+    </TouchableOpacity>
+  );
+
+  const renderRelationshipWisdomButton = () => (
+    <TouchableOpacity
+      style={styles.relationshipWisdomButton}
+      onPress={() => setShowRelationshipWisdomModal(true)}
+      activeOpacity={0.8}>
+      <View style={styles.relationshipWisdomButtonContent}>
+        <Crown color="#8B5CF6" size={20} />
+        <Text style={styles.relationshipWisdomButtonText}>Relationship Wisdom</Text>
+      </View>
+      <Text style={styles.relationshipWisdomButtonSubtext}>
+        "Whatever you say", "Yes dear", "I'm sorry"
       </Text>
     </TouchableOpacity>
   );
@@ -301,6 +332,12 @@ export default function HomeScreen() {
         visible={showAppreciationModal}
         onClose={() => setShowAppreciationModal(false)}
         onSendBadge={handleSendBadge}
+      />
+      
+      <RelationshipWisdomModal
+        visible={showRelationshipWisdomModal}
+        onClose={() => setShowRelationshipWisdomModal(false)}
+        onSendWisdom={handleSendWisdom}
       />
     </SafeAreaView>
   );
@@ -569,6 +606,31 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   dontPanicButtonSubtext: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    color: '#999',
+    textAlign: 'center',
+  },
+  relationshipWisdomButton: {
+    backgroundColor: '#F8F7FF',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 2,
+    borderColor: '#E5E3FF',
+  },
+  relationshipWisdomButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  relationshipWisdomButtonText: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#8B5CF6',
+    marginLeft: 8,
+  },
+  relationshipWisdomButtonSubtext: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
     color: '#999',
