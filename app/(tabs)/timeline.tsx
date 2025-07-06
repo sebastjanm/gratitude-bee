@@ -320,8 +320,6 @@ export default function TimelineScreen() {
         </Text>
       </View>
 
-      {renderStats()}
-      
       <View style={styles.filterContainer}>
         {renderFilterButton()}
         {renderFilters()}
@@ -367,42 +365,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: '#666',
     lineHeight: 24,
-  },
-  statsContainer: {
-    backgroundColor: 'white',
-    marginHorizontal: 20,
-    marginBottom: 20,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  statsTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginBottom: 16,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 24,
-    fontFamily: 'Inter-Bold',
-    color: '#FF8C42',
-  },
-  statLabel: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    color: '#666',
-    marginTop: 4,
   },
   filterContainer: {
     paddingHorizontal: 20,
@@ -574,8 +536,5 @@ const styles = StyleSheet.create({
   negativeMessageContainer: {
     backgroundColor: '#FFF5F5',
     borderLeftColor: '#FF4444',
-  },
-  negativeStatNumber: {
-    color: '#FF4444',
   },
 });
