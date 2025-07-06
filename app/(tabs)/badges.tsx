@@ -156,12 +156,10 @@ const categories = [
 
 export default function BadgesScreen() {
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedTier, setSelectedTier] = useState<string | null>(null);
 
   const filteredBadges = mockBadges.filter(badge => {
     const categoryMatch = selectedCategory === 'all' || badge.category === selectedCategory;
-    const tierMatch = !selectedTier || badge.tier === selectedTier;
-    return categoryMatch && tierMatch;
+    return categoryMatch;
   });
 
   const getTierColor = (tier: string) => {
@@ -200,7 +198,7 @@ export default function BadgesScreen() {
             onPress={() => setSelectedCategory(category.id)}>
             <IconComponent
               color={selectedCategory === category.id ? 'white' : '#666'}
-              size={18}
+              size={14}
             />
             <Text
               style={[
@@ -213,29 +211,6 @@ export default function BadgesScreen() {
         );
       })}
     </ScrollView>
-  );
-
-  const renderTierFilter = () => (
-    <View style={styles.tierFilter}>
-      {['bronze', 'silver', 'gold'].map((tier) => (
-        <TouchableOpacity
-          key={tier}
-          style={[
-            styles.tierFilterItem,
-            selectedTier === tier && styles.selectedTierFilter,
-          ]}
-          onPress={() => setSelectedTier(selectedTier === tier ? null : tier)}>
-          <Text style={styles.tierEmoji}>{getTierIcon(tier)}</Text>
-          <Text
-            style={[
-              styles.tierFilterText,
-              selectedTier === tier && styles.selectedTierFilterText,
-            ]}>
-            {tier.charAt(0).toUpperCase() + tier.slice(1)}
-          </Text>
-        </TouchableOpacity>
-      ))}
-    </View>
   );
 
   const renderBadge = (badge: Badge) => {
@@ -320,7 +295,6 @@ export default function BadgesScreen() {
 
       {renderStats()}
       {renderCategoryFilter()}
-      {renderTierFilter()}
 
       <ScrollView style={styles.badgesList} showsVerticalScrollIndicator={false}>
         {filteredBadges.length > 0 ? (
@@ -409,10 +383,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'white',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginRight: 12,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginRight: 8,
     borderWidth: 1,
     borderColor: '#E0E0E0',
   },
@@ -421,45 +395,13 @@ const styles = StyleSheet.create({
     borderColor: '#FF8C42',
   },
   categoryFilterText: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'Inter-Medium',
     color: '#666',
-    marginLeft: 8,
+    marginLeft: 6,
   },
   selectedCategoryFilterText: {
     color: 'white',
-  },
-  tierFilter: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-  tierFilterItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginRight: 12,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  selectedTierFilter: {
-    backgroundColor: '#FFF3E0',
-    borderColor: '#FFD93D',
-  },
-  tierEmoji: {
-    fontSize: 16,
-  },
-  tierFilterText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#666',
-    marginLeft: 8,
-  },
-  selectedTierFilterText: {
-    color: '#FF8C42',
   },
   badgesList: {
     flex: 1,
