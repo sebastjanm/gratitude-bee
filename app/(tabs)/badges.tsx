@@ -9,7 +9,7 @@ import {
   Platform,
   Dimensions,
 } from 'react-native';
-import { Heart, Star, Smile, Compass, MessageCircle, Trophy, Award, Bug, X, CheckCircle, Crown, Home } from 'lucide-react-native';
+import { Heart, Star, Smile, Compass, MessageCircle, Trophy, Award, Bug, X, CircleCheck as CheckCircle, Crown, Chrome as Home } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 

@@ -1,4 +1,4 @@
-import { Heart, Star, Smile, Compass, MessageCircle, Bug, Crown, CheckCircle, Home } from 'lucide-react-native';
+import { Heart, Star, Smile, Compass, MessageCircle, Bug, Crown, CircleCheck as CheckCircle, Chrome as Home } from 'lucide-react-native';
 import { BadgeCategory } from '@/types/badge';
 
 export const BADGE_CATEGORIES: BadgeCategory[] = [
