@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Heart, Star, Smile, Compass, MessageCircle, Filter, Calendar, Bug, X, CircleCheck as CheckCircle, Crown, Chrome as Home } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 
@@ -194,7 +195,28 @@ export default function TimelineScreen() {
           return (
             <TouchableOpacity
               key={filterOption}
-              style={[
+              <Text
+                style={[
+                  styles.categoryFilterText,
+                  isSelected && styles.selectedCategoryFilterText,
+                ]}
+                numberOfLines={1}>
+                {filterOption === 'all' ? 'All Events' : filterOption.charAt(0).toUpperCase() + filterOption.slice(1)}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+      
+      {/* Scroll indicators */}
+      <View style={styles.scrollIndicators}>
+        <LinearGradient
+          colors={['rgba(255,248,240,0.8)', 'transparent']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.leftScrollIndicator}
+          pointerEvents="none"
+        />
                 styles.categoryFilterItem,
                 isSelected && styles.selectedCategoryFilter,
                 index === 0 && styles.firstCategoryItem,
@@ -342,8 +364,9 @@ export default function TimelineScreen() {
         </Text>
       </View>
 
+      {renderStats()}
+      
       <View style={styles.filterContainer}>
-        {renderFilterButton()}
       </View>
 
       <ScrollView style={styles.timeline} showsVerticalScrollIndicator={false}>
@@ -386,6 +409,42 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: '#666',
     lineHeight: 24,
+  },
+  statsContainer: {
+    backgroundColor: 'white',
+    marginHorizontal: 20,
+    marginBottom: 20,
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  statsTitle: {
+    fontSize: 18,
+    fontFamily: 'Inter-SemiBold',
+    color: '#333',
+    marginBottom: 16,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 24,
+    fontFamily: 'Inter-Bold',
+    color: '#FF8C42',
+  },
+  statLabel: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    color: '#666',
+    marginTop: 4,
   },
   filterContainer: {
     paddingHorizontal: 20,
@@ -474,24 +533,83 @@ const styles = StyleSheet.create({
     width: 24,
     borderTopLeftRadius: 12,
     borderBottomLeftRadius: 12,
+    position: 'relative',
   },
-  filterButton: {
-    flexDirection: 'row',
+  categoryFilter: {
+    flex: 1,
+  },
+  categoryFilterContent: {
+    paddingHorizontal: 0,
+    paddingVertical: 4,
+  },
+  categoryFilterContainer: {
+    position: 'relative',
+  },
+  categoryFilterItem: {
+    flexDirection: 'column',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: 'white',
     borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    width: 88,
+    height: 52, // Increased height for better touch target (44pt minimum)
+    marginRight: 12,
     borderWidth: 1,
     borderColor: '#E0E0E0',
-    alignSelf: 'flex-start',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+    // Minimum 44pt touch target as per Apple HIG
+    minHeight: 44,
   },
-  filterButtonText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
+  firstCategoryItem: {
+    marginLeft: 0,
+  },
+  lastCategoryItem: {
+    marginRight: 20,
+  },
+  selectedCategoryFilter: {
+    backgroundColor: '#FF8C42',
+    borderColor: '#FF8C42',
+    shadowColor: '#FF8C42',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+    transform: [{ scale: 1.02 }],
+  },
+  categoryFilterText: {
+    fontSize: 11,
+    fontFamily: 'Inter-SemiBold',
     color: '#666',
-    marginLeft: 8,
+    marginTop: 3,
+    textAlign: 'center',
+    lineHeight: 13,
+    paddingHorizontal: 2,
   },
+  selectedCategoryFilterText: {
+    color: 'white',
+  },
+  scrollIndicators: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    pointerEvents: 'none',
+  },
+  leftScrollIndicator: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 24,
+    borderTopRightRadius: 12,
+    borderBottomRightRadius: 12,
+  },
+  rightScrollIndicator: {
   timeline: {
     flex: 1,
     paddingHorizontal: 20,
@@ -616,5 +734,8 @@ const styles = StyleSheet.create({
   negativeMessageContainer: {
     backgroundColor: '#FFF5F5',
     borderLeftColor: '#FF4444',
+  },
+  negativeStatNumber: {
+    color: '#FF4444',
   },
 });
