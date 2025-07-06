@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,9 +8,12 @@ import {
   ScrollView,
   TextInput,
   Dimensions,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
-import { X, HandHeart, Coffee, ShoppingCart, Car, Chrome as Home, Utensils, Gift, Plus, Coins } from 'lucide-react-native';
+import { X, HandHeart, Coffee, ShoppingCart, Car, Home as HomeIcon, Utensils, Gift, Plus, Coins } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { supabase } from '@/utils/supabase';
 
 const { width } = Dimensions.get('window');
 
@@ -24,6 +27,27 @@ interface FavorOption {
   category: 'food' | 'errands' | 'help' | 'treats';
 }
 
+const categoryDetails = {
+  all: { name: 'All Favors', icon: HandHeart, color: '#FF8C42' },
+  food: { name: 'Food & Drinks', icon: Coffee, color: '#8B4513' },
+  errands: { name: 'Errands', icon: ShoppingCart, color: '#4ECDC4' },
+  help: { name: 'Home Help', icon: HomeIcon, color: '#FFEAA7' },
+  treats: { name: 'Treats', icon: Gift, color: '#FF69B4' },
+};
+
+const getIconComponent = (iconName: string) => {
+  const iconMap: { [key: string]: any } = {
+    Coffee,
+    Utensils,
+    Gift,
+    ShoppingCart,
+    Car,
+    HandHeart,
+    HomeIcon,
+  };
+  return iconMap[iconName] || HandHeart;
+};
+
 interface FavorsModalProps {
   visible: boolean;
   onClose: () => void;
@@ -31,120 +55,14 @@ interface FavorsModalProps {
   currentFavorPoints: number;
 }
 
-const favorOptions: FavorOption[] = [
-  // Food & Drinks
-  {
-    id: 'bring-coffee',
-    title: 'Bring Me Coffee',
-    description: 'A perfect cup of coffee, just the way I like it',
-    points: 5,
-    icon: Coffee,
-    color: '#8B4513',
-    category: 'food',
-  },
-  {
-    id: 'cook-dinner',
-    title: 'Cook Dinner Tonight',
-    description: 'Surprise me with a delicious home-cooked meal',
-    points: 15,
-    icon: Utensils,
-    color: '#FF6B35',
-    category: 'food',
-  },
-  {
-    id: 'order-food',
-    title: 'Order My Favorite Food',
-    description: 'I\'m craving something special, please order it',
-    points: 10,
-    icon: Gift,
-    color: '#FF8C42',
-    category: 'food',
-  },
-  
-  // Errands & Shopping
-  {
-    id: 'grocery-shopping',
-    title: 'Go Grocery Shopping',
-    description: 'Pick up groceries from our shopping list',
-    points: 12,
-    icon: ShoppingCart,
-    color: '#4ECDC4',
-    category: 'errands',
-  },
-  {
-    id: 'pick-me-up',
-    title: 'Pick Me Up',
-    description: 'Come get me from this location',
-    points: 8,
-    icon: Car,
-    color: '#45B7D1',
-    category: 'errands',
-  },
-  {
-    id: 'run-errand',
-    title: 'Run a Quick Errand',
-    description: 'Help me with a small task or errand',
-    points: 7,
-    icon: HandHeart,
-    color: '#96CEB4',
-    category: 'errands',
-  },
-  
-  // Home Help
-  {
-    id: 'clean-kitchen',
-    title: 'Clean the Kitchen',
-    description: 'Take care of the dishes and tidy up',
-    points: 10,
-    icon: Home,
-    color: '#FFEAA7',
-    category: 'help',
-  },
-  {
-    id: 'help-with-chores',
-    title: 'Help with Chores',
-    description: 'Lend a hand with household tasks',
-    points: 8,
-    icon: HandHeart,
-    color: '#DDA0DD',
-    category: 'help',
-  },
-  
-  // Treats & Special
-  {
-    id: 'ice-cream',
-    title: 'Bring Me Ice Cream',
-    description: 'I need something sweet and cold',
-    points: 6,
-    icon: Gift,
-    color: '#FFB6C1',
-    category: 'treats',
-  },
-  {
-    id: 'surprise-treat',
-    title: 'Surprise Me with a Treat',
-    description: 'Something special to brighten my day',
-    points: 12,
-    icon: Gift,
-    color: '#FF69B4',
-    category: 'treats',
-  },
-];
-
-const categoryFilters = [
-  { id: 'all', name: 'All Favors', icon: HandHeart, color: '#FF8C42' },
-  { id: 'food', name: 'Food & Drinks', icon: Coffee, color: '#8B4513' },
-  { id: 'errands', name: 'Errands', icon: ShoppingCart, color: '#4ECDC4' },
-  { id: 'help', name: 'Home Help', icon: Home, color: '#FFEAA7' },
-  { id: 'treats', name: 'Treats', icon: Gift, color: '#FF69B4' },
-];
-
 export default function FavorsModal({
   visible,
   onClose,
   onSendFavor,
   currentFavorPoints,
 }: FavorsModalProps) {
+  const [favorTemplates, setFavorTemplates] = useState<FavorOption[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedFavor, setSelectedFavor] = useState<FavorOption | null>(null);
   const [customMessage, setCustomMessage] = useState('');
@@ -152,7 +70,25 @@ export default function FavorsModal({
   const [customFavorTitle, setCustomFavorTitle] = useState('');
   const [customFavorPoints, setCustomFavorPoints] = useState(5);
 
-  const filteredFavors = favorOptions.filter(favor => 
+  useEffect(() => {
+    if (visible) {
+      fetchFavorTemplates();
+    }
+  }, [visible]);
+
+  const fetchFavorTemplates = async () => {
+    setLoading(true);
+    const { data, error } = await supabase.from('favor_templates').select('*');
+    if (error) {
+      Alert.alert('Error', 'Could not fetch favor options.');
+      console.error(error);
+    } else {
+      setFavorTemplates(data);
+    }
+    setLoading(false);
+  };
+
+  const filteredFavors = favorTemplates.filter(favor => 
     selectedCategory === 'all' || favor.category === selectedCategory
   );
 
@@ -190,19 +126,17 @@ export default function FavorsModal({
         decelerationRate="fast"
         snapToInterval={88} // Width of button + margin
         snapToAlignment="start">
-        {categoryFilters.map((category, index) => {
-          const IconComponent = category.icon;
-          const isSelected = selectedCategory === category.id;
+        {Object.entries(categoryDetails).map(([id, { name, icon, color }]) => {
+          const IconComponent = icon;
+          const isSelected = selectedCategory === id;
           return (
             <TouchableOpacity
-              key={category.id}
+              key={id}
               style={[
                 styles.categoryFilterItem,
                 isSelected && styles.selectedCategoryFilter,
-                index === 0 && styles.firstCategoryItem,
-                index === categoryFilters.length - 1 && styles.lastCategoryItem,
               ]}
-              onPress={() => setSelectedCategory(category.id)}
+              onPress={() => setSelectedCategory(id)}
               activeOpacity={0.7}>
               <IconComponent
                 color={isSelected ? 'white' : '#666'}
@@ -215,7 +149,7 @@ export default function FavorsModal({
                   isSelected && styles.selectedCategoryFilterText,
                 ]}
                 numberOfLines={1}>
-                {category.name}
+                {name}
               </Text>
             </TouchableOpacity>
           );
@@ -260,41 +194,52 @@ export default function FavorsModal({
       </TouchableOpacity>
 
       {/* Predefined Favors */}
-      {filteredFavors.map((favor) => {
-        const IconComponent = favor.icon;
-        const isSelected = selectedFavor?.id === favor.id;
-        return (
-          <TouchableOpacity
-            key={favor.id}
-            style={[
-              styles.favorCard,
-              isSelected && styles.selectedFavorCard,
-            ]}
-            onPress={() => setSelectedFavor(favor)}
-            activeOpacity={0.7}>
-            <View style={styles.favorCardHeader}>
-              <View style={[styles.favorIcon, { backgroundColor: favor.color + '20' }]}>
-                <IconComponent color={favor.color} size={24} />
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FF8C42" />
+          <Text style={styles.loadingText}>Loading favors...</Text>
+        </View>
+      ) : filteredFavors.length === 0 ? (
+        <View style={styles.noFavorsContainer}>
+          <Text style={styles.noFavorsText}>No favors found for this category.</Text>
+        </View>
+      ) : (
+        filteredFavors.map((favor) => {
+          const IconComponent = getIconComponent(favor.icon as string);
+          const isSelected = selectedFavor?.id === favor.id;
+          return (
+            <TouchableOpacity
+              key={favor.id}
+              style={[
+                styles.favorCard,
+                isSelected && styles.selectedFavorCard,
+              ]}
+              onPress={() => setSelectedFavor(favor)}
+              activeOpacity={0.7}>
+              <View style={styles.favorCardHeader}>
+                <View style={[styles.favorIcon, { backgroundColor: favor.color + '20' }]}>
+                  <IconComponent color={favor.color} size={24} />
+                </View>
+                <View style={styles.favorInfo}>
+                  <Text style={styles.favorTitle}>{favor.title}</Text>
+                  <Text style={styles.favorDescription}>{favor.description}</Text>
+                </View>
+                <View style={styles.favorPoints}>
+                  <Coins color="#FFD700" size={16} />
+                  <Text style={styles.favorPointsText}>{favor.points}</Text>
+                </View>
               </View>
-              <View style={styles.favorInfo}>
-                <Text style={styles.favorTitle}>{favor.title}</Text>
-                <Text style={styles.favorDescription}>{favor.description}</Text>
-              </View>
-              <View style={styles.favorPoints}>
-                <Coins color="#FFD700" size={16} />
-                <Text style={styles.favorPointsText}>{favor.points}</Text>
-              </View>
-            </View>
-            
-            {isSelected && (
-              <View style={styles.selectedIndicator}>
-                <View style={[styles.selectedDot, { backgroundColor: favor.color }]} />
-                <Text style={[styles.selectedText, { color: favor.color }]}>Selected</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        );
-      })}
+              
+              {isSelected && (
+                <View style={styles.selectedIndicator}>
+                  <View style={[styles.selectedDot, { backgroundColor: favor.color }]} />
+                  <Text style={[styles.selectedText, { color: favor.color }]}>Selected</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          );
+        })
+      )}
     </ScrollView>
   );
 
@@ -536,12 +481,6 @@ const styles = StyleSheet.create({
     // Minimum 44pt touch target as per Apple HIG
     minHeight: 44,
   },
-  firstCategoryItem: {
-    marginLeft: 0,
-  },
-  lastCategoryItem: {
-    marginRight: 20,
-  },
   selectedCategoryFilter: {
     backgroundColor: '#FF8C42',
     borderColor: '#FF8C42',
@@ -593,6 +532,29 @@ const styles = StyleSheet.create({
   favorsList: {
     flex: 1,
     paddingHorizontal: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  loadingText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: '#666',
+    marginTop: 10,
+  },
+  noFavorsContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  noFavorsText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: '#666',
   },
   customFavorButton: {
     backgroundColor: 'white',

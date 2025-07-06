@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,18 +7,20 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
-  Animated,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
-import { X, Heart, Star, Smile, Compass, MessageCircle, CircleCheck as CheckCircle, Crown, Chrome as Home, Sparkles } from 'lucide-react-native';
+import { X, Heart, Star, Smile, Compass, MessageCircle, Sparkles } from 'lucide-react-native';
+import { supabase } from '@/utils/supabase';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
+// Interfaces remain the same for component's internal state management
 interface BadgeOption {
   id: string;
   title: string;
   description: string;
-  beeCount: number;
-  icon: string;
+  bee_count: number;
 }
 
 interface SubCategory {
@@ -35,224 +37,61 @@ interface AppreciationModalProps {
   onSendBadge: (categoryId: string, badgeId: string, badgeTitle: string) => void;
 }
 
-const appreciationCategories: SubCategory[] = [
-  {
-    id: 'support',
-    name: 'Support',
-    icon: Star,
-    color: '#4ECDC4',
-    badges: [
-      {
-        id: 'amazing-work',
-        title: 'Amazing Work',
-        description: 'Recognizing exceptional effort and dedication',
-        beeCount: 3,
-        icon: '🐝',
-      },
-      {
-        id: 'you-are-best',
-        title: 'You Are The Best',
-        description: 'Ultimate appreciation for being incredible',
-        beeCount: 5,
-        icon: '🐝',
-      },
-      {
-        id: 'believe-in-you',
-        title: 'I Believe In You',
-        description: 'Encouraging during challenging times',
-        beeCount: 2,
-        icon: '🐝',
-      },
-      {
-        id: 'proud-of-you',
-        title: 'So Proud Of You',
-        description: 'Celebrating achievements and milestones',
-        beeCount: 4,
-        icon: '🐝',
-      },
-    ],
-  },
-  {
-    id: 'kindness',
-    name: 'Kindness',
-    icon: Heart,
-    color: '#FF6B9D',
-    badges: [
-      {
-        id: 'thank-you-much',
-        title: 'Thank You Very Much',
-        description: 'Deep gratitude for thoughtful actions',
-        beeCount: 1,
-        icon: '🦋',
-      },
-      {
-        id: 'thanks-coffee',
-        title: 'Thanks For Coffee',
-        description: 'Appreciating morning thoughtfulness',
-        beeCount: 2,
-        icon: '🦋',
-      },
-      {
-        id: 'gentle-heart',
-        title: 'Your Gentle Heart',
-        description: 'Recognizing natural compassion',
-        beeCount: 3,
-        icon: '🦋',
-      },
-      {
-        id: 'caring-soul',
-        title: 'Beautiful Caring Soul',
-        description: 'Honoring deep empathy and care',
-        beeCount: 4,
-        icon: '🦋',
-      },
-    ],
-  },
-  {
-    id: 'humor',
-    name: 'Humor',
-    icon: Smile,
-    color: '#FFD93D',
-    badges: [
-      {
-        id: 'lol',
-        title: 'LOL',
-        description: 'Simple moment of laughter',
-        beeCount: 1,
-        icon: '😄',
-      },
-      {
-        id: 'rofl',
-        title: 'ROFL',
-        description: 'Rolling on the floor laughing',
-        beeCount: 3,
-        icon: '😄',
-      },
-      {
-        id: 'made-me-laugh',
-        title: 'Made Me Laugh',
-        description: 'Bringing joy with perfect timing',
-        beeCount: 2,
-        icon: '😄',
-      },
-      {
-        id: 'silly-dance',
-        title: 'Silly Dance Master',
-        description: 'Spontaneous moments of pure fun',
-        beeCount: 3,
-        icon: '😄',
-      },
-      {
-        id: 'comedy-genius',
-        title: 'Comedy Genius',
-        description: 'Natural talent for making others smile',
-        beeCount: 4,
-        icon: '😄',
-      },
-      {
-        id: 'brightened-day',
-        title: 'Brightened My Day',
-        description: 'Turning ordinary moments into joy',
-        beeCount: 3,
-        icon: '😄',
-      },
-    ],
-  },
-  {
-    id: 'adventure',
-    name: 'Adventure',
-    icon: Compass,
-    color: '#6BCF7F',
-    badges: [
-      {
-        id: 'sunset-walk',
-        title: 'Perfect Sunset Walk',
-        description: 'Creating magical shared moments',
-        beeCount: 3,
-        icon: '🌅',
-      },
-      {
-        id: 'new-place',
-        title: 'Found New Place',
-        description: 'Discovering hidden gems together',
-        beeCount: 4,
-        icon: '🌅',
-      },
-      {
-        id: 'spontaneous-trip',
-        title: 'Spontaneous Adventure',
-        description: 'Embracing unexpected journeys',
-        beeCount: 5,
-        icon: '🌅',
-      },
-      {
-        id: 'nature-lover',
-        title: 'Nature Connection',
-        description: 'Sharing love for the outdoors',
-        beeCount: 2,
-        icon: '🌅',
-      },
-    ],
-  },
-  {
-    id: 'words',
-    name: 'Love Notes',
-    icon: MessageCircle,
-    color: '#A8E6CF',
-    badges: [
-      {
-        id: 'you-are-everything',
-        title: 'You Are My Everything',
-        description: 'Complete devotion and love',
-        beeCount: 3,
-        icon: '❤️',
-      },
-      {
-        id: 'thinking-of-you',
-        title: 'Thinking Of You',
-        description: 'Constant presence in thoughts',
-        beeCount: 1,
-        icon: '💓',
-      },
-      {
-        id: 'sweet-message',
-        title: 'Sweet Message',
-        description: 'Perfect words at the right time',
-        beeCount: 2,
-        icon: '💌',
-      },
-      {
-        id: 'morning-text',
-        title: 'Beautiful Morning Text',
-        description: 'Starting the day with love',
-        beeCount: 3,
-        icon: '💌',
-      },
-      {
-        id: 'love-letter',
-        title: 'Heartfelt Love Letter',
-        description: 'Deep emotional expression',
-        beeCount: 5,
-        icon: '💌',
-      },
-      {
-        id: 'encouraging-words',
-        title: 'Encouraging Words',
-        description: 'Lifting spirits with kindness',
-        beeCount: 3,
-        icon: '💌',
-      },
-    ],
-  },
-];
+// Hardcoded data is removed. We will fetch this from Supabase.
 
 export default function AppreciationModal({
   visible,
   onClose,
   onSendBadge,
 }: AppreciationModalProps) {
+  const [categories, setCategories] = useState<SubCategory[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedBadge, setSelectedBadge] = useState<BadgeOption | null>(null);
+
+  useEffect(() => {
+    if (visible) {
+      fetchAppreciationTemplates();
+    }
+  }, [visible]);
+
+  const fetchAppreciationTemplates = async () => {
+    setLoading(true);
+    const { data, error } = await supabase.from('appreciation_badge_templates').select('*');
+
+    if (error) {
+      Alert.alert('Error', 'Could not fetch appreciation badges.');
+      console.error(error);
+    } else {
+      const groupedData = groupBadgesByCategory(data);
+      setCategories(groupedData);
+    }
+    setLoading(false);
+  };
+  
+  // This function will group the flat list of badges from the DB into categories
+  const groupBadgesByCategory = (badges: any[]): SubCategory[] => {
+      const categoryMap: { [key: string]: SubCategory } = {
+          support: { id: 'support', name: 'Support', icon: Star, color: '#4ECDC4', badges: [] },
+          kindness: { id: 'kindness', name: 'Kindness', icon: Heart, color: '#FF6B9D', badges: [] },
+          humor: { id: 'humor', name: 'Humor', icon: Smile, color: '#FFD93D', badges: [] },
+          adventure: { id: 'adventure', name: 'Adventure', icon: Compass, color: '#6BCF7F', badges: [] },
+          words: { id: 'words', name: 'Love Notes', icon: MessageCircle, color: '#A8E6CF', badges: [] },
+      };
+
+      badges.forEach(badge => {
+          if (categoryMap[badge.category_id]) {
+              categoryMap[badge.category_id].badges.push({
+                  id: badge.id,
+                  title: badge.title,
+                  description: badge.description,
+                  bee_count: badge.bee_count,
+              });
+          }
+      });
+      return Object.values(categoryMap);
+  };
+
 
   const handleClose = () => {
     setSelectedCategory(null);
@@ -274,36 +113,40 @@ export default function AppreciationModal({
         Select the type of appreciation you want to share
       </Text>
       
-      <ScrollView style={styles.categoriesList} showsVerticalScrollIndicator={false}>
-        {appreciationCategories.map((category) => {
-          const IconComponent = category.icon;
-          return (
-            <TouchableOpacity
-              key={category.id}
-              style={[styles.categoryCard, { borderLeftColor: category.color }]}
-              onPress={() => setSelectedCategory(category.id)}
-              activeOpacity={0.7}>
-              <View style={[styles.categoryIconContainer, { backgroundColor: category.color + '20' }]}>
-                <IconComponent color={category.color} size={24} />
-              </View>
-              <View style={styles.categoryInfo}>
-                <Text style={styles.categoryName}>{category.name}</Text>
-                <Text style={styles.categoryBadgeCount}>
-                  {category.badges.length} appreciation options
-                </Text>
-              </View>
-              <View style={styles.categoryArrow}>
-                <Text style={styles.arrowText}>→</Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+      {loading ? (
+        <ActivityIndicator size="large" color="#FF8C42" style={{ flex: 1 }}/>
+      ) : (
+        <ScrollView style={styles.categoriesList} showsVerticalScrollIndicator={false}>
+          {categories.map((category) => {
+            const IconComponent = category.icon;
+            return (
+              <TouchableOpacity
+                key={category.id}
+                style={[styles.categoryCard, { borderLeftColor: category.color }]}
+                onPress={() => setSelectedCategory(category.id)}
+                activeOpacity={0.7}>
+                <View style={[styles.categoryIconContainer, { backgroundColor: category.color + '20' }]}>
+                  <IconComponent color={category.color} size={24} />
+                </View>
+                <View style={styles.categoryInfo}>
+                  <Text style={styles.categoryName}>{category.name}</Text>
+                  <Text style={styles.categoryBadgeCount}>
+                    {category.badges.length} appreciation options
+                  </Text>
+                </View>
+                <View style={styles.categoryArrow}>
+                  <Text style={styles.arrowText}>→</Text>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      )}
     </View>
   );
 
   const renderBadgeSelection = () => {
-    const category = appreciationCategories.find(c => c.id === selectedCategory);
+    const category = categories.find(c => c.id === selectedCategory);
     if (!category) return null;
 
     const IconComponent = category.icon;
@@ -342,13 +185,13 @@ export default function AppreciationModal({
               <View style={styles.badgeCardHeader}>
                 <View style={styles.badgeIconAndTitle}>
                   <View style={styles.badgeIconContainer}>
-                    <Text style={styles.badgeEmoji}>{badge.icon}</Text>
+                    <Text style={styles.badgeEmoji}>🐝</Text>
                   </View>
                   <View style={styles.badgeTitleContainer}>
                     <Text style={styles.badgeTitle}>{badge.title}</Text>
                     <View style={styles.badgeCountRow}>
                       <Text style={styles.badgeCountText}>
-                        {badge.beeCount} {badge.icon}
+                        {badge.bee_count} 🐝
                       </Text>
                     </View>
                   </View>

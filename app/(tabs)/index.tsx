@@ -24,6 +24,8 @@ import StreakCard from '@/components/StreakCard';
 import QuickSendActions from '@/components/QuickSendActions';
 import TodayTip from '@/components/TodayTip';
 import PingModal from '@/components/PingModal';
+import { supabase } from '@/utils/supabase';
+import { useSession } from '@/providers/SessionProvider';
 
 const { width } = Dimensions.get('window');
 
@@ -137,6 +139,7 @@ export default function HomeScreen() {
   const [showPingModal, setShowPingModal] = useState(false);
   const [favorPoints, setFavorPoints] = useState(45); // Mock favor points
   const [heartAnimation] = useState(new Animated.Value(1));
+  const { session } = useSession();
 
   React.useEffect(() => {
     const animateHeart = () => {
@@ -162,16 +165,111 @@ export default function HomeScreen() {
     animateHeart();
   }, [heartAnimation]);
 
-  const handleSendBadge = (categoryId: string, badgeId?: string, badgeTitle?: string) => {
-    // Mock badge sending - in real app this would sync with partner
-    setTotalBadges(prev => prev + 1);
-    console.log(`Sending ${badgeTitle || categoryId} badge to partner`);
-    
-    Alert.alert(
-      'Badge Sent! 🎉',
-      `Your "${badgeTitle || categoryId}" appreciation has been sent to your partner.`,
-      [{ text: 'OK' }]
-    );
+  const handleSendBadge = async (categoryId: string, badgeId: string, badgeTitle: string) => {
+    if (!session) {
+      Alert.alert('Not authenticated', 'You must be logged in to send a badge.');
+      return;
+    }
+
+    const { data: partnerData, error: partnerError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', session.user.id)
+      .single();
+
+    if (partnerError || !partnerData || !partnerData.partner_id) {
+      Alert.alert('Not Connected', 'You must be connected to a partner to send badges.');
+      return;
+    }
+
+    const { error } = await supabase.from('events').insert([
+      {
+        sender_id: session.user.id,
+        receiver_id: partnerData.partner_id,
+        event_type: 'APPRECIATION',
+        content: {
+          category_id: categoryId,
+          badge_id: badgeId,
+          title: badgeTitle,
+        },
+      },
+    ]);
+
+    if (error) {
+      Alert.alert('Error', 'Could not send the badge. Please try again.');
+      console.error(error);
+    } else {
+      Alert.alert(
+        'Badge Sent! 🎉',
+        `Your "${badgeTitle}" appreciation has been sent to your partner.`,
+        [{ text: 'OK' }]
+      );
+    }
+  };
+
+  const handleSendFavor = async (favorId: string, favorTitle: string, points: number, customMessage?: string) => {
+    if (!session) {
+      Alert.alert('Not authenticated', 'You must be logged in to request a favor.');
+      return;
+    }
+  
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('partner_id')
+      .eq('id', session.user.id)
+      .single();
+  
+    if (userError || !userData) {
+      Alert.alert('Error', 'Could not find your profile.');
+      return;
+    }
+  
+    if (!userData.partner_id) {
+      Alert.alert('Not Connected', 'You must be connected to a partner to request favors.');
+      return;
+    }
+  
+    const { data: walletData, error: walletError } = await supabase
+      .from('wallets')
+      .select('favor_points')
+      .eq('user_id', session.user.id)
+      .single();
+  
+    if (walletError || !walletData) {
+      Alert.alert('Error', 'Could not find your favor points balance.');
+      return;
+    }
+  
+    if (walletData.favor_points < points) {
+      Alert.alert('Not Enough Points', `You need ${points} favor points, but you only have ${walletData.favor_points}.`);
+      return;
+    }
+  
+    const { error } = await supabase.from('events').insert([
+      {
+        sender_id: session.user.id,
+        receiver_id: userData.partner_id,
+        event_type: 'FAVOR_REQUEST',
+        status: 'PENDING',
+        content: {
+          favor_id: favorId,
+          title: favorTitle,
+          points,
+          message: customMessage,
+        },
+      },
+    ]);
+  
+    if (error) {
+      Alert.alert('Error', 'Could not send the favor request. Please try again.');
+      console.error(error);
+    } else {
+      Alert.alert(
+        'Favor Requested! 🙏',
+        `Your "${favorTitle}" request has been sent for ${points} points.`,
+        [{ text: 'OK' }]
+      );
+    }
   };
 
   const handleSendHornet = (message: string, cancelledBadges: string[]) => {
@@ -207,20 +305,6 @@ export default function HomeScreen() {
     Alert.alert(
       'Wisdom Sent',
       `Your "${wisdomTitle}" response has been sent to your partner.`,
-      [{ text: 'OK' }]
-    );
-  };
-
-  const handleSendFavor = (favorId: string, favorTitle: string, points: number, customMessage?: string) => {
-    // Mock favor sending - in real app this would sync with partner
-    console.log(`Sending favor request: ${favorTitle} for ${points} points`);
-    if (customMessage) {
-      console.log('Custom message:', customMessage);
-    }
-    
-    Alert.alert(
-      'Favor Requested! 🙏',
-      `Your "${favorTitle}" request has been sent to your partner for ${points} favor points.`,
       [{ text: 'OK' }]
     );
   };
