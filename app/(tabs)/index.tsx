@@ -285,24 +285,7 @@ export default function HomeScreen() {
 
   const renderQuickSend = () => (
     <View style={styles.quickSendContainer}>
-      <TouchableOpacity
-        style={styles.favorsButton}
-        onPress={() => setShowFavorsModal(true)}
-        activeOpacity={0.8}>
-        <View style={styles.favorsButtonContent}>
-          <HandHeart color="#8B5CF6" size={20} />
-          <Text style={styles.favorsButtonText}>Request a Favor</Text>
-          <View style={styles.favorPointsBadge}>
-            <Text style={styles.favorPointsBadgeText}>{favorPoints}</Text>
-          </View>
-        </View>
-        <Text style={styles.favorsButtonSubtext}>
-          Ask for help using your favor points
-        </Text>
-      </TouchableOpacity>
-      
-      <View style={styles.divider} />
-      
+      {/* 1. Send Appreciation */}
       <TouchableOpacity
         style={styles.appreciationButton}
         onPress={() => setShowAppreciationModal(true)}
@@ -322,12 +305,37 @@ export default function HomeScreen() {
       </TouchableOpacity>
       
       <View style={styles.divider} />
+      
+      {/* 2. Request for Favour */}
+      <TouchableOpacity
+        style={styles.favorsButton}
+        onPress={() => setShowFavorsModal(true)}
+        activeOpacity={0.8}>
+        <View style={styles.favorsButtonContent}>
+          <HandHeart color="#8B5CF6" size={20} />
+          <Text style={styles.favorsButtonText}>Request a Favor</Text>
+          <View style={styles.favorPointsBadge}>
+            <Text style={styles.favorPointsBadgeText}>{favorPoints}</Text>
+          </View>
+        </View>
+        <Text style={styles.favorsButtonSubtext}>
+          Ask for help using your favor points
+        </Text>
+      </TouchableOpacity>
+      
+      <View style={styles.divider} />
+      
+      {/* 3. Relationship Wisdom */}
       {renderRelationshipWisdomButton()}
       
       <View style={styles.divider} />
+      
+      {/* 4. Don't Panic */}
       {renderDontPanicButton()}
       
       <View style={styles.divider} />
+      
+      {/* 5. Send Hornet */}
       {renderNegativeBadgeButton()}
     </View>
   );
@@ -404,6 +412,13 @@ export default function HomeScreen() {
         visible={showRelationshipWisdomModal}
         onClose={() => setShowRelationshipWisdomModal(false)}
         onSendWisdom={handleSendWisdom}
+      />
+      
+      <FavorsModal
+        visible={showFavorsModal}
+        onClose={() => setShowFavorsModal(false)}
+        onSendFavor={handleSendFavor}
+        currentFavorPoints={favorPoints}
       />
     </SafeAreaView>
   );
