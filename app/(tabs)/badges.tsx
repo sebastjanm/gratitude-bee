@@ -220,7 +220,7 @@ export default function BadgesScreen() {
         styles.badgeCard,
         badge.isNegative && styles.negativeBadgeCard
       ]}>
-        <View style={styles.badgeHeader}>
+        <View style={styles.badgeContent}>
           <View style={[
             styles.badgeIcon, 
             { backgroundColor: badge.color },
@@ -228,7 +228,7 @@ export default function BadgesScreen() {
           ]}>
             <IconComponent color="white" size={24} />
           </View>
-          <View style={styles.badgeInfo}>
+          <View style={styles.badgeTextContent}>
             <Text style={styles.badgeName}>{badge.name}</Text>
             <Text style={styles.badgeDescription}>{badge.description}</Text>
             {badge.isNegative && badge.cancelledBadges && (
@@ -239,14 +239,11 @@ export default function BadgesScreen() {
                 </Text>
               </View>
             )}
-          </View>
-          <View style={styles.badgeTier}>
-            <Text style={styles.tierEmoji}>{getTierIcon(badge.tier)}</Text>
+            <Text style={styles.badgeDate}>
+              {badge.isNegative ? 'Sent' : 'Earned'} on {new Date(badge.earnedDate).toLocaleDateString()}
+            </Text>
           </View>
         </View>
-        <Text style={styles.badgeDate}>
-          {badge.isNegative ? 'Sent' : 'Earned'} on {new Date(badge.earnedDate).toLocaleDateString()}
-        </Text>
       </View>
     );
   };
@@ -418,10 +415,10 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  badgeHeader: {
+  badgeContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    alignItems: 'flex-start',
   },
   badgeIcon: {
     width: 40,
@@ -430,8 +427,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+    marginTop: 2,
   },
-  badgeInfo: {
+  badgeTextContent: {
     flex: 1,
   },
   badgeName: {
@@ -444,10 +442,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     color: '#666',
-    lineHeight: 18,
-  },
-  badgeTier: {
-    marginLeft: 8,
+    lineHeight: 20,
+    marginBottom: 8,
   },
   badgeDate: {
     fontSize: 12,
