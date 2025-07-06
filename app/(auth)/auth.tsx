@@ -96,23 +96,6 @@ export default function AuthScreen() {
           </Text>
         </View>
 
-        <View style={styles.tabContainer}>
-          <TouchableOpacity
-            style={[styles.tab, !isSignUp && styles.activeTab]}
-            onPress={() => setIsSignUp(false)}>
-            <Text style={[styles.tabText, !isSignUp && styles.activeTabText]}>
-              Sign In
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, isSignUp && styles.activeTab]}
-            onPress={() => setIsSignUp(true)}>
-            <Text style={[styles.tabText, isSignUp && styles.activeTabText]}>
-              Sign Up
-            </Text>
-          </TouchableOpacity>
-        </View>
-
         <View style={styles.form}>
           {isSignUp && (
             <View style={styles.inputContainer}>
@@ -182,19 +165,22 @@ export default function AuthScreen() {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
+        <TouchableOpacity 
+          style={styles.switchModeButton}
+          onPress={() => setIsSignUp(!isSignUp)}>
+          <Text style={styles.switchModeText}>
             {isSignUp 
-              ? 'By creating an account, you agree to our Terms of Service and Privacy Policy.'
-              : 'New to GratitudeBee?'
+              ? 'Already have an account? Sign in'
+              : 'Create an account'
             }
           </Text>
-          {!isSignUp && (
-            <TouchableOpacity onPress={() => setIsSignUp(true)}>
-              <Text style={styles.footerLink}>Create an account</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+        </TouchableOpacity>
+        
+        {isSignUp && (
+          <Text style={styles.termsText}>
+            By creating an account, you agree to our Terms of Service and Privacy Policy.
+          </Text>
+        )}
       </ScrollView>
         <TouchableOpacity style={styles.testAccountButton} onPress={handleUseTestAccount}>
           <Text style={styles.testAccountText}>Use Test Account</Text>
@@ -246,37 +232,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 22,
   },
-  tabContainer: {
-    flexDirection: 'row',
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 4,
-    marginBottom: 32,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderRadius: 8,
-  },
-  activeTab: {
-    backgroundColor: '#FF8C42',
-  },
-  tabText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: '#666',
-  },
-  activeTabText: {
-    color: 'white',
-  },
   form: {
-    marginBottom: 32,
+    marginBottom: 24,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -329,21 +286,25 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
     color: 'white',
   },
-  footer: {
+  switchModeButton: {
     alignItems: 'center',
+    paddingVertical: 16,
+    marginBottom: 16,
   },
-  footerText: {
+  switchModeText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#FF8C42',
+    textAlign: 'center',
+  },
+  termsText: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
     color: '#999',
     textAlign: 'center',
     lineHeight: 18,
-    marginBottom: 8,
-  },
-  footerLink: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#FF8C42',
+    paddingHorizontal: 20,
+    marginBottom: 16,
   },
   testAccountButton: {
     backgroundColor: '#F0F9FF',
