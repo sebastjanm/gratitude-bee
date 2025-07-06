@@ -10,6 +10,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { Heart, Star, Smile, Compass, MessageCircle, Filter, Calendar, Bug, X, CircleCheck as CheckCircle, Crown, Chrome as Home } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 
@@ -179,44 +180,65 @@ export default function TimelineScreen() {
   };
 
   const renderFilterButton = () => (
-    <TouchableOpacity
-      style={styles.filterButton}
-      onPress={() => setShowFilters(!showFilters)}>
-      <Filter color="#666" size={20} />
-      <Text style={styles.filterButtonText}>
-        {filter === 'all' ? 'All Events' : filter === 'sent' ? 'Sent' : 'Received'}
-      </Text>
-    </TouchableOpacity>
-  );
-
-  const renderFilters = () => {
-    if (!showFilters) return null;
-
-    return (
-      <View style={styles.filtersContainer}>
-        {['all', 'sent', 'received'].map((filterOption) => (
-          <TouchableOpacity
-            key={filterOption}
-            style={[
-              styles.filterOption,
-              filter === filterOption && styles.selectedFilterOption,
-            ]}
-            onPress={() => {
-              setFilter(filterOption as typeof filter);
-              setShowFilters(false);
-            }}>
-            <Text
+    <View style={styles.categoryFilterContainer}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.categoryFilter}
+        contentContainerStyle={styles.categoryFilterContent}
+        decelerationRate="fast"
+        snapToInterval={88} // Width of button + margin
+        snapToAlignment="start">
+        {(['all', 'sent', 'received'] as const).map((filterOption, index) => {
+          const isSelected = filter === filterOption;
+          return (
+            <TouchableOpacity
+              key={filterOption}
               style={[
-                styles.filterOptionText,
-                filter === filterOption && styles.selectedFilterOptionText,
-              ]}>
-              {filterOption === 'all' ? 'All Events' : filterOption.charAt(0).toUpperCase() + filterOption.slice(1)}
-            </Text>
-          </TouchableOpacity>
-        ))}
+                styles.categoryFilterItem,
+                isSelected && styles.selectedCategoryFilter,
+                index === 0 && styles.firstCategoryItem,
+                index === 2 && styles.lastCategoryItem,
+              ]}
+              onPress={() => setFilter(filterOption)}
+              activeOpacity={0.7}>
+              <Filter
+                color={isSelected ? 'white' : '#666'}
+                size={16}
+                strokeWidth={isSelected ? 2.5 : 2}
+              />
+              <Text
+                style={[
+                  styles.categoryFilterText,
+                  isSelected && styles.selectedCategoryFilterText,
+                ]}
+                numberOfLines={1}>
+                {filterOption === 'all' ? 'All Events' : filterOption.charAt(0).toUpperCase() + filterOption.slice(1)}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+      
+      {/* Scroll indicators */}
+      <View style={styles.scrollIndicators}>
+        <LinearGradient
+          colors={['rgba(255,248,240,0.8)', 'transparent']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.leftScrollIndicator}
+          pointerEvents="none"
+        />
+        <LinearGradient
+          colors={['transparent', 'rgba(255,248,240,0.8)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.rightScrollIndicator}
+          pointerEvents="none"
+        />
       </View>
-    );
-  };
+    </View>
+  );
 
   const renderTimelineEvent = (event: TimelineEvent, index: number) => {
     const IconComponent = event.icon;
@@ -322,7 +344,6 @@ export default function TimelineScreen() {
 
       <View style={styles.filterContainer}>
         {renderFilterButton()}
-        {renderFilters()}
       </View>
 
       <ScrollView style={styles.timeline} showsVerticalScrollIndicator={false}>
@@ -369,6 +390,90 @@ const styles = StyleSheet.create({
   filterContainer: {
     paddingHorizontal: 20,
     marginBottom: 20,
+    position: 'relative',
+  },
+  categoryFilter: {
+    flex: 1,
+  },
+  categoryFilterContent: {
+    paddingHorizontal: 0,
+    paddingVertical: 4,
+  },
+  categoryFilterContainer: {
+    position: 'relative',
+  },
+  categoryFilterItem: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'white',
+    borderRadius: 12,
+    width: 88,
+    height: 52, // Increased height for better touch target (44pt minimum)
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+    // Minimum 44pt touch target as per Apple HIG
+    minHeight: 44,
+  },
+  firstCategoryItem: {
+    marginLeft: 0,
+  },
+  lastCategoryItem: {
+    marginRight: 20,
+  },
+  selectedCategoryFilter: {
+    backgroundColor: '#FF8C42',
+    borderColor: '#FF8C42',
+    shadowColor: '#FF8C42',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+    transform: [{ scale: 1.02 }],
+  },
+  categoryFilterText: {
+    fontSize: 11,
+    fontFamily: 'Inter-SemiBold',
+    color: '#666',
+    marginTop: 3,
+    textAlign: 'center',
+    lineHeight: 13,
+    paddingHorizontal: 2,
+  },
+  selectedCategoryFilterText: {
+    color: 'white',
+  },
+  scrollIndicators: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    pointerEvents: 'none',
+  },
+  leftScrollIndicator: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 24,
+    borderTopRightRadius: 12,
+    borderBottomRightRadius: 12,
+  },
+  rightScrollIndicator: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: 24,
+    borderTopLeftRadius: 12,
+    borderBottomLeftRadius: 12,
   },
   filterButton: {
     flexDirection: 'row',
@@ -386,31 +491,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: '#666',
     marginLeft: 8,
-  },
-  filtersContainer: {
-    flexDirection: 'row',
-    marginTop: 12,
-  },
-  filterOption: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginRight: 12,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  selectedFilterOption: {
-    backgroundColor: '#FF8C42',
-    borderColor: '#FF8C42',
-  },
-  filterOptionText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#666',
-  },
-  selectedFilterOptionText: {
-    color: 'white',
   },
   timeline: {
     flex: 1,
