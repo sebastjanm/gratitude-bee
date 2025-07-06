@@ -10,7 +10,7 @@ import {
   Clipboard,
 } from 'react-native';
 import { router } from 'expo-router';
-import { Heart, Copy, Mail, Users, CheckCircle, ArrowRight } from 'lucide-react-native';
+import { Heart, Copy, Mail, Users, CircleCheck as CheckCircle, ArrowRight } from 'lucide-react-native';
 
 export default function PartnerLinkScreen() {
   const [inviteCode] = useState('LOVE2025BEE');

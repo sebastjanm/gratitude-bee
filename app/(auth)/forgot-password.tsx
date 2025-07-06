@@ -8,7 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import { router } from 'expo-router';
-import { ArrowLeft, Mail, CheckCircle } from 'lucide-react-native';
+import { ArrowLeft, Mail, CircleCheck as CheckCircle } from 'lucide-react-native';
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
