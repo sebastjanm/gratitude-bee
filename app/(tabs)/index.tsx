@@ -254,13 +254,13 @@ export default function HomeScreen() {
       </TouchableOpacity>
       
       <View style={styles.divider} />
-      {renderNegativeBadgeButton()}
+      {renderRelationshipWisdomButton()}
       
       <View style={styles.divider} />
       {renderDontPanicButton()}
       
       <View style={styles.divider} />
-      {renderRelationshipWisdomButton()}
+      {renderNegativeBadgeButton()}
     </View>
   );
 
