@@ -52,33 +52,13 @@ const mockMonthlyStats = {
 };
 
 const periodFilters = [
-  { id: 'week', name: 'This Week', icon: Calendar },
-  { id: 'month', name: 'This Month', icon: Calendar },
-  { id: '3months', name: 'Last 3 Months', icon: Calendar },
-  { id: '6months', name: 'Last 6 Months', icon: Calendar },
-  { id: 'all', name: 'All Time', icon: Clock },
-];
-
-const categoryFilters = [
-  { id: 'all', name: 'All Categories', icon: Award },
-  { id: 'kindness', name: 'Kindness', icon: Heart },
-  { id: 'support', name: 'Support', icon: Target },
-  { id: 'humor', name: 'Humor', icon: Zap },
-  { id: 'adventure', name: 'Adventure', icon: Users },
-  { id: 'words', name: 'Love Notes', icon: Heart },
-];
-
-const badgeTypeFilters = [
-  { id: 'all', name: 'All Types', icon: Award },
-  { id: 'positive', name: 'Positive Only', icon: Heart },
-  { id: 'negative', name: 'Hornets Only', icon: Bug },
+  { id: 'week', name: 'This Week' },
+  { id: 'month', name: 'This Month' },
+  { id: 'all', name: 'All Time' },
 ];
 
 export default function AnalyticsScreen() {
   const [selectedPeriod, setSelectedPeriod] = useState<string>('month');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [selectedBadgeType, setSelectedBadgeType] = useState<string>('all');
-  const [showFilters, setShowFilters] = useState(false);
 
   const mainStats: StatCard[] = [
     {
@@ -123,124 +103,30 @@ export default function AnalyticsScreen() {
     { name: 'Hornets', sent: 2, received: 1, color: '#FF4444' },
   ];
 
-  const renderFilterHeader = () => (
-    <View style={styles.filterHeaderContainer}>
-      <TouchableOpacity 
-        style={styles.filterToggleButton}
-        onPress={() => setShowFilters(!showFilters)}
-        activeOpacity={0.7}>
-        <Filter color="#666" size={20} />
-        <Text style={styles.filterToggleText}>Filters</Text>
-        <ChevronDown 
-          color="#666" 
-          size={16} 
+  const renderSimpleFilters = () => (
+    <View style={styles.simpleFilterContainer}>
+      {periodFilters.map((period) => (
+        <TouchableOpacity
+          key={period.id}
           style={[
-            styles.chevronIcon,
-            showFilters && styles.chevronIconRotated
-          ]} 
-        />
-      </TouchableOpacity>
-      
-      <View style={styles.activeFiltersContainer}>
-        {selectedPeriod !== 'month' && (
-          <View style={styles.activeFilterChip}>
-            <Text style={styles.activeFilterText}>
-              {periodFilters.find(f => f.id === selectedPeriod)?.name}
-            </Text>
-          </View>
-        )}
-        {selectedCategory !== 'all' && (
-          <View style={styles.activeFilterChip}>
-            <Text style={styles.activeFilterText}>
-              {categoryFilters.find(f => f.id === selectedCategory)?.name}
-            </Text>
-          </View>
-        )}
-        {selectedBadgeType !== 'all' && (
-          <View style={styles.activeFilterChip}>
-            <Text style={styles.activeFilterText}>
-              {badgeTypeFilters.find(f => f.id === selectedBadgeType)?.name}
-            </Text>
-          </View>
-        )}
-      </View>
+            styles.simpleFilterButton,
+            selectedPeriod === period.id && styles.selectedSimpleFilterButton,
+          ]}
+          onPress={() => setSelectedPeriod(period.id)}
+          activeOpacity={0.7}
+        >
+          <Text
+            style={[
+              styles.simpleFilterText,
+              selectedPeriod === period.id && styles.selectedSimpleFilterText,
+            ]}
+          >
+            {period.name}
+          </Text>
+        </TouchableOpacity>
+      ))}
     </View>
   );
-
-  const renderFilterSection = (title: string, filters: any[], selectedValue: string, onSelect: (value: string) => void) => (
-    <View style={styles.filterSection}>
-      <Text style={styles.filterSectionTitle}>{title}</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filterScrollView}
-        contentContainerStyle={styles.filterScrollContent}
-        decelerationRate="fast"
-        snapToInterval={100}
-        snapToAlignment="start">
-        {filters.map((filter, index) => {
-          const IconComponent = filter.icon;
-          const isSelected = selectedValue === filter.id;
-          return (
-            <TouchableOpacity
-              key={filter.id}
-              style={[
-                styles.filterItem,
-                isSelected && styles.selectedFilterItem,
-                index === 0 && styles.firstFilterItem,
-                index === filters.length - 1 && styles.lastFilterItem,
-              ]}
-              onPress={() => onSelect(filter.id)}
-              activeOpacity={0.7}>
-              <IconComponent
-                color={isSelected ? 'white' : '#666'}
-                size={16}
-                strokeWidth={isSelected ? 2.5 : 2}
-              />
-              <Text
-                style={[
-                  styles.filterItemText,
-                  isSelected && styles.selectedFilterItemText,
-                ]}
-                numberOfLines={1}>
-                {filter.name}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
-    </View>
-  );
-
-  const renderExpandedFilters = () => {
-    if (!showFilters) return null;
-    
-    return (
-      <View style={styles.expandedFiltersContainer}>
-        {renderFilterSection('Time Period', periodFilters, selectedPeriod, setSelectedPeriod)}
-        {renderFilterSection('Category', categoryFilters, selectedCategory, setSelectedCategory)}
-        {renderFilterSection('Badge Type', badgeTypeFilters, selectedBadgeType, setSelectedBadgeType)}
-        
-        <View style={styles.filterActions}>
-          <TouchableOpacity 
-            style={styles.clearFiltersButton}
-            onPress={() => {
-              setSelectedPeriod('month');
-              setSelectedCategory('all');
-              setSelectedBadgeType('all');
-            }}>
-            <Text style={styles.clearFiltersText}>Clear All</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.applyFiltersButton}
-            onPress={() => setShowFilters(false)}>
-            <Text style={styles.applyFiltersText}>Apply Filters</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  };
 
   const renderMainStats = () => (
     <View style={styles.statsGrid}>
@@ -418,8 +304,7 @@ export default function AnalyticsScreen() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {renderFilterHeader()}
-        {renderExpandedFilters()}
+        {renderSimpleFilters()}
         {renderMainStats()}
         {renderWeeklyBreakdown()}
         {renderCategoryBreakdown()}
@@ -461,152 +346,41 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  filterHeaderContainer: {
+  simpleFilterContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     marginHorizontal: 20,
     marginBottom: 24,
-  },
-  filterToggleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: 'white',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  filterToggleText: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-    color: '#666',
-    marginLeft: 8,
-    marginRight: 4,
-  },
-  chevronIcon: {
-    transform: [{ rotate: '0deg' }],
-  },
-  chevronIconRotated: {
-    transform: [{ rotate: '180deg' }],
-  },
-  activeFiltersContainer: {
-    flexDirection: 'row',
-    flex: 1,
-    justifyContent: 'flex-end',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  activeFilterChip: {
-    backgroundColor: '#FF8C42',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
     borderRadius: 16,
-  },
-  activeFilterText: {
-    fontSize: 12,
-    fontFamily: 'Inter-SemiBold',
-    color: 'white',
-  },
-  expandedFiltersContainer: {
-    backgroundColor: 'white',
-    marginHorizontal: 20,
-    marginBottom: 24,
-    borderRadius: 16,
-    padding: 20,
+    padding: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
-  filterSection: {
-    marginBottom: 20,
-  },
-  filterSectionTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginBottom: 12,
-  },
-  filterScrollView: {
+  simpleFilterButton: {
     flex: 1,
-  },
-  filterScrollContent: {
-    paddingHorizontal: 4,
-    paddingVertical: 4,
-    gap: 8,
-  },
-  filterItem: {
-    flexDirection: 'column',
+    paddingVertical: 12,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F8F9FA',
-    borderRadius: 12,
-    width: 100,
-    height: 56,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    minHeight: 44,
   },
-  firstFilterItem: {
-    marginLeft: 4,
-  },
-  lastFilterItem: {
-    marginRight: 4,
-  },
-  selectedFilterItem: {
+  selectedSimpleFilterButton: {
     backgroundColor: '#FF8C42',
-    borderColor: '#FF8C42',
+    shadowColor: '#FF8C42',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  filterItemText: {
-    fontSize: 11,
-    fontFamily: 'Inter-SemiBold',
-    color: '#666',
-    marginTop: 3,
-    textAlign: 'center',
-    lineHeight: 13,
-    paddingHorizontal: 2,
-  },
-  selectedFilterItemText: {
-    color: 'white',
-  },
-  filterActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 8,
-    gap: 12,
-  },
-  clearFiltersButton: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  clearFiltersText: {
+  simpleFilterText: {
     fontSize: 14,
     fontFamily: 'Inter-SemiBold',
     color: '#666',
   },
-  applyFiltersButton: {
-    flex: 1,
-    backgroundColor: '#FF8C42',
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  applyFiltersText: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
+  selectedSimpleFilterText: {
     color: 'white',
   },
   statsGrid: {

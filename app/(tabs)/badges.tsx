@@ -408,9 +408,7 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 4,
   },
-  categoryFilter: {
-    flex: 1,
-  },
+  categoryFilter: {},
   categoryFilterContent: {
     paddingHorizontal: 20,
     paddingVertical: 4,
@@ -509,7 +507,6 @@ const styles = StyleSheet.create({
   },
   badgeContent: {
     flexDirection: 'row',
-    alignItems: 'center',
     alignItems: 'flex-start',
   },
   badgeIcon: {
