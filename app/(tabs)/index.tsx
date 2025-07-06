@@ -89,6 +89,14 @@ const badgeCategories: BadgeCategory[] = [
     description: 'Relationship wisdom',
     count: 4,
   },
+  {
+    id: 'dont-panic',
+    name: 'Don\'t Panic',
+    icon: Heart,
+    color: '#6366F1',
+    description: 'Calm reassurance after stress',
+    count: 2,
+  },
 ];
 
 const mockRecentBadges = [

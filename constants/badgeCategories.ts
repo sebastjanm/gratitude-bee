@@ -66,6 +66,14 @@ export const BADGE_CATEGORIES: BadgeCategory[] = [
     description: 'Relationship wisdom',
     count: 0,
   },
+  {
+    id: 'dont-panic',
+    name: 'Don\'t Panic',
+    icon: Heart,
+    color: '#6366F1',
+    description: 'Calm reassurance after stress',
+    count: 0,
+  },
 ];
 
 export const NEGATIVE_BADGE_CATEGORIES: BadgeCategory[] = [
