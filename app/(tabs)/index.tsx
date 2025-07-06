@@ -121,7 +121,6 @@ const mockRecentBadges = [
 
 export default function HomeScreen() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedWisdom, setSelectedWisdom] = useState<string | null>(null);
   const [currentStreak, setCurrentStreak] = useState(12);
   const [totalBadges, setTotalBadges] = useState(61);
   const [showNegativeModal, setShowNegativeModal] = useState(false);
@@ -201,9 +200,6 @@ export default function HomeScreen() {
       `Your "${wisdomTitle}" response has been sent to your partner.`,
       [{ text: 'OK' }]
     );
-    
-    // Reset selection after sending
-    setSelectedWisdom(null);
   };
 
   const renderStreakCard = () => (
@@ -269,50 +265,6 @@ export default function HomeScreen() {
     </TouchableOpacity>
   );
 
-  const wisdomOptions = [
-    { id: 'whatever-you-say', title: 'Whatever You Say', color: '#9B59B6' },
-    { id: 'yes-dear', title: 'Yes, Dear', color: '#E67E22' },
-    { id: 'happy-wife', title: 'Happy Wife, Happy Life', color: '#27AE60' },
-    { id: 'im-sorry', title: 'I\'m Sorry', color: '#F87171' },
-  ];
-
-  const renderWisdomOptions = () => (
-    <View style={styles.wisdomOptionsContainer}>
-      <Text style={styles.sectionTitle}>Select Wisdom Response</Text>
-      <View style={styles.wisdomGrid}>
-        {wisdomOptions.map((wisdom) => (
-          <TouchableOpacity
-            key={wisdom.id}
-            style={[
-              styles.wisdomOptionCard,
-              { backgroundColor: wisdom.color + '20' },
-              selectedWisdom === wisdom.id && styles.selectedWisdomOption,
-            ]}
-            onPress={() => setSelectedWisdom(wisdom.id)}
-            activeOpacity={0.8}>
-            <Text style={[styles.wisdomOptionText, { color: wisdom.color }]}>
-              {wisdom.title}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-      
-      {selectedWisdom && (
-        <TouchableOpacity
-          style={styles.sendWisdomButton}
-          onPress={() => {
-            const selectedOption = wisdomOptions.find(w => w.id === selectedWisdom);
-            if (selectedOption) {
-              handleSendWisdom(selectedOption.id, selectedOption.title);
-            }
-          }}
-          activeOpacity={0.8}>
-          <Text style={styles.sendWisdomButtonText}>Send Wisdom to Partner</Text>
-        </TouchableOpacity>
-      )}
-    </View>
-  );
-
   const renderQuickSend = () => (
     <View style={styles.quickSendContainer}>
       <TouchableOpacity
@@ -335,7 +287,6 @@ export default function HomeScreen() {
       
       <View style={styles.divider} />
       {renderRelationshipWisdomButton()}
-      {selectedWisdom && renderWisdomOptions()}
       
       <View style={styles.divider} />
       {renderDontPanicButton()}
@@ -363,22 +314,14 @@ export default function HomeScreen() {
   const renderRelationshipWisdomButton = () => (
     <TouchableOpacity
       style={styles.relationshipWisdomButton}
-      onPress={() => {
-        if (selectedWisdom) {
-          setSelectedWisdom(null); // Toggle off if already selected
-        } else {
-          setShowRelationshipWisdomModal(true);
-        }
-      }}
+      onPress={() => setShowRelationshipWisdomModal(true)}
       activeOpacity={0.8}>
       <View style={styles.relationshipWisdomButtonContent}>
         <Crown color="#8B5CF6" size={20} />
-        <Text style={styles.relationshipWisdomButtonText}>
-          {selectedWisdom ? 'Wisdom Selected' : 'Relationship Wisdom'}
-        </Text>
+        <Text style={styles.relationshipWisdomButtonText}>Relationship Wisdom</Text>
       </View>
       <Text style={styles.relationshipWisdomButtonSubtext}>
-        {selectedWisdom ? 'Tap to change selection' : '"Whatever you say", "Yes dear", "I\'m sorry"'}
+        "Whatever you say", "Yes dear", "I'm sorry"
       </Text>
     </TouchableOpacity>
   );
@@ -723,48 +666,5 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: '#999',
     textAlign: 'center',
-  },
-  wisdomOptionsContainer: {
-    marginTop: 16,
-  },
-  wisdomGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  wisdomOptionCard: {
-    width: (width - 60) / 2,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 2,
-    borderColor: 'transparent',
-    alignItems: 'center',
-  },
-  selectedWisdomOption: {
-    borderColor: '#8B5CF6',
-    transform: [{ scale: 1.02 }],
-  },
-  wisdomOptionText: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-    textAlign: 'center',
-  },
-  sendWisdomButton: {
-    backgroundColor: '#8B5CF6',
-    borderRadius: 16,
-    paddingVertical: 16,
-    alignItems: 'center',
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  sendWisdomButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: 'white',
   },
 });
