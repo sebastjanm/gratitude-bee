@@ -10,6 +10,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { X, HandHeart, Coffee, ShoppingCart, Car, Chrome as Home, Utensils, Gift, Plus, Coins } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 
@@ -180,39 +181,65 @@ export default function FavorsModal({
   };
 
   const renderCategoryFilter = () => (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      style={styles.categoryFilter}
-      contentContainerStyle={styles.categoryFilterContent}>
-      {categoryFilters.map((category) => {
-        const IconComponent = category.icon;
-        const isSelected = selectedCategory === category.id;
-        return (
-          <TouchableOpacity
-            key={category.id}
-            style={[
-              styles.categoryFilterItem,
-              isSelected && styles.selectedCategoryFilter,
-              { borderColor: category.color + '40' }
-            ]}
-            onPress={() => setSelectedCategory(category.id)}>
-            <IconComponent
-              color={isSelected ? 'white' : category.color}
-              size={16}
-            />
-            <Text
+    <View style={styles.categoryFilterContainer}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.categoryFilter}
+        contentContainerStyle={styles.categoryFilterContent}
+        decelerationRate="fast"
+        snapToInterval={88} // Width of button + margin
+        snapToAlignment="start">
+        {categoryFilters.map((category, index) => {
+          const IconComponent = category.icon;
+          const isSelected = selectedCategory === category.id;
+          return (
+            <TouchableOpacity
+              key={category.id}
               style={[
-                styles.categoryFilterText,
-                isSelected && styles.selectedCategoryFilterText,
-                { color: isSelected ? 'white' : category.color }
-              ]}>
-              {category.name}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
-    </ScrollView>
+                styles.categoryFilterItem,
+                isSelected && styles.selectedCategoryFilter,
+                index === 0 && styles.firstCategoryItem,
+                index === categoryFilters.length - 1 && styles.lastCategoryItem,
+              ]}
+              onPress={() => setSelectedCategory(category.id)}
+              activeOpacity={0.7}>
+              <IconComponent
+                color={isSelected ? 'white' : '#666'}
+                size={16}
+                strokeWidth={isSelected ? 2.5 : 2}
+              />
+              <Text
+                style={[
+                  styles.categoryFilterText,
+                  isSelected && styles.selectedCategoryFilterText,
+                ]}
+                numberOfLines={1}>
+                {category.name}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+      
+      {/* Scroll indicators */}
+      <View style={styles.scrollIndicators}>
+        <LinearGradient
+          colors={['rgba(255,248,240,0.8)', 'transparent']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.leftScrollIndicator}
+          pointerEvents="none"
+        />
+        <LinearGradient
+          colors={['transparent', 'rgba(255,248,240,0.8)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.rightScrollIndicator}
+          pointerEvents="none"
+        />
+      </View>
+    </View>
   );
 
   const renderFavorsList = () => (
@@ -479,36 +506,89 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
   },
-  categoryFilter: {
+  categoryFilterContainer: {
     marginBottom: 20,
+    position: 'relative',
+  },
+  categoryFilter: {
+    flex: 1,
   },
   categoryFilterContent: {
     paddingHorizontal: 20,
+    paddingVertical: 4,
   },
   categoryFilterItem: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
-    backgroundColor: 'white',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginRight: 8,
-    borderWidth: 1,
-    minHeight: 44, // Apple HIG minimum touch target
     justifyContent: 'center',
+    backgroundColor: 'white',
+    borderRadius: 12,
+    width: 88,
+    height: 52, // Increased height for better touch target (44pt minimum)
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+    // Minimum 44pt touch target as per Apple HIG
+    minHeight: 44,
+  },
+  firstCategoryItem: {
+    marginLeft: 0,
+  },
+  lastCategoryItem: {
+    marginRight: 20,
   },
   selectedCategoryFilter: {
     backgroundColor: '#FF8C42',
     borderColor: '#FF8C42',
+    shadowColor: '#FF8C42',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+    transform: [{ scale: 1.02 }],
   },
   categoryFilterText: {
     fontSize: 11,
-    fontFamily: 'Inter-Medium',
-    marginLeft: 4,
+    fontFamily: 'Inter-SemiBold',
+    color: '#666',
+    marginTop: 3,
     textAlign: 'center',
+    lineHeight: 13,
+    paddingHorizontal: 2,
   },
   selectedCategoryFilterText: {
     color: 'white',
+  },
+  scrollIndicators: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    pointerEvents: 'none',
+  },
+  leftScrollIndicator: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 24,
+    borderTopRightRadius: 12,
+    borderBottomRightRadius: 12,
+  },
+  rightScrollIndicator: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: 24,
+    borderTopLeftRadius: 12,
+    borderBottomLeftRadius: 12,
   },
   favorsList: {
     flex: 1,
