@@ -8,7 +8,7 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
-import { X, Crown, Heart, CheckCircle, Home } from 'lucide-react-native';
+import { X, Crown, Heart, CircleCheck as CheckCircle, Chrome as Home } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
