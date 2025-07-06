@@ -5,11 +5,10 @@ import {
   StyleSheet,
   Modal,
   TouchableOpacity,
-  TextInput,
   ScrollView,
   Dimensions,
 } from 'react-native';
-import { X, Heart, Phone, MessageSquare, Clock } from 'lucide-react-native';
+import { X, Heart, Phone, MessageSquare, Clock, CircleCheck as CheckCircle } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -19,13 +18,57 @@ interface DontPanicModalProps {
   onSend: (message: string, quickResponse?: string) => void;
 }
 
-const quickResponses = [
-  "Everything will be okay ❤️",
-  "I'm here for you, always",
-  "Take a deep breath with me",
-  "You're safe now, I love you",
-  "Let's talk when you're ready",
-  "Sending you all my calm energy",
+interface CalmOption {
+  id: string;
+  title: string;
+  message: string;
+  icon: string;
+  color: string;
+}
+
+const calmOptions: CalmOption[] = [
+  {
+    id: 'everything-okay',
+    title: 'Everything Will Be Okay',
+    message: 'Everything will be okay ❤️ Take a deep breath',
+    icon: '🫂',
+    color: '#6366F1',
+  },
+  {
+    id: 'here-for-you',
+    title: 'I\'m Here For You',
+    message: 'I\'m here for you, always. You\'re not alone in this ❤️',
+    icon: '🤗',
+    color: '#8B5CF6',
+  },
+  {
+    id: 'deep-breath',
+    title: 'Take a Deep Breath',
+    message: 'Take a deep breath with me. In... and out... You\'ve got this 💙',
+    icon: '🌬️',
+    color: '#06B6D4',
+  },
+  {
+    id: 'youre-safe',
+    title: 'You\'re Safe Now',
+    message: 'You\'re safe now, I love you. This feeling will pass ❤️',
+    icon: '🛡️',
+    color: '#10B981',
+  },
+  {
+    id: 'talk-when-ready',
+    title: 'Let\'s Talk When Ready',
+    message: 'Let\'s talk when you\'re ready. No pressure, just love 💕',
+    icon: '💬',
+    color: '#F59E0B',
+  },
+  {
+    id: 'calm-energy',
+    title: 'Sending Calm Energy',
+    message: 'Sending you all my calm energy and peaceful vibes 🕊️✨',
+    icon: '🕊️',
+    color: '#84CC16',
+  },
 ];
 
 const panicTriggers = [
@@ -39,29 +82,18 @@ export default function DontPanicModal({
   onClose,
   onSend,
 }: DontPanicModalProps) {
-  const [customMessage, setCustomMessage] = useState('');
-  const [selectedQuickResponse, setSelectedQuickResponse] = useState<string | null>(null);
-
-  const handleSendQuickResponse = (response: string) => {
-    onSend('', response);
-    setSelectedQuickResponse(null);
-    setCustomMessage('');
-    onClose();
-  };
-
-  const handleSendCustomMessage = () => {
-    if (customMessage.trim()) {
-      onSend(customMessage, selectedQuickResponse || undefined);
-      setCustomMessage('');
-      setSelectedQuickResponse(null);
-      onClose();
-    }
-  };
+  const [selectedOption, setSelectedOption] = useState<CalmOption | null>(null);
 
   const handleClose = () => {
-    setCustomMessage('');
-    setSelectedQuickResponse(null);
+    setSelectedOption(null);
     onClose();
+  };
+
+  const handleSendOption = () => {
+    if (selectedOption) {
+      onSend(selectedOption.message, selectedOption.title);
+      handleClose();
+    }
   };
 
   return (
@@ -104,69 +136,64 @@ export default function DontPanicModal({
             </View>
           </View>
 
-          <View style={styles.quickResponseSection}>
-            <Text style={styles.sectionTitle}>Quick Responses</Text>
+          <View style={styles.optionsSection}>
+            <Text style={styles.sectionTitle}>Choose Your Message</Text>
             <Text style={styles.sectionSubtitle}>
-              Tap to send immediately, or customize below
+              Select the type of comfort that feels right for this moment
             </Text>
-            <View style={styles.quickResponseGrid}>
-              {quickResponses.map((response, index) => (
+            
+            <View style={styles.optionsGrid}>
+              {calmOptions.map((option) => (
                 <TouchableOpacity
-                  key={index}
+                  key={option.id}
                   style={[
-                    styles.quickResponseCard,
-                    selectedQuickResponse === response && styles.selectedQuickResponse,
+                    styles.optionCard,
+                    selectedOption?.id === option.id && styles.selectedOptionCard,
                   ]}
-                  onPress={() => handleSendQuickResponse(response)}
+                  onPress={() => setSelectedOption(option)}
                   activeOpacity={0.7}>
-                  <Text style={[
-                    styles.quickResponseText,
-                    selectedQuickResponse === response && styles.selectedQuickResponseText,
-                  ]}>
-                    {response}
-                  </Text>
+                  <View style={styles.optionCardHeader}>
+                    <View style={[styles.optionIcon, { backgroundColor: option.color + '20' }]}>
+                      <Text style={styles.optionEmoji}>{option.icon}</Text>
+                    </View>
+                    <Text style={styles.optionTitle}>{option.title}</Text>
+                  </View>
+                  <Text style={styles.optionMessage}>"{option.message}"</Text>
+                  
+                  {selectedOption?.id === option.id && (
+                    <View style={styles.selectedIndicator}>
+                      <CheckCircle color={option.color} size={16} />
+                      <Text style={[styles.selectedText, { color: option.color }]}>Selected</Text>
+                    </View>
+                  )}
                 </TouchableOpacity>
               ))}
             </View>
           </View>
 
-          <View style={styles.customMessageSection}>
-            <Text style={styles.sectionTitle}>Custom Message</Text>
-            <Text style={styles.sectionSubtitle}>
-              Add your own personal touch of comfort
-            </Text>
-            <TextInput
-              style={styles.messageInput}
-              placeholder="Write your calming message here..."
-              value={customMessage}
-              onChangeText={setCustomMessage}
-              multiline
-              numberOfLines={4}
-              maxLength={300}
-              textAlignVertical="top"
-            />
-            <Text style={styles.characterCount}>{customMessage.length}/300</Text>
-            
-            {customMessage.trim().length > 0 && (
-              <TouchableOpacity
-                style={styles.sendCustomButton}
-                onPress={handleSendCustomMessage}
-                activeOpacity={0.8}>
-                <Heart color="white" size={20} />
-                <Text style={styles.sendCustomButtonText}>Send Don't Panic Message</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
           <View style={styles.tipSection}>
-            <Text style={styles.tipTitle}>💡 Tip</Text>
+            <Text style={styles.tipTitle}>💡 About Don't Panic Messages</Text>
             <Text style={styles.tipText}>
               Don't Panic messages are perfect for moments when your partner needs immediate 
               emotional support. They're not about appreciation - they're about being present 
-              during difficult times.
+              during difficult times and offering comfort when it's needed most.
             </Text>
           </View>
         </ScrollView>
+
+        {selectedOption && (
+          <View style={styles.fixedSendButtonContainer}>
+            <TouchableOpacity
+              style={[styles.fixedSendButton, { backgroundColor: selectedOption.color }]}
+              onPress={handleSendOption}
+              activeOpacity={0.8}>
+              <Heart color="white" size={20} />
+              <Text style={styles.fixedSendButtonText}>
+                Send "{selectedOption.title}"
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     </Modal>
   );
@@ -276,82 +303,66 @@ const styles = StyleSheet.create({
     color: '#333',
     textAlign: 'center',
   },
-  quickResponseSection: {
+  optionsSection: {
     marginBottom: 32,
   },
-  quickResponseGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginHorizontal: -6,
+  optionsGrid: {
+    gap: 16,
   },
-  quickResponseCard: {
+  optionCard: {
     backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
-    margin: 6,
-    minWidth: (width - 64) / 2,
+    borderRadius: 16,
+    padding: 20,
     borderWidth: 2,
     borderColor: 'transparent',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  selectedQuickResponse: {
+  selectedOptionCard: {
     borderColor: '#6366F1',
-    backgroundColor: '#6366F1' + '10',
+    backgroundColor: '#6366F1' + '05',
   },
-  quickResponseText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#333',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  selectedQuickResponseText: {
-    color: '#6366F1',
-  },
-  customMessageSection: {
-    marginBottom: 32,
-  },
-  messageInput: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#333',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    minHeight: 100,
-    marginBottom: 8,
-  },
-  characterCount: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: '#999',
-    textAlign: 'right',
-    marginBottom: 16,
-  },
-  sendCustomButton: {
-    backgroundColor: '#6366F1',
-    borderRadius: 16,
-    paddingVertical: 16,
+  optionCardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#6366F1',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    marginBottom: 12,
   },
-  sendCustomButtonText: {
+  optionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  optionEmoji: {
+    fontSize: 20,
+  },
+  optionTitle: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
-    color: 'white',
-    marginLeft: 8,
+    color: '#333',
+    flex: 1,
+  },
+  optionMessage: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: '#666',
+    lineHeight: 20,
+    fontStyle: 'italic',
+    marginBottom: 12,
+  },
+  selectedIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  selectedText: {
+    fontSize: 12,
+    fontFamily: 'Inter-SemiBold',
+    marginLeft: 4,
   },
   tipSection: {
     backgroundColor: '#F0F9FF',
@@ -372,5 +383,40 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: '#666',
     lineHeight: 20,
+  },
+  fixedSendButtonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFF8F0',
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    paddingBottom: 40,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  fixedSendButton: {
+    borderRadius: 16,
+    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  fixedSendButtonText: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: 'white',
+    marginLeft: 8,
   },
 });
