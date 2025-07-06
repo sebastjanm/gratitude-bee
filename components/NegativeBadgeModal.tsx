@@ -8,8 +8,9 @@ import {
   TextInput,
   Alert,
   ScrollView,
+  Image,
 } from 'react-native';
-import { X, TriangleAlert as AlertTriangle, Bug, Zap, CircleAlert as AlertCircle, Bomb } from 'lucide-react-native';
+import { X, Zap, CircleAlert as AlertCircle, Bomb } from 'lucide-react-native';
 
 interface NegativeBadgeModalProps {
   visible: boolean;
@@ -36,7 +37,7 @@ interface HornetOption {
 const hornetOptions: HornetOption[] = [
   {
     id: 'light-misunderstanding',
-    count: 10,
+    count: -10,
     title: 'Light Misunderstanding',
     description: 'Minor issue that needs gentle addressing',
     icon: Zap,
@@ -46,7 +47,7 @@ const hornetOptions: HornetOption[] = [
   {
     id: 'not-ok',
     title: 'Hey, This Is Not OK',
-    count: 50,
+    count: -50,
     description: 'Significant concern that requires attention',
     icon: AlertCircle,
     color: '#EF4444',
@@ -54,7 +55,7 @@ const hornetOptions: HornetOption[] = [
   },
   {
     id: 'clusterfuck',
-    count: 100,
+    count: -100,
     title: 'Clusterfuck',
     description: 'Major issue requiring serious discussion',
     icon: Bomb,
@@ -125,29 +126,21 @@ export default function NegativeBadgeModal({
         </View>
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          <View style={styles.warningContainer}>
-            <AlertTriangle color="#FF4444" size={24} />
-            <Text style={styles.warningText}>
-              Hornets cancel out positive badges and should be used thoughtfully for accountability.
-            </Text>
-          </View>
+
 
           <View style={styles.heroSection}>
             <View style={styles.heroIcon}>
-              <Bug color="#FF4444" size={32} />
+              <Image source={require('../assets/images/hornet.png')} style={styles.heroImage} />
             </View>
             <Text style={styles.heroTitle}>Accountability Hornet</Text>
             <Text style={styles.heroSubtitle}>
-              Sometimes relationships need honest feedback. Choose the appropriate level 
-              based on the severity of the situation that needs addressing.
+              Sometimes relationships need honest feedback. But be careful, it can be a double edged sword.
             </Text>
           </View>
 
+
           <View style={styles.optionsSection}>
-            <Text style={styles.sectionTitle}>Select how many badges to cancel:</Text>
-            <Text style={styles.sectionSubtitle}>
-              Each option reflects different levels of concern
-            </Text>
+
             
             <View style={styles.optionsGrid}>
               {hornetOptions.map((option) => {
@@ -220,9 +213,9 @@ export default function NegativeBadgeModal({
               style={[styles.fixedSendButton, { backgroundColor: selectedOption.color }]}
               onPress={handleSend}
               activeOpacity={0.8}>
-              <Bug color="white" size={20} />
+              <Image source={require('../assets/images/hornet.png')} style={styles.buttonImage} />
               <Text style={styles.fixedSendButtonText}>
-                Send Hornet (-{selectedOption.count})
+                Send Hornet (-{Math.abs(selectedOption.count)})
               </Text>
             </TouchableOpacity>
           </View>
@@ -294,6 +287,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
+  },
+  heroImage: {
+    width: 60,
+    height: 60,
+    resizeMode: 'contain',
   },
   heroTitle: {
     fontSize: 24,
@@ -468,6 +466,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
+  },
+  buttonImage: {
+    width: 24,
+    height: 24,
+    tintColor: 'white',
   },
   fixedSendButtonText: {
     fontSize: 16,

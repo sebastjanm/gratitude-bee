@@ -36,9 +36,9 @@ const mockEvents: TimelineEvent[] = [
     category: 'kindness',
     message: 'Thank you for always making my coffee just right ☕',
     timestamp: '2025-01-15T08:30:00Z',
-    partnerName: 'Sarah',
+    partnerName: 'Breda',
     icon: Heart,
-    color: '#FF6B9D',
+    color: '#F87171',
   },
   {
     id: '2',
@@ -47,7 +47,7 @@ const mockEvents: TimelineEvent[] = [
     category: 'support',
     message: 'You believed in me when I wanted to quit!',
     timestamp: '2025-01-14T18:45:00Z',
-    partnerName: 'Alex',
+    partnerName: 'Sebastjan',
     icon: Star,
     color: '#4ECDC4',
   },
@@ -57,7 +57,7 @@ const mockEvents: TimelineEvent[] = [
     badgeName: 'Silly Dance',
     category: 'humor',
     timestamp: '2025-01-13T20:15:00Z',
-    partnerName: 'Sarah',
+    partnerName: 'Breda',
     icon: Smile,
     color: '#FFD93D',
   },
@@ -68,7 +68,7 @@ const mockEvents: TimelineEvent[] = [
     category: 'adventure',
     message: 'Perfect timing for that beautiful sunset 🌅',
     timestamp: '2025-01-12T19:30:00Z',
-    partnerName: 'Alex',
+    partnerName: 'Sebastjan',
     icon: Compass,
     color: '#6BCF7F',
   },
@@ -79,7 +79,7 @@ const mockEvents: TimelineEvent[] = [
     category: 'words',
     message: 'Your good morning texts always make my day brighter',
     timestamp: '2025-01-11T07:20:00Z',
-    partnerName: 'Sarah',
+    partnerName: 'Breda',
     icon: MessageCircle,
     color: '#A8E6CF',
   },
@@ -90,7 +90,7 @@ const mockEvents: TimelineEvent[] = [
     category: 'hornet',
     message: 'Need to address some issues we discussed',
     timestamp: '2025-01-10T16:30:00Z',
-    partnerName: 'Sarah',
+    partnerName: 'Breda',
     icon: Bug,
     color: '#FF4444',
     isNegative: true,
@@ -103,7 +103,7 @@ const mockEvents: TimelineEvent[] = [
     category: 'whatever-you-say',
     message: 'Thanks for letting me pick the restaurant without debate',
     timestamp: '2025-01-09T19:15:00Z',
-    partnerName: 'Alex',
+    partnerName: 'Sebastjan',
     icon: CheckCircle,
     color: '#9B59B6',
   },
@@ -113,7 +113,7 @@ const mockEvents: TimelineEvent[] = [
     badgeName: 'Yes, Dear',
     category: 'yes-dear',
     timestamp: '2025-01-08T14:30:00Z',
-    partnerName: 'Sarah',
+    partnerName: 'Breda',
     icon: Crown,
     color: '#E67E22',
   },
@@ -124,7 +124,7 @@ const mockEvents: TimelineEvent[] = [
     category: 'happy-wife',
     message: 'You remembered to pick up my favorite dessert! 🍰',
     timestamp: '2025-01-07T20:45:00Z',
-    partnerName: 'Alex',
+    partnerName: 'Sebastjan',
     icon: Home,
     color: '#27AE60',
   },
@@ -135,7 +135,7 @@ const mockEvents: TimelineEvent[] = [
     category: 'dont-panic',
     message: 'Everything will be okay ❤️ Take a deep breath',
     timestamp: '2025-01-06T15:20:00Z',
-    partnerName: 'Sarah',
+    partnerName: 'Breda',
     icon: Heart,
     color: '#6366F1',
   },
@@ -146,12 +146,10 @@ const mockEvents: TimelineEvent[] = [
     category: 'im-sorry',
     message: 'I\'m truly sorry for being late. You deserve better ❤️',
     timestamp: '2025-01-05T18:30:00Z',
-    partnerName: 'Sarah',
+    partnerName: 'Breda',
     icon: Heart,
     color: '#F87171',
   },
-  { id: 'dont-panic', name: 'Don\'t Panic', icon: Heart },
-  { id: 'relationship-wisdom', name: 'Relationship Wisdom', icon: Crown },
 ];
 
 export default function TimelineScreen() {
@@ -301,52 +299,18 @@ export default function TimelineScreen() {
     );
   };
 
-  const renderStats = () => {
-    const totalEvents = mockEvents.length;
-    const positiveEvents = mockEvents.filter(e => !e.isNegative);
-    const negativeEvents = mockEvents.filter(e => e.isNegative);
-    const sentCount = positiveEvents.filter(e => e.type === 'sent').length;
-    const receivedCount = positiveEvents.filter(e => e.type === 'received').length;
-
-    return (
-      <View style={styles.statsContainer}>
-        <Text style={styles.statsTitle}>This Week's Appreciation</Text>
-        <View style={styles.statsGrid}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{positiveEvents.length}</Text>
-            <Text style={styles.statLabel}>Positive</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, styles.negativeStatNumber]}>{negativeEvents.length}</Text>
-            <Text style={styles.statLabel}>Hornets</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{totalEvents}</Text>
-            <Text style={styles.statLabel}>Total</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{sentCount}</Text>
-            <Text style={styles.statLabel}>Sent</Text>
-          </View>
-        </View>
-      </View>
-    );
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <Clock color="#FF8C42" size={28} />
-          <Text style={styles.title}>Appreciation Timeline</Text>
+          <Text style={styles.title}>Timeline</Text>
         </View>
         <Text style={styles.subtitle}>
           Your beautiful journey together
         </Text>
       </View>
 
-      {renderStats()}
-      
       <View style={styles.filterContainer}>
         {renderFilterButton()}
       </View>
@@ -396,42 +360,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: '#666',
     lineHeight: 24,
-  },
-  statsContainer: {
-    backgroundColor: 'white',
-    marginHorizontal: 20,
-    marginBottom: 20,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  statsTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginBottom: 16,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 24,
-    fontFamily: 'Inter-Bold',
-    color: '#FF8C42',
-  },
-  statLabel: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    color: '#666',
-    marginTop: 4,
   },
   filterContainer: {
     paddingHorizontal: 20,

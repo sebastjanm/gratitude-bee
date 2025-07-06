@@ -20,6 +20,10 @@ import UserWelcome from '@/components/UserWelcome';
 import AppreciationModal from '@/components/AppreciationModal';
 import RelationshipWisdomModal from '@/components/RelationshipWisdomModal';
 import FavorsModal from '@/components/FavorsModal';
+import StreakCard from '@/components/StreakCard';
+import QuickSendActions from '@/components/QuickSendActions';
+import TodayTip from '@/components/TodayTip';
+import PingModal from '@/components/PingModal';
 
 const { width } = Dimensions.get('window');
 
@@ -130,6 +134,7 @@ export default function HomeScreen() {
   const [showAppreciationModal, setShowAppreciationModal] = useState(false);
   const [showRelationshipWisdomModal, setShowRelationshipWisdomModal] = useState(false);
   const [showFavorsModal, setShowFavorsModal] = useState(false);
+  const [showPingModal, setShowPingModal] = useState(false);
   const [favorPoints, setFavorPoints] = useState(45); // Mock favor points
   const [heartAnimation] = useState(new Animated.Value(1));
 
@@ -220,152 +225,15 @@ export default function HomeScreen() {
     );
   };
 
-  const renderStreakCard = () => (
-    <View style={styles.streakCard}>
-      <View style={styles.streakHeader}>
-        <Flame color="#FF8C42" size={24} />
-        <Text style={styles.streakTitle}>Daily Streak</Text>
-      </View>
-      <View style={styles.streakStats}>
-        <View style={styles.streakItem}>
-          <Text style={styles.streakNumber}>{currentStreak}</Text>
-          <Text style={styles.streakLabel}>Days</Text>
-        </View>
-        <View style={styles.streakDivider} />
-        <View style={styles.streakItem}>
-          <Text style={styles.streakNumber}>{totalBadges}</Text>
-          <Text style={styles.streakLabel}>Total Badges</Text>
-        </View>
-      </View>
-      <Text style={styles.streakEncouragement}>
-        Amazing! You're building a beautiful relationship together 💕
-      </Text>
-    </View>
-  );
-
-  const renderBadgeCategory = (category: BadgeCategory) => {
-    const IconComponent = category.icon;
-    return (
-      <TouchableOpacity
-        key={category.id}
-        style={[
-          styles.categoryCard,
-          { backgroundColor: category.color + '20' },
-          selectedCategory === category.id && styles.selectedCategory,
-        ]}
-        onPress={() => setSelectedCategory(category.id)}
-        activeOpacity={0.8}>
-        <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
-          <IconComponent color="white" size={24} />
-        </View>
-        <Text style={styles.categoryName}>{category.name}</Text>
-        <Text style={styles.categoryDescription}>{category.description}</Text>
-        <View style={styles.categoryBadge}>
-          <Text style={styles.categoryCount}>{category.count}</Text>
-        </View>
-      </TouchableOpacity>
+  const handleSendPing = (pingId: string, pingTitle: string) => {
+    // Mock ping sending
+    console.log(`Sending ${pingTitle} ping to partner`);
+    Alert.alert(
+      'Ping Sent!',
+      `Your "${pingTitle}" ping has been sent to your partner.`,
+      [{ text: 'OK' }]
     );
   };
-
-  const renderNegativeBadgeButton = () => (
-    <TouchableOpacity
-      style={styles.negativeButton}
-      onPress={() => setShowNegativeModal(true)}
-      activeOpacity={0.8}>
-      <View style={styles.negativeButtonContent}>
-        <Bug color="#FF4444" size={20} />
-        <Text style={styles.negativeButtonText}>Send Hornet</Text>
-        <AlertTriangle color="#FF4444" size={16} />
-      </View>
-      <Text style={styles.negativeButtonSubtext}>
-        Cancel positive badges for accountability
-      </Text>
-    </TouchableOpacity>
-  );
-
-  const renderQuickSend = () => (
-    <View style={styles.quickSendContainer}>
-      {/* 1. Send Appreciation */}
-      <TouchableOpacity
-        style={styles.appreciationButton}
-        onPress={() => setShowAppreciationModal(true)}
-        activeOpacity={0.8}>
-        <View style={styles.appreciationButtonContent}>
-          <Animated.View style={[
-            styles.animatedHeartContainer,
-            { transform: [{ scale: heartAnimation }] }
-          ]}>
-            <Heart color="#FF8C42" size={24} fill="#FF8C42" />
-          </Animated.View>
-          <Text style={styles.appreciationButtonText}>Send Appreciation</Text>
-        </View>
-        <Text style={styles.appreciationButtonSubtext}>
-          Browse categories and select the perfect badge
-        </Text>
-      </TouchableOpacity>
-      
-      <View style={styles.divider} />
-      
-      {/* 2. Request for Favour */}
-      <TouchableOpacity
-        style={styles.favorsButton}
-        onPress={() => setShowFavorsModal(true)}
-        activeOpacity={0.8}>
-        <View style={styles.favorsButtonContent}>
-          <HandHeart color="#8B5CF6" size={20} />
-          <Text style={styles.favorsButtonText}>Request a Favor</Text>
-        </View>
-        <Text style={styles.favorsButtonSubtext}>
-          Ask for help using your favor points
-        </Text>
-      </TouchableOpacity>
-      
-      <View style={styles.divider} />
-      
-      {/* 3. Relationship Wisdom */}
-      {renderRelationshipWisdomButton()}
-      
-      <View style={styles.divider} />
-      
-      {/* 4. Don't Panic */}
-      {renderDontPanicButton()}
-      
-      <View style={styles.divider} />
-      
-      {/* 5. Send Hornet */}
-      {renderNegativeBadgeButton()}
-    </View>
-  );
-
-  const renderDontPanicButton = () => (
-    <TouchableOpacity
-      style={styles.dontPanicButton}
-      onPress={() => setShowDontPanicModal(true)}
-      activeOpacity={0.8}>
-      <View style={styles.dontPanicButtonContent}>
-        <Heart color="#6366F1" size={20} />
-        <Text style={styles.dontPanicButtonText}>Don't Panic</Text>
-      </View>
-      <Text style={styles.dontPanicButtonSubtext}>
-        Send calm reassurance after stress
-      </Text>
-    </TouchableOpacity>
-  );
-
-  const renderRelationshipWisdomButton = () => (
-    <TouchableOpacity
-      style={styles.relationshipWisdomButton}
-      onPress={() => setShowRelationshipWisdomModal(true)}
-      activeOpacity={0.8}>
-      <View style={styles.relationshipWisdomButtonContent}>
-        <Crown color="#8B5CF6" size={20} />
-        <Text style={styles.relationshipWisdomButtonText}>Relationship Wisdom</Text>
-      </View>
-      <Text style={styles.relationshipWisdomButtonSubtext}>
-        "Whatever you say", "Yes dear", "I'm sorry"
-      </Text>
-    </TouchableOpacity>
-  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -374,16 +242,18 @@ export default function HomeScreen() {
           <UserWelcome />
         </View>
 
-        {renderStreakCard()}
-        {renderQuickSend()}
+        <StreakCard currentStreak={currentStreak} totalBadges={totalBadges} />
+        <QuickSendActions
+          onShowAppreciationModal={() => setShowAppreciationModal(true)}
+          onShowFavorsModal={() => setShowFavorsModal(true)}
+          onShowRelationshipWisdomModal={() => setShowRelationshipWisdomModal(true)}
+          onShowDontPanicModal={() => setShowDontPanicModal(true)}
+          onShowNegativeModal={() => setShowNegativeModal(true)}
+          onShowPingModal={() => setShowPingModal(true)}
+          heartAnimation={heartAnimation}
+        />
 
-        <View style={styles.todayTip}>
-          <Text style={styles.tipTitle}>Today's Tip</Text>
-          <Text style={styles.tipText}>
-            Try sending a Support Star if your partner has been working hard lately. 
-            Small acknowledgments make a big difference! ✨
-          </Text>
-        </View>
+        <TodayTip />
       </ScrollView>
       
       <NegativeBadgeModal
@@ -416,6 +286,12 @@ export default function HomeScreen() {
         onClose={() => setShowFavorsModal(false)}
         onSendFavor={handleSendFavor}
         currentFavorPoints={favorPoints}
+      />
+
+      <PingModal
+        visible={showPingModal}
+        onClose={() => setShowPingModal(false)}
+        onSendPing={handleSendPing}
       />
     </SafeAreaView>
   );
@@ -500,80 +376,6 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
   },
-  quickSendContainer: {
-    marginHorizontal: 20,
-    marginBottom: 24,
-  },
-  appreciationButton: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    borderWidth: 2,
-    borderColor: '#FFE0B2',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  appreciationButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  animatedHeartContainer: {
-    marginRight: 12,
-  },
-  appreciationButtonText: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#FF8C42',
-  },
-  appreciationButtonSubtext: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    textAlign: 'center',
-  },
-  favorsButton: {
-    backgroundColor: '#F8F7FF',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 2,
-    borderColor: '#E5E3FF',
-  },
-  favorsButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  favorsButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#8B5CF6',
-    marginLeft: 8,
-  },
-  favorsButtonSubtext: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    textAlign: 'center',
-  },
-  sectionTitle: {
-    fontSize: 22,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginBottom: 16,
-  },
-  categoriesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
   categoryCard: {
     width: (width - 60) / 2,
     borderRadius: 16,
@@ -638,106 +440,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: 'white',
-  },
-  todayTip: {
-    backgroundColor: '#E8F5E8',
-    marginHorizontal: 20,
-    marginBottom: 24,
-    borderRadius: 16,
-    padding: 20,
-    borderLeftWidth: 4,
-    borderLeftColor: '#6BCF7F',
-  },
-  tipTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginBottom: 8,
-  },
-  tipText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    lineHeight: 20,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#E0E0E0',
-    marginVertical: 20,
-  },
-  negativeButton: {
-    backgroundColor: '#FFF5F5',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 2,
-    borderColor: '#FFE0E0',
-  },
-  negativeButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  negativeButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#FF4444',
-    marginHorizontal: 8,
-  },
-  negativeButtonSubtext: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: '#999',
-    textAlign: 'center',
-  },
-  dontPanicButton: {
-    backgroundColor: '#F0F9FF',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 2,
-    borderColor: '#DBEAFE',
-  },
-  dontPanicButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  dontPanicButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#6366F1',
-    marginLeft: 8,
-  },
-  dontPanicButtonSubtext: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: '#999',
-    textAlign: 'center',
-  },
-  relationshipWisdomButton: {
-    backgroundColor: '#F8F7FF',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 2,
-    borderColor: '#E5E3FF',
-  },
-  relationshipWisdomButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  relationshipWisdomButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#8B5CF6',
-    marginLeft: 8,
-  },
-  relationshipWisdomButtonSubtext: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: '#999',
-    textAlign: 'center',
   },
 });

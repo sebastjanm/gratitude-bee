@@ -7,8 +7,9 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
+  Image,
 } from 'react-native';
-import { X, Heart, Phone, MessageSquare, Clock, CircleCheck as CheckCircle } from 'lucide-react-native';
+import { X, Phone, MessageSquare, Clock, CircleCheck as CheckCircle, Shell } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -72,8 +73,8 @@ const calmOptions: CalmOption[] = [
 ];
 
 const panicTriggers = [
-  { icon: Phone, text: "After a stressful call", color: "#EF4444" },
-  { icon: MessageSquare, text: "Overwhelming news", color: "#F59E0B" },
+  { icon: Phone, text: "Stressful call", color: "#EF4444" },
+  { icon: Shell, text: "Jobs situation", color: "#8B5CF6" },
   { icon: Clock, text: "Anxiety moment", color: "#8B5CF6" },
 ];
 
@@ -110,17 +111,15 @@ export default function DontPanicModal({
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.heroSection}>
             <View style={styles.heroIcon}>
-              <Heart color="#6366F1" size={32} fill="#6366F1" />
+              <Image source={require('../assets/images/dont-panic.png')} style={styles.heroImage} />
             </View>
             <Text style={styles.heroTitle}>Send Calm & Reassurance</Text>
             <Text style={styles.heroSubtitle}>
               Sometimes your partner needs immediate comfort after a stressful moment. 
-              Send a gentle reminder that everything will be okay.
             </Text>
           </View>
 
           <View style={styles.triggerSection}>
-            <Text style={styles.sectionTitle}>Common Situations</Text>
             <View style={styles.triggerGrid}>
               {panicTriggers.map((trigger, index) => {
                 const IconComponent = trigger.icon;
@@ -138,9 +137,6 @@ export default function DontPanicModal({
 
           <View style={styles.optionsSection}>
             <Text style={styles.sectionTitle}>Choose Your Message</Text>
-            <Text style={styles.sectionSubtitle}>
-              Select the type of comfort that feels right for this moment
-            </Text>
             
             <View style={styles.optionsGrid}>
               {calmOptions.map((option) => (
@@ -187,7 +183,7 @@ export default function DontPanicModal({
               style={[styles.fixedSendButton, { backgroundColor: selectedOption.color }]}
               onPress={handleSendOption}
               activeOpacity={0.8}>
-              <Heart color="white" size={20} />
+              <Image source={require('../assets/images/dont-panic.png')} style={styles.buttonImage} />
               <Text style={styles.fixedSendButtonText}>
                 Send "{selectedOption.title}"
               </Text>
@@ -241,6 +237,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
+  },
+  heroImage: {
+    width: 48,
+    height: 48,
+    resizeMode: 'contain',
   },
   heroTitle: {
     fontSize: 24,
@@ -417,6 +418,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: 'white',
-    marginLeft: 8,
+  },
+  buttonImage: {
+    width: 24,
+    height: 24,
+    tintColor: 'white',
+    marginRight: 8,
   },
 });

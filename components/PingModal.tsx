@@ -1,3 +1,6 @@
+// This file was created by the assistant.
+// It contains the "Send a Ping" modal component.
+
 import React, { useState } from 'react';
 import {
   View,
@@ -6,14 +9,11 @@ import {
   Modal,
   TouchableOpacity,
   ScrollView,
-  Dimensions,
   Image,
 } from 'react-native';
-import { X, Heart, CircleCheck as CheckCircle, Chrome as Home } from 'lucide-react-native';
+import { X, AlertTriangle, CircleCheck as CheckCircle } from 'lucide-react-native';
 
-const { width } = Dimensions.get('window');
-
-interface WisdomOption {
+interface PingOption {
   id: string;
   title: string;
   description: string;
@@ -21,58 +21,58 @@ interface WisdomOption {
   color: string;
 }
 
-interface RelationshipWisdomModalProps {
+interface PingModalProps {
   visible: boolean;
   onClose: () => void;
-  onSendWisdom: (wisdomId: string, wisdomTitle: string) => void;
+  onSendPing: (pingId: string, pingTitle: string) => void;
 }
 
-const wisdomOptions: WisdomOption[] = [
+const pingOptions: PingOption[] = [
   {
-    id: 'whatever-you-say',
-    title: 'Whatever You Say, So Be It',
-    description: 'Graceful acceptance of your perspective and wisdom',
-    icon: '🤝',
-    color: '#9B59B6',
+    id: 'checking-in',
+    title: 'Just checking in',
+    description: 'A gentle nudge to see how you are.',
+    icon: '👋',
+    color: '#3B82F6',
   },
   {
-    id: 'yes-dear',
-    title: 'Yes, Dear',
-    description: 'Wise partnership acknowledgment and agreement',
-    icon: '👑',
-    color: '#E67E22',
+    id: 'worried',
+    title: 'A bit worried',
+    description: 'Please text back when you get a chance.',
+    icon: '😟',
+    color: '#F59E0B',
   },
   {
-    id: 'happy-wife-happy-life',
-    title: 'Happy Wife, Happy Life',
-    description: 'Understanding relationship priorities and harmony',
-    icon: '🏠',
-    color: '#27AE60',
+    id: 'urgent',
+    title: 'URGENT: Are you safe?',
+    description: 'Please let me know you are okay as soon as possible.',
+    icon: '🚨',
+    color: '#EF4444',
   },
   {
-    id: 'im-sorry',
-    title: 'I\'m Sorry',
-    description: 'Sincere apology and commitment to making amends',
-    icon: '💔',
-    color: '#F87171',
+    id: 'hornet-alert',
+    title: 'Hornet Alert',
+    description: 'This is the final warning. A storm is coming.',
+    icon: '☣️',
+    color: '#DC2626',
   },
 ];
 
-export default function RelationshipWisdomModal({
+export default function PingModal({
   visible,
   onClose,
-  onSendWisdom,
-}: RelationshipWisdomModalProps) {
-  const [selectedWisdom, setSelectedWisdom] = useState<WisdomOption | null>(null);
+  onSendPing,
+}: PingModalProps) {
+  const [selectedPing, setSelectedPing] = useState<PingOption | null>(null);
 
   const handleClose = () => {
-    setSelectedWisdom(null);
+    setSelectedPing(null);
     onClose();
   };
 
-  const handleSendWisdom = () => {
-    if (selectedWisdom) {
-      onSendWisdom(selectedWisdom.id, selectedWisdom.title);
+  const handleSend = () => {
+    if (selectedPing) {
+      onSendPing(selectedPing.id, selectedPing.title);
       handleClose();
     }
   };
@@ -84,46 +84,44 @@ export default function RelationshipWisdomModal({
           <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
             <X color="#666" size={24} />
           </TouchableOpacity>
-          <Text style={styles.title}>Relationship Wisdom</Text>
+          <Text style={styles.title}>Send a Ping</Text>
           <View style={styles.placeholder} />
         </View>
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.heroSection}>
             <View style={styles.heroIcon}>
-              <Image source={require('../assets/images/owl.png')} style={styles.heroImage} />
+                <Image source={require('../assets/images/ping.png')} style={styles.heroImage} />
             </View>
-            <Text style={styles.heroTitle}>Relationship Wisdom</Text>
+            <Text style={styles.heroTitle}>Send a Ping</Text>
             <Text style={styles.heroSubtitle}>
-              Sometimes relationships just need a little wisdom, compromise, and understanding. 
+              Send an urgent nudge to your partner to let them know you're thinking of them.
             </Text>
           </View>
 
-          <View style={styles.wisdomSection}>
-
-            
-            <View style={styles.wisdomGrid}>
-              {wisdomOptions.map((wisdom) => (
+          <View style={styles.pingSection}>
+            <View style={styles.pingGrid}>
+              {pingOptions.map((ping) => (
                 <TouchableOpacity
-                  key={wisdom.id}
+                  key={ping.id}
                   style={[
-                    styles.wisdomCard,
-                    selectedWisdom?.id === wisdom.id && styles.selectedWisdomCard,
+                    styles.pingCard,
+                    selectedPing?.id === ping.id && styles.selectedPingCard,
                   ]}
-                  onPress={() => setSelectedWisdom(wisdom)}
+                  onPress={() => setSelectedPing(ping)}
                   activeOpacity={0.7}>
-                  <View style={styles.wisdomCardHeader}>
-                    <View style={[styles.wisdomIcon, { backgroundColor: wisdom.color + '20' }]}>
-                      <Text style={styles.wisdomEmoji}>{wisdom.icon}</Text>
+                  <View style={styles.pingCardHeader}>
+                    <View style={[styles.pingIcon, { backgroundColor: ping.color + '20' }]}>
+                      <Text style={styles.pingEmoji}>{ping.icon}</Text>
                     </View>
-                    <Text style={styles.wisdomTitle}>{wisdom.title}</Text>
+                    <Text style={styles.pingTitle}>{ping.title}</Text>
                   </View>
-                  <Text style={styles.wisdomDescription}>{wisdom.description}</Text>
+                  <Text style={styles.pingDescription}>{ping.description}</Text>
                   
-                  {selectedWisdom?.id === wisdom.id && (
+                  {selectedPing?.id === ping.id && (
                     <View style={styles.selectedIndicator}>
-                      <CheckCircle color={wisdom.color} size={16} />
-                      <Text style={[styles.selectedText, { color: wisdom.color }]}>Selected</Text>
+                      <CheckCircle color={ping.color} size={16} />
+                      <Text style={[styles.selectedText, { color: ping.color }]}>Selected</Text>
                     </View>
                   )}
                 </TouchableOpacity>
@@ -132,25 +130,23 @@ export default function RelationshipWisdomModal({
           </View>
 
           <View style={styles.tipSection}>
-            <Text style={styles.tipTitle}>💡 About Relationship Wisdom</Text>
+            <Text style={styles.tipTitle}>💡 Using Pings Responsibly</Text>
             <Text style={styles.tipText}>
-              These responses acknowledge the practical wisdom that comes with mature relationships. 
-              They're about knowing when to compromise, when to apologize, and when to prioritize 
-              harmony over being right. This isn't about submission - it's about partnership intelligence.
+              Pings are for urgent check-ins. To prevent spam, consider agreeing on limits, 
+              like a few per day or a cool-down timer between pings.
             </Text>
           </View>
-
         </ScrollView>
 
-        {selectedWisdom && (
+        {selectedPing && (
           <View style={styles.fixedSendButtonContainer}>
             <TouchableOpacity
-              style={[styles.fixedSendButton, { backgroundColor: selectedWisdom.color }]}
-              onPress={handleSendWisdom}
+              style={[styles.fixedSendButton, { backgroundColor: selectedPing.color }]}
+              onPress={handleSend}
               activeOpacity={0.8}>
-              <Image source={require('../assets/images/owl.png')} style={styles.buttonImage} />
+              <Image source={require('../assets/images/ping.png')} style={styles.buttonImage} />
               <Text style={styles.fixedSendButtonText}>
-                Send "{selectedWisdom.title}"
+                Send Ping
               </Text>
             </TouchableOpacity>
           </View>
@@ -194,19 +190,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 32,
   },
-  heroImage: {
-    width: 48,
-    height: 48,
-    resizeMode: 'contain',
-  },
   heroIcon: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#8B5CF6' + '20',
+    backgroundColor: '#3B82F6' + '20',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
+    position: 'relative',
+  },
+  heroImage: {
+    width: 48,
+    height: 48,
+    resizeMode: 'contain',
   },
   heroTitle: {
     fontSize: 24,
@@ -223,25 +220,13 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     paddingHorizontal: 20,
   },
-  wisdomSection: {
+  pingSection: {
     marginBottom: 32,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginBottom: 8,
-  },
-  sectionSubtitle: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    marginBottom: 20,
-  },
-  wisdomGrid: {
+  pingGrid: {
     gap: 16,
   },
-  wisdomCard: {
+  pingCard: {
     backgroundColor: 'white',
     borderRadius: 16,
     padding: 20,
@@ -253,16 +238,16 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  selectedWisdomCard: {
-    borderColor: '#8B5CF6',
-    backgroundColor: '#8B5CF6' + '05',
+  selectedPingCard: {
+    borderColor: '#3B82F6',
+    backgroundColor: '#3B82F6' + '05',
   },
-  wisdomCardHeader: {
+  pingCardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
   },
-  wisdomIcon: {
+  pingIcon: {
     width: 48,
     height: 48,
     borderRadius: 24,
@@ -270,16 +255,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 16,
   },
-  wisdomEmoji: {
+  pingEmoji: {
     fontSize: 20,
   },
-  wisdomTitle: {
+  pingTitle: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: '#333',
     flex: 1,
   },
-  wisdomDescription: {
+  pingDescription: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     color: '#666',
@@ -301,7 +286,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 32,
     borderLeftWidth: 4,
-    borderLeftColor: '#8B5CF6',
+    borderLeftColor: '#6B7280',
   },
   tipTitle: {
     fontSize: 16,
@@ -315,12 +300,6 @@ const styles = StyleSheet.create({
     color: '#666',
     lineHeight: 20,
   },
-  buttonImage: {
-    width: 24,
-    height: 24,
-    tintColor: 'white',
-    marginRight: 8,
-  },
   fixedSendButtonContainer: {
     position: 'absolute',
     bottom: 0,
@@ -332,11 +311,11 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     borderTopWidth: 1,
     borderTopColor: '#E0E0E0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 8,
+  },
+  buttonImage: {
+    width: 24,
+    height: 24,
+    tintColor: 'white',
   },
   fixedSendButton: {
     borderRadius: 16,
@@ -344,15 +323,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
   },
   fixedSendButtonText: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: 'white',
+    marginLeft: 8,
   },
-});
+}); 
