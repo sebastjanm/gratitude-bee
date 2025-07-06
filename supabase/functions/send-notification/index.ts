@@ -46,6 +46,12 @@ Deno.serve(async (req) => {
     } else if (event.event_type === 'PING_SENT') {
        title = `Ping from ${sender.display_name}`;
        body = event.content.title;
+    } else if (event.event_type === 'DONT_PANIC') {
+      title = `A message from ${sender.display_name}`;
+      body = event.content.message;
+    } else if (event.event_type === 'WISDOM') {
+      title = `A little wisdom from ${sender.display_name}`;
+      body = event.content.title;
     }
 
     const message = {

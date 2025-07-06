@@ -1,8 +1,13 @@
 -- Gratitude Bee - Supabase Database Schema
--- Version: 1.1 (Idempotent)
+-- Version: 1.2 (Idempotent)
 --
 -- This script sets up the initial database schema. It is designed to be
 -- re-runnable by first dropping existing objects before creating them.
+--
+-- Changes:
+-- - Consolidated all migrations into this single initial schema.
+-- - In `appreciation_templates`, renamed `bee_count` to `points` and added `point_unit`.
+-- - Added `icon` column to all template tables (`appreciation_templates`, `favor_templates`, `hornet_templates`).
 --
 
 -- 0. =================================================================
@@ -11,12 +16,12 @@
 -- =================================================================
 
 -- Drop triggers
-DROP TRIGGER IF EXISTS on_event_change ON public.events;
+-- DROP TRIGGER IF EXISTS on_event_change ON public.events;
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 
 -- Drop functions
-DROP FUNCTION IF EXISTS public.handle_event_points();
-DROP FUNCTION IF EXISTS public.handle_new_user();
+DROP FUNCTION IF EXISTS public.handle_event_points() CASCADE;
+DROP FUNCTION IF EXISTS public.handle_new_user() CASCADE;
 
 -- Drop tables (CASCADE will remove dependent objects like policies)
 DROP TABLE IF EXISTS public.events CASCADE;
@@ -148,7 +153,9 @@ CREATE TABLE public.appreciation_templates (
     category_id text NOT NULL,
     title text NOT NULL,
     description text,
-    bee_count integer DEFAULT 1,
+    points integer DEFAULT 1,
+    point_unit text,
+    icon text,
     notification_text text,
     is_active boolean DEFAULT true
 );
@@ -159,6 +166,7 @@ CREATE TABLE public.favor_templates (
     title text NOT NULL,
     description text,
     points integer DEFAULT 5,
+    icon text,
     is_active boolean DEFAULT true
 );
 
@@ -167,7 +175,8 @@ CREATE TABLE public.hornet_templates (
     title text NOT NULL,
     description text,
     severity text,
-    points integer NOT NULL, -- Should be a negative number
+    points integer,
+    icon text,
     is_active boolean DEFAULT true
 );
 
@@ -240,7 +249,7 @@ BEGIN
     IF TG_OP = 'INSERT' THEN
         IF NEW.event_type = 'APPRECIATION' THEN
             appreciation_category := NEW.content->>'category_id';
-            points_to_add := (NEW.content->>'bee_count')::int;
+            points_to_add := (NEW.content->>'points')::int;
             UPDATE public.wallets
             SET appreciation_points = jsonb_set(
                 appreciation_points,

@@ -272,41 +272,82 @@ export default function HomeScreen() {
     }
   };
 
-  const handleSendHornet = (message: string, cancelledBadges: string[]) => {
-    // Mock hornet sending - in real app this would sync with partner
-    setTotalBadges(prev => Math.max(0, prev - cancelledBadges.length));
-    console.log(`Sending hornet, cancelling ${cancelledBadges.length} badges:`, cancelledBadges);
-    if (message) {
-      console.log('Hornet message:', message);
+  const handleSendHornet = async (message: string, selectedOption: any) => {
+    if (!session) {
+      Alert.alert('Not authenticated', 'You must be logged in to send a hornet.');
+      return;
     }
-    
-    Alert.alert(
-      'Hornet Sent',
-      `Successfully cancelled ${cancelledBadges.length} positive badge${cancelledBadges.length > 1 ? 's' : ''}.`,
-      [{ text: 'OK' }]
-    );
+
+    const { data: partnerData, error: partnerError } = await supabase
+      .from('users')
+      .select('id, partner_id')
+      .eq('id', session.user.id)
+      .single();
+
+    if (partnerError || !partnerData || !partnerData.partner_id) {
+      Alert.alert('Not Connected', 'You must be connected to a partner to send a hornet.');
+      return;
+    }
+
+    const { error } = await supabase.from('events').insert([
+      {
+        sender_id: session.user.id,
+        receiver_id: partnerData.partner_id,
+        event_type: 'HORNET',
+        content: {
+          hornet_id: selectedOption.id,
+          title: selectedOption.title,
+          points: selectedOption.count,
+          message: message,
+          severity: selectedOption.severity,
+        },
+      },
+    ]);
+
+    if (error) {
+      Alert.alert('Error', 'Could not send the hornet. Please try again.');
+    } else {
+      Alert.alert(
+        'Hornet Sent',
+        `Your accountability hornet has been sent.`,
+        [{ text: 'OK' }]
+      );
+    }
   };
 
-  const handleSendDontPanic = (message: string, quickResponse?: string) => {
-    // Mock don't panic sending - in real app this would sync with partner
-    console.log('Sending Don\'t Panic message:', quickResponse || message);
-    
-    Alert.alert(
-      'Don\'t Panic Sent',
-      'Your calming message has been sent to your partner.',
-      [{ text: 'OK' }]
-    );
+  const handleSendDontPanic = async (message: string, quickResponse?: string) => {
+    if (!session) return;
+    const { data: partnerData } = await supabase.from('users').select('partner_id').eq('id', session.user.id).single();
+    if (!partnerData?.partner_id) return;
+
+    const { error } = await supabase.from('events').insert([
+      {
+        sender_id: session.user.id,
+        receiver_id: partnerData.partner_id,
+        event_type: 'DONT_PANIC',
+        content: { title: quickResponse, message },
+      },
+    ]);
+
+    if (error) Alert.alert('Error', 'Could not send the message.');
+    else Alert.alert('Message Sent', 'Your calming message has been sent.');
   };
 
-  const handleSendWisdom = (wisdomId: string, wisdomTitle: string) => {
-    // Mock wisdom sending - in real app this would sync with partner
-    console.log(`Sending ${wisdomTitle} wisdom to partner`);
-    
-    Alert.alert(
-      'Wisdom Sent',
-      `Your "${wisdomTitle}" response has been sent to your partner.`,
-      [{ text: 'OK' }]
-    );
+  const handleSendWisdom = async (wisdomId: string, wisdomTitle: string) => {
+    if (!session) return;
+    const { data: partnerData } = await supabase.from('users').select('partner_id').eq('id', session.user.id).single();
+    if (!partnerData?.partner_id) return;
+
+    const { error } = await supabase.from('events').insert([
+      {
+        sender_id: session.user.id,
+        receiver_id: partnerData.partner_id,
+        event_type: 'WISDOM',
+        content: { wisdom_id: wisdomId, title: wisdomTitle },
+      },
+    ]);
+    if (error) Alert.alert('Error', 'Could not send the wisdom.');
+    else Alert.alert('Wisdom Sent', 'Your wise words have been shared.');
   };
 
   const handleSendPing = (pingId: string, pingTitle: string) => {

@@ -1,3 +1,4 @@
+// Fix: Refactored to support category-specific point units (e.g., bees, butterflies).
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -20,7 +21,9 @@ interface BadgeOption {
   id: string;
   title: string;
   description: string;
-  bee_count: number;
+  points: number;
+  point_unit: string;
+  icon: string;
 }
 
 interface SubCategory {
@@ -57,7 +60,7 @@ export default function AppreciationModal({
 
   const fetchAppreciationTemplates = async () => {
     setLoading(true);
-    const { data, error } = await supabase.from('appreciation_badge_templates').select('*');
+    const { data, error } = await supabase.from('appreciation_templates').select('*');
 
     if (error) {
       Alert.alert('Error', 'Could not fetch appreciation badges.');
@@ -85,7 +88,9 @@ export default function AppreciationModal({
                   id: badge.id,
                   title: badge.title,
                   description: badge.description,
-                  bee_count: badge.bee_count,
+                  points: badge.points,
+                  point_unit: badge.point_unit,
+                  icon: badge.icon,
               });
           }
       });
@@ -185,13 +190,13 @@ export default function AppreciationModal({
               <View style={styles.badgeCardHeader}>
                 <View style={styles.badgeIconAndTitle}>
                   <View style={styles.badgeIconContainer}>
-                    <Text style={styles.badgeEmoji}>🐝</Text>
+                    <Text style={styles.badgeEmoji}>{badge.icon || '🐝'}</Text>
                   </View>
                   <View style={styles.badgeTitleContainer}>
                     <Text style={styles.badgeTitle}>{badge.title}</Text>
                     <View style={styles.badgeCountRow}>
                       <Text style={styles.badgeCountText}>
-                        {badge.bee_count} 🐝
+                        {badge.points} {badge.point_unit === 'bee' ? '🐝' : badge.point_unit === 'butterfly' ? '🦋' : badge.point_unit === 'smily' ? '😊' : badge.point_unit === 'tent' ? '⛺' : '❤️'}
                       </Text>
                     </View>
                   </View>

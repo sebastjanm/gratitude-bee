@@ -12,7 +12,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Heart, Star, Smile, Compass, MessageCircle, Filter, Calendar, Bug, X, CircleCheck as CheckCircle, Crown, Chrome as Home, Clock } from 'lucide-react-native';
+import { Heart, Star, Smile, Compass, MessageCircle, Filter, Calendar, Bug, X, CircleCheck as CheckCircle, Crown, Home as HomeIcon, Clock } from 'lucide-react-native';
 import { useSession } from '@/providers/SessionProvider';
 import { supabase } from '@/utils/supabase';
 
@@ -66,17 +66,39 @@ const filterOptions = [
   { id: 'received', name: 'Received' },
 ];
 
+const categoryDetails: { [key: string]: { icon: any; color: string } } = {
+  kindness: { icon: Heart, color: '#FF6B9D' },
+  support: { icon: Star, color: '#4ECDC4' },
+  humor: { icon: Smile, color: '#FFD93D' },
+  adventure: { icon: Compass, color: '#6BCF7F' },
+  words: { icon: MessageCircle, color: '#A8E6CF' },
+  'whatever-you-say': { icon: CheckCircle, color: '#9B59B6' },
+  'yes-dear': { icon: Crown, color: '#E67E22' },
+  'happy-wife': { icon: HomeIcon, color: '#27AE60' },
+  'dont-panic': { icon: Heart, color: '#6366F1' },
+  'im-sorry': { icon: Heart, color: '#F87171' },
+  hornet: { icon: Bug, color: '#FF4444' },
+  favor: { icon: Heart, color: '#8B4513' }, // Placeholder, can be improved
+  default: { icon: Heart, color: '#ccc' },
+};
+
+const getEventVisuals = (event: any) => {
+  const category = event.content?.category_id || event.event_type.toLowerCase();
+  const details = categoryDetails[category] || categoryDetails.default;
+  return { IconComponent: details.icon, color: details.color };
+};
+
+
 export default function TimelineScreen() {
   const { session } = useSession();
   const [filter, setFilter] = useState<'all' | 'sent' | 'received'>('all');
-  const [events, setEvents] = useState<TimelineEvent[]>(mockEvents);
-  const [loading, setLoading] = useState(false);
+  const [events, setEvents] = useState<TimelineEvent[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // We will uncomment this when we are ready to fetch real data
-    // if (session) {
-    //   fetchEvents();
-    // }
+    if (session) {
+      fetchEvents();
+    }
   }, [session, filter]);
 
   const fetchEvents = async () => {
@@ -99,36 +121,61 @@ export default function TimelineScreen() {
       Alert.alert('Error', 'Could not fetch your timeline.');
       console.error(error);
     } else {
-      // This is a temporary hack to map the event data to the TimelineEvent interface
-      // In a real app, this would be handled more robustly
-      const mappedEvents = data.map((e: any) => ({
-        id: e.id,
-        type: e.sender_id === session.user.id ? 'sent' : 'received',
-        badgeName: e.content.title,
-        category: e.content.category_id || e.event_type.toLowerCase(),
-        message: e.content.message,
-        timestamp: e.created_at,
-        partnerName: 'Partner', // In a real app, you'd fetch this
-        icon: Heart, // This needs a proper mapping
-        color: '#ccc', // This needs a proper mapping
-        isNegative: e.event_type === 'HORNET',
-        status: e.status,
-      }));
+      const { data: usersData, error: usersError } = await supabase.from('users').select('id, display_name');
+      if(usersError) {
+          console.error("Could not fetch user names for timeline");
+      }
+      const usersMap = new Map(usersData?.map(u => [u.id, u.display_name]));
+
+      const mappedEvents = data.map((e: any) => {
+        const { IconComponent, color } = getEventVisuals(e);
+        const partnerId = e.sender_id === session.user.id ? e.receiver_id : e.sender_id;
+        
+        return {
+          id: e.id,
+          type: e.sender_id === session.user.id ? 'sent' : 'received',
+          badgeName: e.content.title,
+          category: e.content.category_id || e.event_type.toLowerCase(),
+          message: e.content.message,
+          timestamp: e.created_at,
+          partnerName: usersMap.get(partnerId) || 'Partner',
+          icon: IconComponent,
+          color: color,
+          isNegative: e.event_type === 'HORNET',
+          status: e.status,
+        }
+      });
       setEvents(mappedEvents);
     }
     setLoading(false);
   };
   
   const handleFavorResponse = async (eventId: string, newStatus: 'ACCEPTED' | 'DECLINED') => {
-    // This will be connected to Supabase later
-    setEvents(events.map(e => e.id === eventId ? { ...e, status: newStatus } : e));
-    Alert.alert('Response Sent', `You have ${newStatus.toLowerCase()} the favor request.`);
+    const { error } = await supabase
+      .from('events')
+      .update({ status: newStatus, event_type: 'FAVOR_RESPONSE' })
+      .eq('id', eventId);
+    
+    if (error) {
+      Alert.alert('Error', 'Could not update the favor status.');
+    } else {
+      Alert.alert('Response Sent', `You have ${newStatus.toLowerCase()} the favor request.`);
+      fetchEvents();
+    }
   };
 
   const handleFavorCompletion = async (eventId: string) => {
-    // This will be connected to Supabase later
-    setEvents(events.map(e => e.id === eventId ? { ...e, status: 'COMPLETED' } : e));
-    Alert.alert('Favor Completed!', 'You have marked the favor as complete. Points have been awarded!');
+    const { error } = await supabase
+      .from('events')
+      .update({ status: 'COMPLETED', event_type: 'FAVOR_COMPLETED' })
+      .eq('id', eventId);
+
+    if (error) {
+      Alert.alert('Error', 'Could not complete the favor.');
+    } else {
+      Alert.alert('Favor Completed!', 'You have marked the favor as complete. Points have been awarded!');
+      fetchEvents();
+    }
   };
 
   const filteredEvents = events.filter(event => {

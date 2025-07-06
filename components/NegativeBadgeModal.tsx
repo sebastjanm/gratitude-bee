@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// Fix: Fetch and display badge-specific icons from the database.
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,19 +10,15 @@ import {
   Alert,
   ScrollView,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import { X, Zap, CircleAlert as AlertCircle, Bomb } from 'lucide-react-native';
+import { supabase } from '@/utils/supabase';
 
 interface NegativeBadgeModalProps {
   visible: boolean;
   onClose: () => void;
-  onSend: (message: string, badgesToCancel: string[]) => void;
-  recentPositiveBadges: Array<{
-    id: string;
-    name: string;
-    category: string;
-    earnedDate: string;
-  }>;
+  onSend: (message: string, selectedOption: HornetOption) => void;
 }
 
 interface HornetOption {
@@ -29,50 +26,44 @@ interface HornetOption {
   count: number;
   title: string;
   description: string;
-  icon: any;
+  icon: string; // Changed to string for emoji
   color: string;
   severity: 'light' | 'medium' | 'heavy';
 }
-
-const hornetOptions: HornetOption[] = [
-  {
-    id: 'light-misunderstanding',
-    count: -10,
-    title: 'Light Misunderstanding',
-    description: 'Minor issue that needs gentle addressing',
-    icon: Zap,
-    color: '#F59E0B',
-    severity: 'light',
-  },
-  {
-    id: 'not-ok',
-    title: 'Hey, This Is Not OK',
-    count: -50,
-    description: 'Significant concern that requires attention',
-    icon: AlertCircle,
-    color: '#EF4444',
-    severity: 'medium',
-  },
-  {
-    id: 'clusterfuck',
-    count: -100,
-    title: 'Clusterfuck',
-    description: 'Major issue requiring serious discussion',
-    icon: Bomb,
-    color: '#DC2626',
-    severity: 'heavy',
-  },
-];
 
 export default function NegativeBadgeModal({
   visible,
   onClose,
   onSend,
-  recentPositiveBadges,
 }: NegativeBadgeModalProps) {
+  const [hornetOptions, setHornetOptions] = useState<HornetOption[]>([]);
+  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [selectedOption, setSelectedOption] = useState<HornetOption | null>(null);
 
+  useEffect(() => {
+    if (visible) {
+      fetchHornetTemplates();
+    }
+  }, [visible]);
+
+  const fetchHornetTemplates = async () => {
+    setLoading(true);
+    const { data, error } = await supabase.from('hornet_templates').select('*').order('points', { ascending: false });
+    if (error) {
+      Alert.alert('Error', 'Could not fetch hornet options.');
+    } else {
+      const colorMap: { [key: string]: string } = { light: '#FBBF24', medium: '#F97316', heavy: '#EF4444' };
+      const templates = data.map(t => ({
+        ...t,
+        count: Math.abs(t.points),
+        color: colorMap[t.severity] || '#6B7280'
+      }));
+      setHornetOptions(templates);
+    }
+    setLoading(false);
+  };
+  
   const handleSend = () => {
     if (!selectedOption) {
       Alert.alert(
@@ -96,9 +87,7 @@ export default function NegativeBadgeModal({
           text: 'Send Hornet',
           style: 'destructive',
           onPress: () => {
-            // Generate mock badge IDs to cancel
-            const badgesToCancel = Array.from({ length: selectedOption.count }, (_, i) => `badge_${i}`);
-            onSend(message, badgesToCancel);
+            onSend(message, selectedOption);
             setMessage('');
             setSelectedOption(null);
             onClose();
@@ -140,44 +129,45 @@ export default function NegativeBadgeModal({
 
 
           <View style={styles.optionsSection}>
-
-            
-            <View style={styles.optionsGrid}>
-              {hornetOptions.map((option) => {
-                const IconComponent = option.icon;
-                return (
-                  <TouchableOpacity
-                    key={option.id}
-                    style={[
-                      styles.optionCard,
-                      selectedOption?.id === option.id && styles.selectedOptionCard,
-                      { borderLeftColor: option.color }
-                    ]}
-                    onPress={() => setSelectedOption(option)}
-                    activeOpacity={0.7}>
-                    <View style={styles.optionHeader}>
-                      <View style={[styles.optionIcon, { backgroundColor: option.color + '20' }]}>
-                        <IconComponent color={option.color} size={24} />
-                      </View>
-                      <View style={styles.optionInfo}>
-                        <View style={styles.optionTitleRow}>
-                          <Text style={styles.optionCount}>{option.count}</Text>
-                          <Text style={styles.optionTitle}>{option.title}</Text>
+            {loading ? (
+              <ActivityIndicator size="large" color="#FF4444" />
+            ) : (
+              <View style={styles.optionsGrid}>
+                {hornetOptions.map((option) => {
+                  return (
+                    <TouchableOpacity
+                      key={option.id}
+                      style={[
+                        styles.optionCard,
+                        selectedOption?.id === option.id && styles.selectedOptionCard,
+                        { borderLeftColor: option.color }
+                      ]}
+                      onPress={() => setSelectedOption(option)}
+                      activeOpacity={0.7}>
+                      <View style={styles.optionHeader}>
+                        <View style={[styles.optionIcon, { backgroundColor: option.color + '20' }]}>
+                          <Text style={styles.optionEmoji}>{option.icon}</Text>
                         </View>
-                        <Text style={styles.optionDescription}>{option.description}</Text>
+                        <View style={styles.optionInfo}>
+                          <View style={styles.optionTitleRow}>
+                            <Text style={styles.optionCount}>{option.count}</Text>
+                            <Text style={styles.optionTitle}>{option.title}</Text>
+                          </View>
+                          <Text style={styles.optionDescription}>{option.description}</Text>
+                        </View>
                       </View>
-                    </View>
-                    
-                    {selectedOption?.id === option.id && (
-                      <View style={styles.selectedIndicator}>
-                        <View style={[styles.selectedDot, { backgroundColor: option.color }]} />
-                        <Text style={[styles.selectedText, { color: option.color }]}>Selected</Text>
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+                      
+                      {selectedOption?.id === option.id && (
+                        <View style={styles.selectedIndicator}>
+                          <View style={[styles.selectedDot, { backgroundColor: option.color }]} />
+                          <Text style={[styles.selectedText, { color: option.color }]}>Selected</Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            )}
           </View>
 
           <View style={styles.messageSection}>
@@ -215,7 +205,7 @@ export default function NegativeBadgeModal({
               activeOpacity={0.8}>
               <Image source={require('../assets/images/hornet.png')} style={styles.buttonImage} />
               <Text style={styles.fixedSendButtonText}>
-                Send Hornet (-{Math.abs(selectedOption.count)})
+                Send Hornet ({selectedOption.count})
               </Text>
             </TouchableOpacity>
           </View>
@@ -478,4 +468,7 @@ const styles = StyleSheet.create({
     color: 'white',
     marginLeft: 8,
   },
+  optionEmoji: {
+    fontSize: 24,
+  }
 });

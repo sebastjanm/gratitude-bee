@@ -61,19 +61,7 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
 
 ---
 
-### **Step 6: Invite Partner**
-*   **Timestamp:** `2025-07-06T17:46:29Z`
-*   **Commit:** `541a125`
-*   **Description:**
-    *   Implemented the "Invite Partner" functionality on the `ProfileScreen`.
-    *   The user's unique invite code is now fetched from the database.
-    *   The "Invite Partner" button now uses the native Share API to allow users to easily send their invite code.
-    *   The profile screen now dynamically displays the connection status and partner's name.
-*   **Next Step:** Finalize the favor fulfillment flow by connecting the UI to the backend.
-
----
-
-### **Step 7: Dynamic Link Invitations**
+### **Step 6: Dynamic Link Invitations**
 *   **Timestamp:** `2025-07-06T17:53:35Z`
 *   **Commit:** `1acd00c`
 *   **Description:**
@@ -81,4 +69,37 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
     *   Configured the `app.json` with the necessary intent filters (Android) and associated domains (iOS) to handle these links.
     *   Created a new dynamic route `app/invite/[code].tsx` to process incoming invites, either by connecting the user automatically or redirecting them to sign up.
     *   The `partner-link.tsx` screen now checks for stored invite codes upon loading to complete the connection flow seamlessly after login.
-*   **Next Step:** Finalize the favor fulfillment flow. 
+*   **Next Step:** Implement the "Ask for a Favor" and favor fulfillment flow.
+
+---
+
+### **Step 7: Favor Flow Implementation**
+*   **Timestamp:** `2025-07-06T17:56:24Z`
+*   **Commit:** `b1279d4`
+*   **Description:**
+    *   Made the `FavorsModal` dynamic by fetching templates from Supabase.
+    *   Implemented the `handleSendFavor` function to create `FAVOR_REQUEST` events.
+    *   Added action buttons to the `TimelineScreen` to allow users to accept, decline, and complete favors.
+    *   Connected the timeline to Supabase, so it now displays a live, dynamic feed of all events.
+*   **Next Step:** Implement the "Send Hornet" flow.
+
+---
+
+### **Step 8: Send Hornet**
+*   **Timestamp:** `2025-07-06T17:59:17Z`
+*   **Commit:** `b1279d4`
+*   **Description:**
+    *   Made the `NegativeBadgeModal` dynamic by fetching hornet templates from the database.
+    *   Implemented the `handleSendHornet` function to create a `HORNET` event in the ledger.
+    *   Updated the `send-notification` Edge Function to handle hornet events.
+*   **Next Step:** Implement the remaining message-only flows (Don't Panic, Relationship Wisdom).
+
+---
+
+### **Step 9: Message-Only Flows**
+*   **Timestamp:** `2025-07-06T18:02:54Z`
+*   **Commit:** `b1279d4`
+*   **Description:**
+    *   Implemented the `handleSendDontPanic` and `handleSendWisdom` functions to create `DONT_PANIC` and `WISDOM` events in the ledger.
+    *   Updated the `send-notification` Edge Function to handle these new event types, ensuring the receiving partner is notified.
+*   **Next Step:** All core features are now implemented. Ready for testing and refinement. 
