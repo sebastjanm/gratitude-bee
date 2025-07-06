@@ -9,6 +9,7 @@ import {
   Platform,
   Dimensions,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Heart, Star, Smile, Compass, MessageCircle, Filter, Calendar, Bug, X, CircleCheck as CheckCircle, Crown, Chrome as Home } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
