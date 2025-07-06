@@ -19,7 +19,6 @@ interface BadgeOption {
   description: string;
   beeCount: number;
   icon: string;
-  tier: 'bronze' | 'silver' | 'gold';
 }
 
 interface SubCategory {
@@ -49,7 +48,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Recognizing exceptional effort and dedication',
         beeCount: 3,
         icon: '🐝',
-        tier: 'silver',
       },
       {
         id: 'you-are-best',
@@ -57,7 +55,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Ultimate appreciation for being incredible',
         beeCount: 5,
         icon: '🐝',
-        tier: 'gold',
       },
       {
         id: 'believe-in-you',
@@ -65,7 +62,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Encouraging during challenging times',
         beeCount: 2,
         icon: '🐝',
-        tier: 'bronze',
       },
       {
         id: 'proud-of-you',
@@ -73,7 +69,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Celebrating achievements and milestones',
         beeCount: 4,
         icon: '🐝',
-        tier: 'gold',
       },
     ],
   },
@@ -89,7 +84,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Deep gratitude for thoughtful actions',
         beeCount: 1,
         icon: '🦋',
-        tier: 'bronze',
       },
       {
         id: 'thanks-coffee',
@@ -97,7 +91,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Appreciating morning thoughtfulness',
         beeCount: 2,
         icon: '🦋',
-        tier: 'bronze',
       },
       {
         id: 'gentle-heart',
@@ -105,7 +98,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Recognizing natural compassion',
         beeCount: 3,
         icon: '🦋',
-        tier: 'silver',
       },
       {
         id: 'caring-soul',
@@ -113,7 +105,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Honoring deep empathy and care',
         beeCount: 4,
         icon: '🦋',
-        tier: 'gold',
       },
     ],
   },
@@ -129,7 +120,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Simple moment of laughter',
         beeCount: 1,
         icon: '😄',
-        tier: 'bronze',
       },
       {
         id: 'rofl',
@@ -137,7 +127,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Rolling on the floor laughing',
         beeCount: 3,
         icon: '😄',
-        tier: 'silver',
       },
       {
         id: 'made-me-laugh',
@@ -145,7 +134,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Bringing joy with perfect timing',
         beeCount: 2,
         icon: '😄',
-        tier: 'bronze',
       },
       {
         id: 'silly-dance',
@@ -153,7 +141,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Spontaneous moments of pure fun',
         beeCount: 3,
         icon: '😄',
-        tier: 'silver',
       },
       {
         id: 'comedy-genius',
@@ -161,7 +148,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Natural talent for making others smile',
         beeCount: 4,
         icon: '😄',
-        tier: 'gold',
       },
       {
         id: 'brightened-day',
@@ -169,7 +155,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Turning ordinary moments into joy',
         beeCount: 3,
         icon: '😄',
-        tier: 'silver',
       },
     ],
   },
@@ -185,7 +170,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Creating magical shared moments',
         beeCount: 3,
         icon: '🌅',
-        tier: 'silver',
       },
       {
         id: 'new-place',
@@ -193,7 +177,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Discovering hidden gems together',
         beeCount: 4,
         icon: '🌅',
-        tier: 'gold',
       },
       {
         id: 'spontaneous-trip',
@@ -201,7 +184,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Embracing unexpected journeys',
         beeCount: 5,
         icon: '🌅',
-        tier: 'gold',
       },
       {
         id: 'nature-lover',
@@ -209,7 +191,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Sharing love for the outdoors',
         beeCount: 2,
         icon: '🌅',
-        tier: 'bronze',
       },
     ],
   },
@@ -225,7 +206,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Complete devotion and love',
         beeCount: 3,
         icon: '❤️',
-        tier: 'gold',
       },
       {
         id: 'thinking-of-you',
@@ -233,7 +213,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Constant presence in thoughts',
         beeCount: 1,
         icon: '💓',
-        tier: 'silver',
       },
       {
         id: 'sweet-message',
@@ -241,7 +220,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Perfect words at the right time',
         beeCount: 2,
         icon: '💌',
-        tier: 'bronze',
       },
       {
         id: 'morning-text',
@@ -249,7 +227,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Starting the day with love',
         beeCount: 3,
         icon: '💌',
-        tier: 'silver',
       },
       {
         id: 'love-letter',
@@ -257,7 +234,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Deep emotional expression',
         beeCount: 5,
         icon: '💌',
-        tier: 'gold',
       },
       {
         id: 'encouraging-words',
@@ -265,7 +241,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Lifting spirits with kindness',
         beeCount: 3,
         icon: '💌',
-        tier: 'silver',
       },
     ],
   },
@@ -281,7 +256,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Letting you choose without debate',
         beeCount: 2,
         icon: '🎬',
-        tier: 'bronze',
       },
       {
         id: 'restaurant-choice',
@@ -289,7 +263,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Trusting your dining preferences',
         beeCount: 2,
         icon: '🎬',
-        tier: 'bronze',
       },
       {
         id: 'weekend-plans',
@@ -297,7 +270,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Following your lead on activities',
         beeCount: 3,
         icon: '🎬',
-        tier: 'silver',
       },
       {
         id: 'vacation-spot',
@@ -305,7 +277,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Trusting your travel vision',
         beeCount: 4,
         icon: '🎬',
-        tier: 'gold',
       },
     ],
   },
@@ -321,7 +292,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Helping with home improvements',
         beeCount: 2,
         icon: '👑',
-        tier: 'bronze',
       },
       {
         id: 'shopping-trip',
@@ -329,7 +299,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Patient shopping partnership',
         beeCount: 3,
         icon: '👑',
-        tier: 'silver',
       },
       {
         id: 'family-event',
@@ -337,7 +306,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Supporting family commitments',
         beeCount: 4,
         icon: '👑',
-        tier: 'gold',
       },
       {
         id: 'home-project',
@@ -345,7 +313,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Tackling tasks together',
         beeCount: 3,
         icon: '👑',
-        tier: 'silver',
       },
     ],
   },
@@ -361,7 +328,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Never forgetting special dates',
         beeCount: 5,
         icon: '🏠',
-        tier: 'gold',
       },
       {
         id: 'favorite-dessert',
@@ -369,7 +335,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Thoughtful sweet gestures',
         beeCount: 3,
         icon: '🏠',
-        tier: 'silver',
       },
       {
         id: 'flowers-surprise',
@@ -377,7 +342,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Unexpected romantic gestures',
         beeCount: 4,
         icon: '🏠',
-        tier: 'gold',
       },
       {
         id: 'listening-ear',
@@ -385,7 +349,6 @@ const appreciationCategories: SubCategory[] = [
         description: 'Being fully present and attentive',
         beeCount: 3,
         icon: '🏠',
-        tier: 'silver',
       },
     ],
   },
@@ -409,24 +372,6 @@ export default function AppreciationModal({
     if (selectedCategory && selectedBadge) {
       onSendBadge(selectedCategory, selectedBadge.id, selectedBadge.title);
       handleClose();
-    }
-  };
-
-  const getTierColor = (tier: string) => {
-    switch (tier) {
-      case 'bronze': return '#CD7F32';
-      case 'silver': return '#C0C0C0';
-      case 'gold': return '#FFD700';
-      default: return '#999';
-    }
-  };
-
-  const getTierEmoji = (tier: string) => {
-    switch (tier) {
-      case 'bronze': return '🥉';
-      case 'silver': return '🥈';
-      case 'gold': return '🥇';
-      default: return '🏆';
     }
   };
 
@@ -504,25 +449,23 @@ export default function AppreciationModal({
               activeOpacity={0.7}>
               <View style={styles.badgeCardHeader}>
                 <View style={styles.badgeIconAndTitle}>
-                  <Text style={styles.badgeEmoji}>{badge.icon}</Text>
+                  <View style={styles.badgeIconContainer}>
+                    <Text style={styles.badgeEmoji}>{badge.icon}</Text>
+                  </View>
                   <View style={styles.badgeTitleContainer}>
                     <Text style={styles.badgeTitle}>{badge.title}</Text>
-                    <Text style={styles.badgeDescription}>{badge.description}</Text>
-                  </View>
-                </View>
-                <View style={styles.badgeValue}>
-                  <View style={[styles.tierBadge, { backgroundColor: getTierColor(badge.tier) + '20' }]}>
-                    <Text style={styles.tierEmoji}>{getTierEmoji(badge.tier)}</Text>
+                    <View style={styles.badgeCountRow}>
+                      <Text style={styles.badgeCountText}>
+                        {badge.beeCount} {badge.icon}
+                      </Text>
+                    </View>
                   </View>
                 </View>
               </View>
               
+              <Text style={styles.badgeDescription}>{badge.description}</Text>
+              
               <View style={styles.badgeFooter}>
-                <View style={styles.beeCountContainer}>
-                  <Text style={styles.beeCountText}>
-                    {badge.beeCount} {badge.icon} • {badge.tier.charAt(0).toUpperCase() + badge.tier.slice(1)} Tier
-                  </Text>
-                </View>
                 {selectedBadge?.id === badge.id && (
                   <View style={styles.selectedIndicator}>
                     <Sparkles color={category.color} size={16} />
@@ -732,16 +675,26 @@ const styles = StyleSheet.create({
   badgeCardHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   badgeIconAndTitle: {
     flexDirection: 'row',
     flex: 1,
+    alignItems: 'center',
+  },
+  badgeIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#FFF8F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+    borderWidth: 2,
+    borderColor: '#FFE0B2',
   },
   badgeEmoji: {
-    fontSize: 24,
-    marginRight: 12,
-    marginTop: 2,
+    fontSize: 20,
   },
   badgeTitleContainer: {
     flex: 1,
@@ -752,35 +705,24 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 4,
   },
+  badgeCountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  badgeCountText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Bold',
+    color: '#FF8C42',
+  },
   badgeDescription: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     color: '#666',
     lineHeight: 18,
-  },
-  badgeValue: {
-    alignItems: 'center',
-  },
-  tierBadge: {
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  tierEmoji: {
-    fontSize: 16,
+    marginBottom: 12,
   },
   badgeFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  beeCountContainer: {
-    flex: 1,
-  },
-  beeCountText: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    color: '#999',
+    alignItems: 'flex-end',
   },
   selectedIndicator: {
     flexDirection: 'row',
