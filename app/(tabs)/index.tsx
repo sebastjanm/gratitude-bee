@@ -10,7 +10,7 @@ import {
   Dimensions,
   Alert,
 } from 'react-native';
-import { Heart, Star, Smile, Compass, MessageCircle, Flame, Bug, TriangleAlert as AlertTriangle } from 'lucide-react-native';
+import { Heart, Star, Smile, Compass, MessageCircle, Flame, Bug, TriangleAlert as AlertTriangle, CheckCircle, Crown, Home } from 'lucide-react-native';
 import NegativeBadgeModal from '@/components/NegativeBadgeModal';
 
 const { width } = Dimensions.get('window');
@@ -64,6 +64,30 @@ const badgeCategories: BadgeCategory[] = [
     color: '#A8E6CF',
     description: 'Words of affirmation',
     count: 20,
+  },
+  {
+    id: 'whatever-you-say',
+    name: 'Whatever You Say',
+    icon: CheckCircle,
+    color: '#9B59B6',
+    description: 'So be it moments',
+    count: 3,
+  },
+  {
+    id: 'yes-dear',
+    name: 'Yes, Dear',
+    icon: Crown,
+    color: '#E67E22',
+    description: 'Agreeable responses',
+    count: 7,
+  },
+  {
+    id: 'happy-wife',
+    name: 'Happy Wife, Happy Life',
+    icon: Home,
+    color: '#27AE60',
+    description: 'Relationship wisdom',
+    count: 4,
   },
 ];
 

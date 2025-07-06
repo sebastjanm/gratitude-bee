@@ -9,7 +9,7 @@ import {
   Platform,
   Dimensions,
 } from 'react-native';
-import { Heart, Star, Smile, Compass, MessageCircle, Trophy, Award, Bug, X } from 'lucide-react-native';
+import { Heart, Star, Smile, Compass, MessageCircle, Trophy, Award, Bug, X, CheckCircle, Crown, Home } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -89,6 +89,36 @@ const mockBadges: Badge[] = [
     isNegative: true,
     cancelledBadges: ['1', '2'],
   },
+  {
+    id: '7',
+    name: 'Whatever You Say',
+    category: 'whatever-you-say',
+    tier: 'silver',
+    earnedDate: '2025-01-09',
+    description: 'Chose your movie pick without argument',
+    icon: CheckCircle,
+    color: '#9B59B6',
+  },
+  {
+    id: '8',
+    name: 'Yes, Dear',
+    category: 'yes-dear',
+    tier: 'bronze',
+    earnedDate: '2025-01-08',
+    description: 'Agreed to rearrange the living room',
+    icon: Crown,
+    color: '#E67E22',
+  },
+  {
+    id: '9',
+    name: 'Happy Wife, Happy Life',
+    category: 'happy-wife',
+    tier: 'gold',
+    earnedDate: '2025-01-07',
+    description: 'Remembered anniversary dinner plans',
+    icon: Home,
+    color: '#27AE60',
+  },
 ];
 
 const categories = [
@@ -99,6 +129,9 @@ const categories = [
   { id: 'adventure', name: 'Adventure', icon: Compass },
   { id: 'words', name: 'Love Notes', icon: MessageCircle },
   { id: 'hornet', name: 'Hornets', icon: Bug },
+  { id: 'whatever-you-say', name: 'Whatever You Say', icon: CheckCircle },
+  { id: 'yes-dear', name: 'Yes Dear', icon: Crown },
+  { id: 'happy-wife', name: 'Happy Wife', icon: Home },
 ];
 
 export default function BadgesScreen() {

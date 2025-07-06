@@ -1,4 +1,4 @@
-import { Heart, Star, Smile, Compass, MessageCircle, Bug } from 'lucide-react-native';
+import { Heart, Star, Smile, Compass, MessageCircle, Bug, Crown, CheckCircle, Home } from 'lucide-react-native';
 import { BadgeCategory } from '@/types/badge';
 
 export const BADGE_CATEGORIES: BadgeCategory[] = [
@@ -40,6 +40,30 @@ export const BADGE_CATEGORIES: BadgeCategory[] = [
     icon: MessageCircle,
     color: '#A8E6CF',
     description: 'Words of affirmation',
+    count: 0,
+  },
+  {
+    id: 'whatever-you-say',
+    name: 'Whatever You Say',
+    icon: CheckCircle,
+    color: '#9B59B6',
+    description: 'So be it moments',
+    count: 0,
+  },
+  {
+    id: 'yes-dear',
+    name: 'Yes, Dear',
+    icon: Crown,
+    color: '#E67E22',
+    description: 'Agreeable responses',
+    count: 0,
+  },
+  {
+    id: 'happy-wife',
+    name: 'Happy Wife, Happy Life',
+    icon: Home,
+    color: '#27AE60',
+    description: 'Relationship wisdom',
     count: 0,
   },
 ];

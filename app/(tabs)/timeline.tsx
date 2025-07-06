@@ -9,7 +9,7 @@ import {
   Platform,
   Dimensions,
 } from 'react-native';
-import { Heart, Star, Smile, Compass, MessageCircle, Filter, Calendar, Bug, X } from 'lucide-react-native';
+import { Heart, Star, Smile, Compass, MessageCircle, Filter, Calendar, Bug, X, CheckCircle, Crown, Home } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -94,6 +94,38 @@ const mockEvents: TimelineEvent[] = [
     color: '#FF4444',
     isNegative: true,
     cancelledBadges: ['1', '2'],
+  },
+  {
+    id: '7',
+    type: 'received',
+    badgeName: 'Whatever You Say',
+    category: 'whatever-you-say',
+    message: 'Thanks for letting me pick the restaurant without debate',
+    timestamp: '2025-01-09T19:15:00Z',
+    partnerName: 'Alex',
+    icon: CheckCircle,
+    color: '#9B59B6',
+  },
+  {
+    id: '8',
+    type: 'sent',
+    badgeName: 'Yes, Dear',
+    category: 'yes-dear',
+    timestamp: '2025-01-08T14:30:00Z',
+    partnerName: 'Sarah',
+    icon: Crown,
+    color: '#E67E22',
+  },
+  {
+    id: '9',
+    type: 'received',
+    badgeName: 'Happy Wife, Happy Life',
+    category: 'happy-wife',
+    message: 'You remembered to pick up my favorite dessert! 🍰',
+    timestamp: '2025-01-07T20:45:00Z',
+    partnerName: 'Alex',
+    icon: Home,
+    color: '#27AE60',
   },
 ];
 
