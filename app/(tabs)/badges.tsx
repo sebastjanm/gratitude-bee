@@ -417,9 +417,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'white',
     borderRadius: 12,
-    width: 80,
-    height: 45, // 16:9 aspect ratio (80:45)
-    marginRight: 8,
+    width: 88,
+    height: 52, // Increased height for better touch target (44pt minimum)
+    marginRight: 12,
     borderWidth: 1,
     borderColor: '#E0E0E0',
     shadowColor: '#000',
@@ -427,6 +427,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 1,
+    // Minimum 44pt touch target as per Apple HIG
+    minHeight: 44,
   },
   firstCategoryItem: {
     marginLeft: 0,
@@ -445,12 +447,13 @@ const styles = StyleSheet.create({
     transform: [{ scale: 1.02 }],
   },
   categoryFilterText: {
-    fontSize: 10,
+    fontSize: 11,
     fontFamily: 'Inter-SemiBold',
     color: '#666',
-    marginTop: 2,
+    marginTop: 3,
     textAlign: 'center',
-    lineHeight: 12,
+    lineHeight: 13,
+    paddingHorizontal: 2,
   },
   selectedCategoryFilterText: {
     color: 'white',
@@ -468,18 +471,18 @@ const styles = StyleSheet.create({
     left: 0,
     top: 0,
     bottom: 0,
-    width: 20,
-    borderTopRightRadius: 10,
-    borderBottomRightRadius: 10,
+    width: 24,
+    borderTopRightRadius: 12,
+    borderBottomRightRadius: 12,
   },
   rightScrollIndicator: {
     position: 'absolute',
     right: 0,
     top: 0,
     bottom: 0,
-    width: 20,
-    borderTopLeftRadius: 10,
-    borderBottomLeftRadius: 10,
+    width: 24,
+    borderTopLeftRadius: 12,
+    borderBottomLeftRadius: 12,
   },
   badgesList: {
     flex: 1,
