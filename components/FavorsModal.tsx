@@ -490,20 +490,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'white',
     borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     marginRight: 8,
     borderWidth: 1,
     minHeight: 44, // Apple HIG minimum touch target
+    justifyContent: 'center',
   },
   selectedCategoryFilter: {
     backgroundColor: '#FF8C42',
     borderColor: '#FF8C42',
   },
   categoryFilterText: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: 'Inter-Medium',
-    marginLeft: 6,
+    marginLeft: 4,
+    textAlign: 'center',
   },
   selectedCategoryFilterText: {
     color: 'white',
@@ -515,19 +517,19 @@ const styles = StyleSheet.create({
   customFavorButton: {
     backgroundColor: 'white',
     borderRadius: 16,
-    padding: 20,
+    padding: 16,
     marginBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 2,
     borderColor: '#FFE0B2',
     borderStyle: 'dashed',
-    minHeight: 88, // Ensures 44pt minimum touch target with padding
+    minHeight: 76, // Reduced but still comfortable
   },
   customFavorIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: '#FFF3E0',
     justifyContent: 'center',
     alignItems: 'center',
@@ -550,7 +552,7 @@ const styles = StyleSheet.create({
   favorCard: {
     backgroundColor: 'white',
     borderRadius: 16,
-    padding: 20,
+    padding: 16,
     marginBottom: 12,
     borderWidth: 2,
     borderColor: 'transparent',
@@ -559,7 +561,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
-    minHeight: 88, // Ensures 44pt minimum touch target with padding
+    minHeight: 76, // Reduced but still comfortable
   },
   selectedFavorCard: {
     borderColor: '#FF8C42',
@@ -568,13 +570,13 @@ const styles = StyleSheet.create({
   favorCardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-    minHeight: 48, // Additional height for better touch experience
+    marginBottom: 8,
+    minHeight: 44, // Apple HIG minimum
   },
   favorIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -598,15 +600,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFF3E0',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
     borderRadius: 12,
+    minHeight: 24,
+    minWidth: 32,
+    justifyContent: 'center',
   },
   favorPointsText: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'Inter-Bold',
     color: '#FF8C42',
-    marginLeft: 4,
+    marginLeft: 2,
   },
   selectedIndicator: {
     flexDirection: 'row',
@@ -625,26 +630,27 @@ const styles = StyleSheet.create({
   },
   messageSection: {
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 12,
     borderTopWidth: 1,
     borderTopColor: '#E0E0E0',
   },
   messageLabel: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: 'Inter-Medium',
     color: '#333',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   messageInput: {
     backgroundColor: 'white',
     borderRadius: 12,
-    padding: 12,
+    padding: 10,
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     color: '#333',
     borderWidth: 1,
     borderColor: '#E0E0E0',
-    marginBottom: 4,
+    marginBottom: 3,
+    minHeight: 44, // Apple HIG minimum
   },
   characterCount: {
     fontSize: 12,
@@ -707,24 +713,25 @@ const styles = StyleSheet.create({
   pointsOption: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: 'white',
     borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     borderWidth: 1,
     borderColor: '#E0E0E0',
     minHeight: 44, // Apple HIG minimum touch target
-    minWidth: 44,  // Apple HIG minimum touch target
+    minWidth: 56,  // Slightly wider for better visual balance
   },
   selectedPointsOption: {
     backgroundColor: '#FF8C42',
     borderColor: '#FF8C42',
   },
   pointsOptionText: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: 'Inter-SemiBold',
     color: '#333',
-    marginLeft: 4,
+    marginLeft: 3,
   },
   selectedPointsOptionText: {
     color: 'white',
