@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,9 +8,12 @@ import {
   SafeAreaView,
   Platform,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChartBar as BarChart3, TrendingUp, Calendar, Award, Heart, Bug, Target, Zap, Clock, Users, Filter, ChevronDown } from 'lucide-react-native';
+import { supabase } from '@/utils/supabase';
 
 const { width } = Dimensions.get('window');
 
@@ -33,24 +36,6 @@ interface WeeklyData {
   total: number;
 }
 
-const mockWeeklyData: WeeklyData[] = [
-  { week: 'This Week', positive: 18, negative: 2, total: 20 },
-  { week: 'Last Week', positive: 15, negative: 1, total: 16 },
-  { week: '2 Weeks Ago', positive: 22, negative: 3, total: 25 },
-  { week: '3 Weeks Ago', positive: 12, negative: 0, total: 12 },
-];
-
-const mockMonthlyStats = {
-  totalBadgesSent: 67,
-  totalBadgesReceived: 63,
-  currentStreak: 12,
-  longestStreak: 18,
-  averageDaily: 2.3,
-  mostActiveDay: 'Tuesday',
-  favoriteCategory: 'Humor',
-  partnerFavoriteCategory: 'Kindness',
-};
-
 const periodFilters = [
   { id: 'week', name: 'This Week' },
   { id: 'month', name: 'This Month' },
@@ -59,49 +44,53 @@ const periodFilters = [
 
 export default function AnalyticsScreen() {
   const [selectedPeriod, setSelectedPeriod] = useState<string>('month');
+  const [loading, setLoading] = useState(true);
+  
+  // State for all dynamic data
+  const [mainStats, setMainStats] = useState<StatCard[]>([]);
+  const [weeklyData, setWeeklyData] = useState<WeeklyData[]>([]);
+  const [categoryStats, setCategoryStats] = useState<any[]>([]);
+  const [insights, setInsights] = useState<any>({});
 
-  const mainStats: StatCard[] = [
-    {
-      title: 'Total Sent',
-      value: mockMonthlyStats.totalBadgesSent,
-      subtitle: 'This month',
-      icon: Heart,
-      color: '#FF8C42',
-      trend: { direction: 'up', percentage: 12 },
-    },
-    {
-      title: 'Total Received',
-      value: mockMonthlyStats.totalBadgesReceived,
-      subtitle: 'This month',
-      icon: Award,
-      color: '#4ECDC4',
-      trend: { direction: 'up', percentage: 8 },
-    },
-    {
-      title: 'Current Streak',
-      value: `${mockMonthlyStats.currentStreak} days`,
-      subtitle: `Best: ${mockMonthlyStats.longestStreak} days`,
-      icon: Zap,
-      color: '#FFD93D',
-    },
-    {
-      title: 'Daily Average',
-      value: mockMonthlyStats.averageDaily,
-      subtitle: 'Badges per day',
-      icon: TrendingUp,
-      color: '#6BCF7F',
-      trend: { direction: 'up', percentage: 15 },
-    },
-  ];
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchAnalytics();
+    }, [selectedPeriod])
+  );
 
-  const categoryStats = [
-    { name: 'Humor', sent: 15, received: 12, color: '#FFD93D' },
-    { name: 'Kindness', sent: 12, received: 18, color: '#FF6B9D' },
-    { name: 'Support', sent: 8, received: 10, color: '#4ECDC4' },
-    { name: 'Love Notes', sent: 20, received: 15, color: '#A8E6CF' },
-    { name: 'Adventure', sent: 6, received: 4, color: '#6BCF7F' },
-    { name: 'Hornets', sent: 2, received: 1, color: '#FF4444' },
-  ];
+  const fetchAnalytics = async () => {
+    setLoading(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    const { data, error } = await supabase.rpc('get_user_analytics', { p_user_id: user.id });
+
+    if (error) {
+      console.error("Error fetching analytics:", error);
+      setLoading(false);
+      return;
+    }
+
+    if (data) {
+      const { main_stats, weekly_data, category_stats, insights } = data;
+      
+      setMainStats([
+        { title: 'Total Sent', value: main_stats.total_sent || 0, icon: Heart, color: '#FF8C42' },
+        { title: 'Total Received', value: main_stats.total_received || 0, icon: Award, color: '#4ECDC4' },
+        { title: 'Current Streak', value: `${main_stats.current_streak || 0} days`, subtitle: `Best: ${main_stats.longest_streak || 0} days`, icon: Zap, color: '#FFD93D' },
+        { title: 'Daily Average', value: main_stats.daily_average || 0, icon: TrendingUp, color: '#6BCF7F' },
+      ]);
+      
+      setWeeklyData(weekly_data || []);
+      setCategoryStats(category_stats || []);
+      setInsights(insights || {});
+    }
+
+    setLoading(false);
+  };
 
   const renderSimpleFilters = () => (
     <View style={styles.simpleFilterContainer}>
@@ -164,7 +153,7 @@ export default function AnalyticsScreen() {
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Weekly Breakdown</Text>
       <View style={styles.weeklyChart}>
-        {mockWeeklyData.map((week, index) => (
+        {weeklyData.map((week, index) => (
           <View key={index} style={styles.weeklyBar}>
             <View style={styles.barContainer}>
               <View 
@@ -250,7 +239,7 @@ export default function AnalyticsScreen() {
           </View>
           <View style={styles.insightContent}>
             <Text style={styles.insightTitle}>Most Active Day</Text>
-            <Text style={styles.insightValue}>{mockMonthlyStats.mostActiveDay}</Text>
+            <Text style={styles.insightValue}>{insights.mostActiveDay}</Text>
             <Text style={styles.insightDescription}>You send the most badges on Tuesdays</Text>
           </View>
         </View>
@@ -261,7 +250,7 @@ export default function AnalyticsScreen() {
           </View>
           <View style={styles.insightContent}>
             <Text style={styles.insightTitle}>Your Favorite</Text>
-            <Text style={styles.insightValue}>{mockMonthlyStats.favoriteCategory}</Text>
+            <Text style={styles.insightValue}>{insights.favoriteCategory}</Text>
             <Text style={styles.insightDescription}>Your most sent category</Text>
           </View>
         </View>
@@ -272,7 +261,7 @@ export default function AnalyticsScreen() {
           </View>
           <View style={styles.insightContent}>
             <Text style={styles.insightTitle}>Partner's Favorite</Text>
-            <Text style={styles.insightValue}>{mockMonthlyStats.partnerFavoriteCategory}</Text>
+            <Text style={styles.insightValue}>{insights.partnerFavoriteCategory}</Text>
             <Text style={styles.insightDescription}>What they appreciate most</Text>
           </View>
         </View>
@@ -283,7 +272,7 @@ export default function AnalyticsScreen() {
           </View>
           <View style={styles.insightContent}>
             <Text style={styles.insightTitle}>Balance Score</Text>
-            <Text style={styles.insightValue}>94%</Text>
+            <Text style={styles.insightValue}>{insights.balanceScore}</Text>
             <Text style={styles.insightDescription}>Great give-and-take balance</Text>
           </View>
         </View>
@@ -304,11 +293,17 @@ export default function AnalyticsScreen() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {renderSimpleFilters()}
-        {renderMainStats()}
-        {renderWeeklyBreakdown()}
-        {renderCategoryBreakdown()}
-        {renderInsights()}
+        {loading ? (
+          <ActivityIndicator size="large" color="#FF8C42" style={{ flex: 1, marginTop: 100 }} />
+        ) : (
+          <>
+            {renderSimpleFilters()}
+            {renderMainStats()}
+            {renderWeeklyBreakdown()}
+            {renderCategoryBreakdown()}
+            {renderInsights()}
+          </>
+        )}
         
         <View style={styles.bottomSpacing} />
       </ScrollView>

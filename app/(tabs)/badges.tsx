@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,9 +8,12 @@ import {
   SafeAreaView,
   Platform,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Heart, Star, Smile, Compass, MessageCircle, Trophy, Award, Bug, X, CircleCheck as CheckCircle, Crown, Chrome as Home } from 'lucide-react-native';
+import { supabase } from '@/utils/supabase';
 
 const { width } = Dimensions.get('window');
 
@@ -27,121 +30,6 @@ interface Badge {
   cancelledBadges?: string[];
 }
 
-const mockBadges: Badge[] = [
-  {
-    id: '1',
-    name: 'Morning Coffee',
-    category: 'kindness',
-    tier: 'bronze',
-    earnedDate: '2025-01-15',
-    description: 'Made coffee without being asked',
-    icon: Heart,
-    color: '#FF6B9D',
-  },
-  {
-    id: '2',
-    name: 'Workout Support',
-    category: 'support',
-    tier: 'silver',
-    earnedDate: '2025-01-14',
-    description: 'Encouraged during tough workout',
-    icon: Star,
-    color: '#4ECDC4',
-  },
-  {
-    id: '3',
-    name: 'Silly Dance',
-    category: 'humor',
-    tier: 'gold',
-    earnedDate: '2025-01-13',
-    description: 'Made me laugh with random dancing',
-    icon: Smile,
-    color: '#FFD93D',
-  },
-  {
-    id: '4',
-    name: 'Sunset Walk',
-    category: 'adventure',
-    tier: 'bronze',
-    earnedDate: '2025-01-12',
-    description: 'Suggested a beautiful evening walk',
-    icon: Compass,
-    color: '#6BCF7F',
-  },
-  {
-    id: '5',
-    name: 'Sweet Message',
-    category: 'words',
-    tier: 'silver',
-    earnedDate: '2025-01-11',
-    description: 'Sent the sweetest good morning text',
-    icon: MessageCircle,
-    color: '#A8E6CF',
-  },
-  {
-    id: '6',
-    name: 'Accountability Hornet',
-    category: 'hornet',
-    tier: 'bronze',
-    earnedDate: '2025-01-10',
-    description: 'Cancelled 2 positive badges for accountability',
-    icon: Bug,
-    color: '#FF4444',
-    isNegative: true,
-    cancelledBadges: ['1', '2'],
-  },
-  {
-    id: '7',
-    name: 'Whatever You Say',
-    category: 'whatever-you-say',
-    tier: 'silver',
-    earnedDate: '2025-01-09',
-    description: 'Chose your movie pick without argument',
-    icon: CheckCircle,
-    color: '#9B59B6',
-  },
-  {
-    id: '8',
-    name: 'Yes, Dear',
-    category: 'yes-dear',
-    tier: 'bronze',
-    earnedDate: '2025-01-08',
-    description: 'Agreed to rearrange the living room',
-    icon: Crown,
-    color: '#E67E22',
-  },
-  {
-    id: '9',
-    name: 'Happy Wife, Happy Life',
-    category: 'happy-wife',
-    tier: 'gold',
-    earnedDate: '2025-01-07',
-    description: 'Remembered anniversary dinner plans',
-    icon: Home,
-    color: '#27AE60',
-  },
-  {
-    id: '10',
-    name: 'Don\'t Panic',
-    category: 'dont-panic',
-    tier: 'silver',
-    earnedDate: '2025-01-06',
-    description: 'Sent calming reassurance after stressful call',
-    icon: Heart,
-    color: '#6366F1',
-  },
-  {
-    id: '11',
-    name: 'I\'m Sorry',
-    category: 'im-sorry',
-    tier: 'bronze',
-    earnedDate: '2025-01-05',
-    description: 'Sincere apology for being late to dinner',
-    icon: Heart,
-    color: '#F87171',
-  },
-];
-
 const categories = [
   { id: 'all', name: 'All Badges', icon: Trophy },
   { id: 'kindness', name: 'Kindness', icon: Heart },
@@ -156,9 +44,93 @@ const categories = [
 ];
 
 export default function BadgesScreen() {
+  const [badges, setBadges] = useState<Badge[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-  const filteredBadges = mockBadges.filter(badge => {
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchBadges();
+    }, [])
+  );
+
+  const fetchBadges = async () => {
+    setLoading(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    const { data: events, error } = await supabase
+      .from('events')
+      .select('*')
+      .eq('receiver_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching badges:', error);
+      setBadges([]);
+    } else {
+      const transformedBadges = transformEventsToBadges(events);
+      setBadges(transformedBadges);
+    }
+    setLoading(false);
+  };
+
+  const transformEventsToBadges = (events: any[]): Badge[] => {
+    const categoryMeta = categories.reduce((acc, cat) => {
+      acc[cat.id] = cat;
+      return acc;
+    }, {} as { [key: string]: { name: string; icon: any } });
+    
+    // Add meta for specific wisdom/hornet types if not in main categories list
+    if (!categoryMeta['hornet']) categoryMeta['hornet'] = { name: 'Hornet', icon: Bug };
+    if (!categoryMeta['dont-panic']) categoryMeta['dont-panic'] = { name: 'Dont Panic', icon: Heart };
+    if (!categoryMeta['im-sorry']) categoryMeta['im-sorry'] = { name: 'I\'m Sorry', icon: Heart };
+
+
+    return events
+      .filter(event => ['APPRECIATION', 'HORNET', 'WISDOM', 'DONT_PANIC'].includes(event.event_type))
+      .map(event => {
+        const content = event.content || {};
+        let categoryId = event.event_type.toLowerCase();
+        let name = content.title;
+        let description = content.description || content.message;
+        
+        if (event.event_type === 'APPRECIATION') {
+            categoryId = content.category_id;
+        } else if (event.event_type === 'WISDOM') {
+            categoryId = 'relationship-wisdom';
+        }
+
+        const meta = categoryMeta[categoryId] || { name: 'Badge', icon: Trophy };
+        const colorMap: { [key: string]: string } = {
+          support: '#4ECDC4',
+          kindness: '#FF6B9D',
+          humor: '#FFD93D',
+          adventure: '#6BCF7F',
+          words: '#A8E6CF',
+          hornet: '#FF4444',
+          'relationship-wisdom': '#9B59B6',
+          'dont-panic': '#6366F1',
+        };
+
+        return {
+          id: event.id.toString(),
+          name: name,
+          category: categoryId,
+          tier: 'bronze', // Tier is not in the DB, providing default
+          earnedDate: event.created_at,
+          description: description,
+          icon: meta.icon,
+          color: colorMap[categoryId] || '#6B7280',
+          isNegative: event.event_type === 'HORNET',
+        };
+      });
+  };
+
+  const filteredBadges = badges.filter(badge => {
     const categoryMatch = selectedCategory === 'all' || badge.category === selectedCategory;
     return categoryMatch;
   });
@@ -279,9 +251,9 @@ export default function BadgesScreen() {
   };
 
   const renderStats = () => {
-    const totalBadges = mockBadges.length;
-    const positiveBadges = mockBadges.filter(b => !b.isNegative);
-    const negativeBadges = mockBadges.filter(b => b.isNegative);
+    const totalBadges = badges.length;
+    const positiveBadges = badges.filter(b => !b.isNegative);
+    const negativeBadges = badges.filter(b => b.isNegative);
     const bronzeCount = positiveBadges.filter(b => b.tier === 'bronze').length;
     const silverCount = positiveBadges.filter(b => b.tier === 'silver').length;
     const goldCount = positiveBadges.filter(b => b.tier === 'gold').length;
@@ -327,7 +299,9 @@ export default function BadgesScreen() {
       {renderCategoryFilter()}
 
       <ScrollView style={styles.badgesList} showsVerticalScrollIndicator={false}>
-        {filteredBadges.length > 0 ? (
+        {loading ? (
+          <ActivityIndicator size="large" color="#FF8C42" style={{ marginTop: 50 }} />
+        ) : filteredBadges.length > 0 ? (
           filteredBadges.map(renderBadge)
         ) : (
           <View style={styles.emptyState}>

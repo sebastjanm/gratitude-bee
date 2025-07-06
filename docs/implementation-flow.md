@@ -118,10 +118,32 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
 ---
 
 ### **Step 11: Modal UI Optimization**
-*   **Timestamp:** `2025-07-06T18:15:00Z`
+*   **Timestamp:** `2025-07-06T18:20:00Z`
 *   **Commit:** `[pending_commit]`
 *   **Description:**
-    *   Refactored the headers in both `AppreciationModal.tsx` and `FavorsModal.tsx` to be more compact and space-efficient.
-    *   Removed redundant titles and user's points balance from the modals to create a cleaner, more focused user experience.
-    *   Standardized the UI by moving the close (X) button to the top-right corner, aligning with common mobile design patterns.
-*   **Next Step:** Final review of all modal components for UI consistency. 
+    *   Completed a full design pass on all primary modals (`AppreciationModal`, `FavorsModal`, `RelationshipWisdomModal`, `DontPanicModal`, `PingModal`, `NegativeBadgeModal`).
+    *   Refactored all modal headers to use a consistent, compact, and space-efficient layout with the close button positioned on the top-right.
+    *   Realigned the content cards within `RelationshipWisdomModal`, `DontPanicModal`, and `PingModal` for improved readability, placing icons on the left and text to the right.
+*   **Next Step:** Final review of all UI components for consistency.
+
+---
+
+### **Step 12: Analytics Logic Documentation**
+*   **Timestamp:** `2025-07-06T18:25:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   Created a new documentation file, `docs/AnalyticsLogic.md`, to provide a detailed, transparent explanation of how all statistics on the Analytics screen are calculated.
+    *   The document covers the data fetching strategy and provides a breakdown of the logic for Main Stats, Streaks, Weekly Breakdown, Category Breakdown, and Insights.
+*   **Next Step:** Final review of project documentation.
+
+---
+
+### **Step 13: Server-Side Analytics Refactor**
+*   **Timestamp:** `2025-07-06T18:35:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   Created a new PostgreSQL function `get_user_analytics` to move all complex statistical calculations from the client to the database server.
+    *   The function efficiently computes main stats, streaks, weekly breakdowns, category stats, and insights using optimized SQL queries.
+    *   Refactored the `AnalyticsScreen` to replace the client-side processing with a single RPC call to the new database function, significantly improving performance and scalability.
+    *   Updated `docs/AnalyticsLogic.md` to reflect that all calculations are now performed on the server.
+*   **Next Step:** Full end-to-end testing of the application. 
