@@ -459,4 +459,29 @@ const styles = StyleSheet.create({
     color: '#999',
     textAlign: 'center',
   },
+  dontPanicButton: {
+    backgroundColor: '#F0F9FF',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 2,
+    borderColor: '#DBEAFE',
+  },
+  dontPanicButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  dontPanicButtonText: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#6366F1',
+    marginLeft: 8,
+  },
+  dontPanicButtonSubtext: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    color: '#999',
+    textAlign: 'center',
+  },
 });

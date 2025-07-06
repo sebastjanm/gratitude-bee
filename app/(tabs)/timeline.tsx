@@ -127,6 +127,17 @@ const mockEvents: TimelineEvent[] = [
     icon: Home,
     color: '#27AE60',
   },
+  {
+    id: '10',
+    type: 'sent',
+    badgeName: 'Don\'t Panic',
+    category: 'dont-panic',
+    message: 'Everything will be okay ❤️ Take a deep breath',
+    timestamp: '2025-01-06T15:20:00Z',
+    partnerName: 'Sarah',
+    icon: Heart,
+    color: '#6366F1',
+  },
 ];
 
 export default function TimelineScreen() {

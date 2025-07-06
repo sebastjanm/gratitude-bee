@@ -119,6 +119,16 @@ const mockBadges: Badge[] = [
     icon: Home,
     color: '#27AE60',
   },
+  {
+    id: '10',
+    name: 'Don\'t Panic',
+    category: 'dont-panic',
+    tier: 'silver',
+    earnedDate: '2025-01-06',
+    description: 'Sent calming reassurance after stressful call',
+    icon: Heart,
+    color: '#6366F1',
+  },
 ];
 
 const categories = [
