@@ -69,4 +69,16 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
     *   The user's unique invite code is now fetched from the database.
     *   The "Invite Partner" button now uses the native Share API to allow users to easily send their invite code.
     *   The profile screen now dynamically displays the connection status and partner's name.
-*   **Next Step:** Finalize the favor fulfillment flow by connecting the UI to the backend. 
+*   **Next Step:** Finalize the favor fulfillment flow by connecting the UI to the backend.
+
+---
+
+### **Step 7: Dynamic Link Invitations**
+*   **Timestamp:** `2025-07-06T17:53:35Z`
+*   **Commit:** `1acd00c`
+*   **Description:**
+    *   Upgraded the "Invite Partner" feature to use dynamic links (`gratitudebee.app/invite/...`) instead of raw codes.
+    *   Configured the `app.json` with the necessary intent filters (Android) and associated domains (iOS) to handle these links.
+    *   Created a new dynamic route `app/invite/[code].tsx` to process incoming invites, either by connecting the user automatically or redirecting them to sign up.
+    *   The `partner-link.tsx` screen now checks for stored invite codes upon loading to complete the connection flow seamlessly after login.
+*   **Next Step:** Finalize the favor fulfillment flow. 

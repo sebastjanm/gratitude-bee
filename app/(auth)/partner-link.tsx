@@ -13,6 +13,7 @@ import { router } from 'expo-router';
 import { Heart, Copy, Mail, Users, CircleCheck as CheckCircle, ArrowRight } from 'lucide-react-native';
 import { supabase } from '@/utils/supabase';
 import { useSession } from '@/providers/SessionProvider';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function PartnerLinkScreen() {
   const { session } = useSession();
@@ -51,6 +52,17 @@ export default function PartnerLinkScreen() {
       }
     };
     fetchProfile();
+
+    const checkStoredInvite = async () => {
+      const storedCode = await AsyncStorage.getItem('invite_code');
+      if (storedCode) {
+        setPartnerCode(storedCode);
+        await AsyncStorage.removeItem('invite_code');
+        // Automatically attempt to connect
+        handleConnectWithCode(storedCode);
+      }
+    };
+    checkStoredInvite();
   }, [session]);
 
   const inviteLink = `https://gratitudebee.app/invite/${inviteCode}`;
@@ -77,8 +89,9 @@ export default function PartnerLinkScreen() {
     }
   };
 
-  const handleConnectWithCode = async () => {
-    if (!partnerCode.trim()) {
+  const handleConnectWithCode = async (codeToConnect?: string) => {
+    const finalCode = codeToConnect || partnerCode;
+    if (!finalCode.trim()) {
       Alert.alert('Missing Code', 'Please enter your partner\'s invite code');
       return;
     }
@@ -87,7 +100,7 @@ export default function PartnerLinkScreen() {
     
     try {
       const { data, error } = await supabase.functions.invoke('connect-partner', {
-        body: { inviteCode: partnerCode },
+        body: { inviteCode: finalCode },
       });
 
       if (error) throw error;
@@ -207,7 +220,7 @@ export default function PartnerLinkScreen() {
         
         <TouchableOpacity
           style={[styles.connectButton, loading && styles.disabledButton]}
-          onPress={handleConnectWithCode}
+          onPress={() => handleConnectWithCode()}
           disabled={loading}>
           <Text style={styles.connectButtonText}>
             {loading ? 'Connecting...' : 'Connect'}

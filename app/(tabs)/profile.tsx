@@ -58,8 +58,10 @@ export default function ProfileScreen() {
       return;
     }
     try {
+      const inviteLink = `https://gratitudebee.app/invite/${inviteCode}`;
       await Share.share({
-        message: `Join me on GratitudeBee! Use my invite code to connect: ${inviteCode}`,
+        message: `Join me on GratitudeBee! Let's build a better relationship, together. Click this link to connect with me: ${inviteLink}`,
+        url: inviteLink, // for iOS
         title: 'Join me on GratitudeBee',
       });
     } catch (error) {
