@@ -80,28 +80,21 @@ export default function RelationshipWisdomModal({
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
       <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-            <X color="#666" size={24} />
-          </TouchableOpacity>
-          <Text style={styles.title}>Relationship Wisdom</Text>
-          <View style={styles.placeholder} />
-        </View>
-
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          <View style={styles.heroSection}>
+        <ScrollView style={styles.contentWrapper} showsVerticalScrollIndicator={false}>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+              <X color="#666" size={24} />
+            </TouchableOpacity>
             <View style={styles.heroIcon}>
               <Image source={require('../assets/images/owl.png')} style={styles.heroImage} />
             </View>
             <Text style={styles.heroTitle}>Relationship Wisdom</Text>
             <Text style={styles.heroSubtitle}>
-              Sometimes relationships just need a little wisdom, compromise, and understanding. 
+              Sometimes relationships just need a little wisdom, compromise, and understanding.
             </Text>
           </View>
 
           <View style={styles.wisdomSection}>
-
-            
             <View style={styles.wisdomGrid}>
               {wisdomOptions.map((wisdom) => (
                 <TouchableOpacity
@@ -112,13 +105,15 @@ export default function RelationshipWisdomModal({
                   ]}
                   onPress={() => setSelectedWisdom(wisdom)}
                   activeOpacity={0.7}>
-                  <View style={styles.wisdomCardHeader}>
+                  <View style={styles.wisdomCardContent}>
                     <View style={[styles.wisdomIcon, { backgroundColor: wisdom.color + '20' }]}>
                       <Text style={styles.wisdomEmoji}>{wisdom.icon}</Text>
                     </View>
-                    <Text style={styles.wisdomTitle}>{wisdom.title}</Text>
+                    <View style={styles.wisdomTextContainer}>
+                      <Text style={styles.wisdomTitle}>{wisdom.title}</Text>
+                      <Text style={styles.wisdomDescription}>{wisdom.description}</Text>
+                    </View>
                   </View>
-                  <Text style={styles.wisdomDescription}>{wisdom.description}</Text>
                   
                   {selectedWisdom?.id === wisdom.id && (
                     <View style={styles.selectedIndicator}>
@@ -165,78 +160,56 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFF8F0',
   },
+  contentWrapper: {
+    flex: 1,
+  },
   header: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
+    paddingTop: 72,
+    paddingBottom: 24,
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
+    backgroundColor: '#FFF8F0',
   },
   closeButton: {
+    position: 'absolute',
+    top: 60,
+    right: 20,
     padding: 8,
   },
-  title: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-  },
-  placeholder: {
-    width: 40,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  heroSection: {
-    alignItems: 'center',
-    paddingVertical: 32,
-  },
-  heroImage: {
-    width: 48,
-    height: 48,
-    resizeMode: 'contain',
-  },
   heroIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: '#8B5CF6' + '20',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
+  },
+  heroImage: {
+    width: 40,
+    height: 40,
+    resizeMode: 'contain',
   },
   heroTitle: {
     fontSize: 24,
     fontFamily: 'Inter-Bold',
     color: '#333',
-    marginBottom: 12,
+    marginBottom: 8,
     textAlign: 'center',
   },
   heroSubtitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: 'Inter-Regular',
     color: '#666',
     textAlign: 'center',
-    lineHeight: 24,
-    paddingHorizontal: 20,
+    lineHeight: 22,
   },
   wisdomSection: {
+    paddingHorizontal: 20,
+    paddingTop: 24,
     marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginBottom: 8,
-  },
-  sectionSubtitle: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    marginBottom: 20,
   },
   wisdomGrid: {
     gap: 16,
@@ -257,9 +230,9 @@ const styles = StyleSheet.create({
     borderColor: '#8B5CF6',
     backgroundColor: '#8B5CF6' + '05',
   },
-  wisdomCardHeader: {
+  wisdomCardContent: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 12,
   },
   wisdomIcon: {
@@ -273,22 +246,25 @@ const styles = StyleSheet.create({
   wisdomEmoji: {
     fontSize: 20,
   },
+  wisdomTextContainer: {
+    flex: 1,
+  },
   wisdomTitle: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: '#333',
-    flex: 1,
+    marginBottom: 4,
   },
   wisdomDescription: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     color: '#666',
     lineHeight: 20,
-    marginBottom: 12,
   },
   selectedIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginLeft: 64, // Align with text (icon width 48 + margin 16)
   },
   selectedText: {
     fontSize: 12,

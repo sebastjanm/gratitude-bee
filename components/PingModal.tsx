@@ -80,16 +80,11 @@ export default function PingModal({
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
       <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-            <X color="#666" size={24} />
-          </TouchableOpacity>
-          <Text style={styles.title}>Send a Ping</Text>
-          <View style={styles.placeholder} />
-        </View>
-
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          <View style={styles.heroSection}>
+        <ScrollView style={styles.contentWrapper} showsVerticalScrollIndicator={false}>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+              <X color="#666" size={24} />
+            </TouchableOpacity>
             <View style={styles.heroIcon}>
                 <Image source={require('../assets/images/ping.png')} style={styles.heroImage} />
             </View>
@@ -99,42 +94,46 @@ export default function PingModal({
             </Text>
           </View>
 
-          <View style={styles.pingSection}>
-            <View style={styles.pingGrid}>
-              {pingOptions.map((ping) => (
-                <TouchableOpacity
-                  key={ping.id}
-                  style={[
-                    styles.pingCard,
-                    selectedPing?.id === ping.id && styles.selectedPingCard,
-                  ]}
-                  onPress={() => setSelectedPing(ping)}
-                  activeOpacity={0.7}>
-                  <View style={styles.pingCardHeader}>
-                    <View style={[styles.pingIcon, { backgroundColor: ping.color + '20' }]}>
-                      <Text style={styles.pingEmoji}>{ping.icon}</Text>
+          <View style={styles.content}>
+            <View style={styles.pingSection}>
+              <View style={styles.pingGrid}>
+                {pingOptions.map((ping) => (
+                  <TouchableOpacity
+                    key={ping.id}
+                    style={[
+                      styles.pingCard,
+                      selectedPing?.id === ping.id && styles.selectedPingCard,
+                    ]}
+                    onPress={() => setSelectedPing(ping)}
+                    activeOpacity={0.7}>
+                    <View style={styles.pingCardContent}>
+                      <View style={[styles.pingIcon, { backgroundColor: ping.color + '20' }]}>
+                        <Text style={styles.pingEmoji}>{ping.icon}</Text>
+                      </View>
+                      <View style={styles.pingTextContainer}>
+                        <Text style={styles.pingTitle}>{ping.title}</Text>
+                        <Text style={styles.pingDescription}>{ping.description}</Text>
+                      </View>
                     </View>
-                    <Text style={styles.pingTitle}>{ping.title}</Text>
-                  </View>
-                  <Text style={styles.pingDescription}>{ping.description}</Text>
-                  
-                  {selectedPing?.id === ping.id && (
-                    <View style={styles.selectedIndicator}>
-                      <CheckCircle color={ping.color} size={16} />
-                      <Text style={[styles.selectedText, { color: ping.color }]}>Selected</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              ))}
+                    
+                    {selectedPing?.id === ping.id && (
+                      <View style={styles.selectedIndicator}>
+                        <CheckCircle color={ping.color} size={16} />
+                        <Text style={[styles.selectedText, { color: ping.color }]}>Selected</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
-          </View>
 
-          <View style={styles.tipSection}>
-            <Text style={styles.tipTitle}>💡 Using Pings Responsibly</Text>
-            <Text style={styles.tipText}>
-              Pings are for urgent check-ins. To prevent spam, consider agreeing on limits, 
-              like a few per day or a cool-down timer between pings.
-            </Text>
+            <View style={styles.tipSection}>
+              <Text style={styles.tipTitle}>💡 Using Pings Responsibly</Text>
+              <Text style={styles.tipText}>
+                Pings are for urgent check-ins. To prevent spam, consider agreeing on limits,
+                like a few per day or a cool-down timer between pings.
+              </Text>
+            </View>
           </View>
         </ScrollView>
 
@@ -161,64 +160,54 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFF8F0',
   },
+  contentWrapper: {
+    flex: 1,
+  },
   header: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
+    paddingTop: 72,
+    paddingBottom: 24,
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
   },
   closeButton: {
+    position: 'absolute',
+    top: 60,
+    right: 20,
     padding: 8,
   },
-  title: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-  },
-  placeholder: {
-    width: 40,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  heroSection: {
-    alignItems: 'center',
-    paddingVertical: 32,
-  },
   heroIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: '#3B82F6' + '20',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
-    position: 'relative',
+    marginBottom: 16,
   },
   heroImage: {
-    width: 48,
-    height: 48,
+    width: 40,
+    height: 40,
     resizeMode: 'contain',
   },
   heroTitle: {
     fontSize: 24,
     fontFamily: 'Inter-Bold',
     color: '#333',
-    marginBottom: 12,
+    marginBottom: 8,
     textAlign: 'center',
   },
   heroSubtitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: 'Inter-Regular',
     color: '#666',
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 22,
+  },
+  content: {
     paddingHorizontal: 20,
+    paddingTop: 24,
   },
   pingSection: {
     marginBottom: 32,
@@ -242,9 +231,9 @@ const styles = StyleSheet.create({
     borderColor: '#3B82F6',
     backgroundColor: '#3B82F6' + '05',
   },
-  pingCardHeader: {
+  pingCardContent: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 12,
   },
   pingIcon: {
@@ -258,22 +247,25 @@ const styles = StyleSheet.create({
   pingEmoji: {
     fontSize: 20,
   },
+  pingTextContainer: {
+    flex: 1,
+  },
   pingTitle: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: '#333',
-    flex: 1,
+    marginBottom: 4,
   },
   pingDescription: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     color: '#666',
     lineHeight: 20,
-    marginBottom: 12,
   },
   selectedIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginLeft: 64, // Align with text
   },
   selectedText: {
     fontSize: 12,

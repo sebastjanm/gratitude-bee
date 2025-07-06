@@ -106,18 +106,11 @@ export default function NegativeBadgeModal({
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
       <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-            <X color="#666" size={24} />
-          </TouchableOpacity>
-          <Text style={styles.title}>Send Hornet</Text>
-          <View style={styles.placeholder} />
-        </View>
-
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-
-
-          <View style={styles.heroSection}>
+        <ScrollView style={styles.contentWrapper} showsVerticalScrollIndicator={false}>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+              <X color="#666" size={24} />
+            </TouchableOpacity>
             <View style={styles.heroIcon}>
               <Image source={require('../assets/images/hornet.png')} style={styles.heroImage} />
             </View>
@@ -127,73 +120,74 @@ export default function NegativeBadgeModal({
             </Text>
           </View>
 
-
-          <View style={styles.optionsSection}>
-            {loading ? (
-              <ActivityIndicator size="large" color="#FF4444" />
-            ) : (
-              <View style={styles.optionsGrid}>
-                {hornetOptions.map((option) => {
-                  return (
-                    <TouchableOpacity
-                      key={option.id}
-                      style={[
-                        styles.optionCard,
-                        selectedOption?.id === option.id && styles.selectedOptionCard,
-                        { borderLeftColor: option.color }
-                      ]}
-                      onPress={() => setSelectedOption(option)}
-                      activeOpacity={0.7}>
-                      <View style={styles.optionHeader}>
-                        <View style={[styles.optionIcon, { backgroundColor: option.color + '20' }]}>
-                          <Text style={styles.optionEmoji}>{option.icon}</Text>
-                        </View>
-                        <View style={styles.optionInfo}>
-                          <View style={styles.optionTitleRow}>
-                            <Text style={styles.optionCount}>{option.count}</Text>
-                            <Text style={styles.optionTitle}>{option.title}</Text>
+          <View style={styles.content}>
+            <View style={styles.optionsSection}>
+              {loading ? (
+                <ActivityIndicator size="large" color="#FF4444" />
+              ) : (
+                <View style={styles.optionsGrid}>
+                  {hornetOptions.map((option) => {
+                    return (
+                      <TouchableOpacity
+                        key={option.id}
+                        style={[
+                          styles.optionCard,
+                          selectedOption?.id === option.id && styles.selectedOptionCard,
+                          { borderLeftColor: option.color }
+                        ]}
+                        onPress={() => setSelectedOption(option)}
+                        activeOpacity={0.7}>
+                        <View style={styles.optionHeader}>
+                          <View style={[styles.optionIcon, { backgroundColor: option.color + '20' }]}>
+                            <Text style={styles.optionEmoji}>{option.icon}</Text>
                           </View>
-                          <Text style={styles.optionDescription}>{option.description}</Text>
+                          <View style={styles.optionInfo}>
+                            <View style={styles.optionTitleRow}>
+                              <Text style={styles.optionCount}>{option.count}</Text>
+                              <Text style={styles.optionTitle}>{option.title}</Text>
+                            </View>
+                            <Text style={styles.optionDescription}>{option.description}</Text>
+                          </View>
                         </View>
-                      </View>
-                      
-                      {selectedOption?.id === option.id && (
-                        <View style={styles.selectedIndicator}>
-                          <View style={[styles.selectedDot, { backgroundColor: option.color }]} />
-                          <Text style={[styles.selectedText, { color: option.color }]}>Selected</Text>
-                        </View>
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            )}
-          </View>
+                        
+                        {selectedOption?.id === option.id && (
+                          <View style={styles.selectedIndicator}>
+                            <View style={[styles.selectedDot, { backgroundColor: option.color }]} />
+                            <Text style={[styles.selectedText, { color: option.color }]}>Selected</Text>
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              )}
+            </View>
 
-          <View style={styles.messageSection}>
-            <Text style={styles.sectionTitle}>Optional message:</Text>
-            <Text style={styles.sectionSubtitle}>
-              Explain the situation that prompted this hornet
-            </Text>
-            <TextInput
-              style={styles.messageInput}
-              placeholder="Explain why you're sending this hornet..."
-              value={message}
-              onChangeText={setMessage}
-              multiline
-              numberOfLines={3}
-              maxLength={200}
-              textAlignVertical="top"
-            />
-            <Text style={styles.characterCount}>{message.length}/200</Text>
-          </View>
+            <View style={styles.messageSection}>
+              <Text style={styles.sectionTitle}>Optional message:</Text>
+              <Text style={styles.sectionSubtitle}>
+                Explain the situation that prompted this hornet
+              </Text>
+              <TextInput
+                style={styles.messageInput}
+                placeholder="Explain why you're sending this hornet..."
+                value={message}
+                onChangeText={setMessage}
+                multiline
+                numberOfLines={3}
+                maxLength={200}
+                textAlignVertical="top"
+              />
+              <Text style={styles.characterCount}>{message.length}/200</Text>
+            </View>
 
-          <View style={styles.tipSection}>
-            <Text style={styles.tipTitle}>💡 Using Hornets Wisely</Text>
-            <Text style={styles.tipText}>
-              Hornets are for accountability, not punishment. Use them to address genuine 
-              concerns that need discussion. The goal is better communication, not keeping score.
-            </Text>
+            <View style={styles.tipSection}>
+              <Text style={styles.tipTitle}>💡 Using Hornets Wisely</Text>
+              <Text style={styles.tipText}>
+                Hornets are for accountability, not punishment. Use them to address genuine 
+                concerns that need discussion. The goal is better communication, not keeping score.
+              </Text>
+            </View>
           </View>
         </ScrollView>
 
@@ -220,30 +214,54 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFF8F0',
   },
+  contentWrapper: {
+    flex: 1,
+  },
   header: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
+    paddingTop: 72,
+    paddingBottom: 24,
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
   },
   closeButton: {
+    position: 'absolute',
+    top: 60,
+    right: 20,
     padding: 8,
   },
-  title: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
+  heroIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#FF4444' + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
   },
-  placeholder: {
-    width: 40,
+  heroImage: {
+    width: 48,
+    height: 48,
+    resizeMode: 'contain',
+  },
+  heroTitle: {
+    fontSize: 24,
+    fontFamily: 'Inter-Bold',
+    color: '#333',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  heroSubtitle: {
+    fontSize: 15,
+    fontFamily: 'Inter-Regular',
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 22,
   },
   content: {
-    flex: 1,
     paddingHorizontal: 20,
+    paddingTop: 24,
   },
   warningContainer: {
     flexDirection: 'row',
@@ -263,40 +281,6 @@ const styles = StyleSheet.create({
     color: '#666',
     marginLeft: 12,
     lineHeight: 20,
-  },
-  heroSection: {
-    alignItems: 'center',
-    paddingVertical: 24,
-    marginBottom: 32,
-  },
-  heroIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#FF4444' + '20',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  heroImage: {
-    width: 60,
-    height: 60,
-    resizeMode: 'contain',
-  },
-  heroTitle: {
-    fontSize: 24,
-    fontFamily: 'Inter-Bold',
-    color: '#333',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  heroSubtitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    textAlign: 'center',
-    lineHeight: 24,
-    paddingHorizontal: 20,
   },
   optionsSection: {
     marginBottom: 32,

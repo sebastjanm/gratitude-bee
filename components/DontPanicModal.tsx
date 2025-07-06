@@ -100,80 +100,79 @@ export default function DontPanicModal({
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
       <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-            <X color="#666" size={24} />
-          </TouchableOpacity>
-          <Text style={styles.title}>Don't Panic</Text>
-          <View style={styles.placeholder} />
-        </View>
-
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          <View style={styles.heroSection}>
+        <ScrollView style={styles.contentWrapper} showsVerticalScrollIndicator={false}>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+              <X color="#666" size={24} />
+            </TouchableOpacity>
             <View style={styles.heroIcon}>
               <Image source={require('../assets/images/dont-panic.png')} style={styles.heroImage} />
             </View>
             <Text style={styles.heroTitle}>Send Calm & Reassurance</Text>
             <Text style={styles.heroSubtitle}>
-              Sometimes your partner needs immediate comfort after a stressful moment. 
+              Sometimes your partner needs immediate comfort after a stressful moment.
             </Text>
           </View>
 
-          <View style={styles.triggerSection}>
-            <View style={styles.triggerGrid}>
-              {panicTriggers.map((trigger, index) => {
-                const IconComponent = trigger.icon;
-                return (
-                  <View key={index} style={styles.triggerCard}>
-                    <View style={[styles.triggerIcon, { backgroundColor: trigger.color + '20' }]}>
-                      <IconComponent color={trigger.color} size={20} />
+          <View style={styles.content}>
+            <View style={styles.triggerSection}>
+              <View style={styles.triggerGrid}>
+                {panicTriggers.map((trigger, index) => {
+                  const IconComponent = trigger.icon;
+                  return (
+                    <View key={index} style={styles.triggerCard}>
+                      <View style={[styles.triggerIcon, { backgroundColor: trigger.color + '20' }]}>
+                        <IconComponent color={trigger.color} size={20} />
+                      </View>
+                      <Text style={styles.triggerText}>{trigger.text}</Text>
                     </View>
-                    <Text style={styles.triggerText}>{trigger.text}</Text>
-                  </View>
-                );
-              })}
+                  );
+                })}
+              </View>
             </View>
-          </View>
 
-          <View style={styles.optionsSection}>
-            <Text style={styles.sectionTitle}>Choose Your Message</Text>
-            
-            <View style={styles.optionsGrid}>
-              {calmOptions.map((option) => (
-                <TouchableOpacity
-                  key={option.id}
-                  style={[
-                    styles.optionCard,
-                    selectedOption?.id === option.id && styles.selectedOptionCard,
-                  ]}
-                  onPress={() => setSelectedOption(option)}
-                  activeOpacity={0.7}>
-                  <View style={styles.optionCardHeader}>
-                    <View style={[styles.optionIcon, { backgroundColor: option.color + '20' }]}>
-                      <Text style={styles.optionEmoji}>{option.icon}</Text>
+            <View style={styles.optionsSection}>
+              <Text style={styles.sectionTitle}>Choose Your Message</Text>
+              
+              <View style={styles.optionsGrid}>
+                {calmOptions.map((option) => (
+                  <TouchableOpacity
+                    key={option.id}
+                    style={[
+                      styles.optionCard,
+                      selectedOption?.id === option.id && styles.selectedOptionCard,
+                    ]}
+                    onPress={() => setSelectedOption(option)}
+                    activeOpacity={0.7}>
+                    <View style={styles.optionCardContent}>
+                      <View style={[styles.optionIcon, { backgroundColor: option.color + '20' }]}>
+                        <Text style={styles.optionEmoji}>{option.icon}</Text>
+                      </View>
+                      <View style={styles.optionTextContainer}>
+                        <Text style={styles.optionTitle}>{option.title}</Text>
+                        <Text style={styles.optionMessage}>"{option.message}"</Text>
+                      </View>
                     </View>
-                    <Text style={styles.optionTitle}>{option.title}</Text>
-                  </View>
-                  <Text style={styles.optionMessage}>"{option.message}"</Text>
-                  
-                  {selectedOption?.id === option.id && (
-                    <View style={styles.selectedIndicator}>
-                      <CheckCircle color={option.color} size={16} />
-                      <Text style={[styles.selectedText, { color: option.color }]}>Selected</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              ))}
+                    
+                    {selectedOption?.id === option.id && (
+                      <View style={styles.selectedIndicator}>
+                        <CheckCircle color={option.color} size={16} />
+                        <Text style={[styles.selectedText, { color: option.color }]}>Selected</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
-          </View>
 
-          <View style={styles.tipSection}>
-            <Text style={styles.tipTitle}>💡 About Don't Panic Messages</Text>
-            <Text style={styles.tipText}>
-              Don't Panic messages are perfect for moments when your partner needs immediate 
-              emotional support. They're not about appreciation - they're about being present 
-              during difficult times and offering comfort when it's needed most.
-            </Text>
+            <View style={styles.tipSection}>
+              <Text style={styles.tipTitle}>💡 About Don't Panic Messages</Text>
+              <Text style={styles.tipText}>
+                Don't Panic messages are perfect for moments when your partner needs immediate
+                emotional support. They're not about appreciation - they're about being present
+                during difficult times and offering comfort when it's needed most.
+              </Text>
+            </View>
           </View>
         </ScrollView>
 
@@ -200,63 +199,54 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFF8F0',
   },
+  contentWrapper: {
+    flex: 1,
+  },
   header: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
+    paddingTop: 72,
+    paddingBottom: 24,
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
   },
   closeButton: {
+    position: 'absolute',
+    top: 60,
+    right: 20,
     padding: 8,
   },
-  title: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-  },
-  placeholder: {
-    width: 40,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  heroSection: {
-    alignItems: 'center',
-    paddingVertical: 32,
-  },
   heroIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: '#6366F1' + '20',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   heroImage: {
-    width: 48,
-    height: 48,
+    width: 40,
+    height: 40,
     resizeMode: 'contain',
   },
   heroTitle: {
     fontSize: 24,
     fontFamily: 'Inter-Bold',
     color: '#333',
-    marginBottom: 12,
+    marginBottom: 8,
     textAlign: 'center',
   },
   heroSubtitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: 'Inter-Regular',
     color: '#666',
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 22,
+  },
+  content: {
     paddingHorizontal: 20,
+    paddingTop: 24,
   },
   triggerSection: {
     marginBottom: 32,
@@ -326,9 +316,9 @@ const styles = StyleSheet.create({
     borderColor: '#6366F1',
     backgroundColor: '#6366F1' + '05',
   },
-  optionCardHeader: {
+  optionCardContent: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 12,
   },
   optionIcon: {
@@ -342,11 +332,14 @@ const styles = StyleSheet.create({
   optionEmoji: {
     fontSize: 20,
   },
+  optionTextContainer: {
+    flex: 1,
+  },
   optionTitle: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: '#333',
-    flex: 1,
+    marginBottom: 4,
   },
   optionMessage: {
     fontSize: 14,
@@ -354,11 +347,11 @@ const styles = StyleSheet.create({
     color: '#666',
     lineHeight: 20,
     fontStyle: 'italic',
-    marginBottom: 12,
   },
   selectedIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginLeft: 64, // Align with text
   },
   selectedText: {
     fontSize: 12,

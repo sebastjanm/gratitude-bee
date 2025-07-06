@@ -113,4 +113,15 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
     *   Addressed a schema design flaw by adding a `points_icon` column to the `appreciation_templates` table, decoupling the point type from the UI display.
     *   Updated the `seed.sql` script to populate the new `points_icon` column and made it idempotent to prevent errors on re-runs.
     *   Refactored `AppreciationModal.tsx` to use the dynamic `points_icon` from the database, removing the hardcoded emoji logic.
-*   **Next Step:** Comprehensive testing of all event-based flows and UI components. 
+*   **Next Step:** Comprehensive testing of all event-based flows and UI components.
+
+---
+
+### **Step 11: Modal UI Optimization**
+*   **Timestamp:** `2025-07-06T18:15:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   Refactored the headers in both `AppreciationModal.tsx` and `FavorsModal.tsx` to be more compact and space-efficient.
+    *   Removed redundant titles and user's points balance from the modals to create a cleaner, more focused user experience.
+    *   Standardized the UI by moving the close (X) button to the top-right corner, aligning with common mobile design patterns.
+*   **Next Step:** Final review of all modal components for UI consistency. 
