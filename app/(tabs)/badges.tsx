@@ -142,6 +142,7 @@ const categories = [
   { id: 'whatever-you-say', name: 'Whatever You Say', icon: CheckCircle },
   { id: 'yes-dear', name: 'Yes Dear', icon: Crown },
   { id: 'happy-wife', name: 'Happy Wife', icon: Home },
+  { id: 'dont-panic', name: 'Don\'t Panic', icon: Heart },
 ];
 
 export default function BadgesScreen() {

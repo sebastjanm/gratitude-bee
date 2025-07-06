@@ -138,6 +138,7 @@ const mockEvents: TimelineEvent[] = [
     icon: Heart,
     color: '#6366F1',
   },
+  { id: 'dont-panic', name: 'Don\'t Panic', icon: Heart },
 ];
 
 export default function TimelineScreen() {

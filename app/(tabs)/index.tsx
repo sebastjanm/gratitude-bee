@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Heart, Star, Smile, Compass, MessageCircle, Flame, Bug, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, Crown, Chrome as Home } from 'lucide-react-native';
 import NegativeBadgeModal from '@/components/NegativeBadgeModal';
+import DontPanicModal from '@/components/DontPanicModal';
 
 const { width } = Dimensions.get('window');
 
@@ -110,6 +111,7 @@ export default function HomeScreen() {
   const [currentStreak, setCurrentStreak] = useState(12);
   const [totalBadges, setTotalBadges] = useState(61);
   const [showNegativeModal, setShowNegativeModal] = useState(false);
+  const [showDontPanicModal, setShowDontPanicModal] = useState(false);
 
   const handleSendBadge = (categoryId: string) => {
     // Mock badge sending - in real app this would sync with partner
@@ -128,6 +130,17 @@ export default function HomeScreen() {
     Alert.alert(
       'Hornet Sent',
       `Successfully cancelled ${cancelledBadges.length} positive badge${cancelledBadges.length > 1 ? 's' : ''}.`,
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleSendDontPanic = (message: string, quickResponse?: string) => {
+    // Mock don't panic sending - in real app this would sync with partner
+    console.log('Sending Don\'t Panic message:', quickResponse || message);
+    
+    Alert.alert(
+      'Don\'t Panic Sent',
+      'Your calming message has been sent to your partner.',
       [{ text: 'OK' }]
     );
   };
@@ -212,7 +225,25 @@ export default function HomeScreen() {
       
       <View style={styles.divider} />
       {renderNegativeBadgeButton()}
+      
+      <View style={styles.divider} />
+      {renderDontPanicButton()}
     </View>
+  );
+
+  const renderDontPanicButton = () => (
+    <TouchableOpacity
+      style={styles.dontPanicButton}
+      onPress={() => setShowDontPanicModal(true)}
+      activeOpacity={0.8}>
+      <View style={styles.dontPanicButtonContent}>
+        <Heart color="#6366F1" size={20} />
+        <Text style={styles.dontPanicButtonText}>Don't Panic</Text>
+      </View>
+      <Text style={styles.dontPanicButtonSubtext}>
+        Send calm reassurance after stress
+      </Text>
+    </TouchableOpacity>
   );
 
   return (
@@ -242,6 +273,12 @@ export default function HomeScreen() {
         onClose={() => setShowNegativeModal(false)}
         onSend={handleSendHornet}
         recentPositiveBadges={mockRecentBadges}
+      />
+      
+      <DontPanicModal
+        visible={showDontPanicModal}
+        onClose={() => setShowDontPanicModal(false)}
+        onSend={handleSendDontPanic}
       />
     </SafeAreaView>
   );
