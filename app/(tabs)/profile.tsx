@@ -15,6 +15,7 @@ import { router } from 'expo-router';
 import { User, Settings, Bell, Heart, Target, Calendar, Share2, CircleHelp as HelpCircle, Smartphone, LogOut } from 'lucide-react-native';
 import { useSession } from '@/providers/SessionProvider';
 import { supabase } from '@/utils/supabase';
+import QRCodeModal from '@/components/QRCodeModal';
 
 export default function ProfileScreen() {
   const { session } = useSession();
@@ -24,25 +25,31 @@ export default function ProfileScreen() {
   const [weeklyGoal, setWeeklyGoal] = useState(21);
   const [inviteCode, setInviteCode] = useState('');
   const [partnerName, setPartnerName] = useState('');
+  const [isQrModalVisible, setIsQrModalVisible] = useState(false);
 
   useEffect(() => {
     if (session) {
       const fetchProfile = async () => {
         const { data, error } = await supabase
-          .from('users')
+          .from('users') // CORRECTED
           .select('invite_code, partner_id')
           .eq('id', session.user.id)
           .single();
-        if (data) {
+        if (error) {
+            Alert.alert('Error', 'Could not fetch your profile data.');
+            console.error(error);
+        } else if (data) {
           setInviteCode(data.invite_code);
           if (data.partner_id) {
-            const { data: partnerData } = await supabase
-              .from('users')
+            const { data: partnerData, error: partnerError } = await supabase
+              .from('users') // CORRECTED
               .select('display_name')
               .eq('id', data.partner_id)
               .single();
             if (partnerData) {
               setPartnerName(partnerData.display_name);
+            } else if (partnerError) {
+                console.error("Could not fetch partner's name", partnerError);
             }
           }
         }
@@ -57,17 +64,7 @@ export default function ProfileScreen() {
       Alert.alert('Could not find your invite code.');
       return;
     }
-    try {
-      const inviteLink = `https://gratitudebee.app/invite/${inviteCode}`;
-      await Share.share({
-        message: `Join me on GratitudeBee! Let's build a better relationship, together. Click this link to connect with me: ${inviteLink}`,
-        url: inviteLink, // for iOS
-        title: 'Join me on GratitudeBee',
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Something went wrong.';
-      Alert.alert('Error', message);
-    }
+    setIsQrModalVisible(true);
   };
 
   const handleExportData = () => {
@@ -284,6 +281,12 @@ export default function ProfileScreen() {
           </>
         )}
       </ScrollView>
+      <QRCodeModal
+        visible={isQrModalVisible}
+        onClose={() => setIsQrModalVisible(false)}
+        inviteCode={inviteCode}
+        inviteLink={`https://gratitudebee.app/invite/${inviteCode}`}
+      />
     </SafeAreaView>
   );
 }

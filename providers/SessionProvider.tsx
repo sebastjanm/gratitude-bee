@@ -1,6 +1,8 @@
 // This file was created by the assistant.
 // It contains the session provider for managing user authentication state.
 
+import 'react-native-get-random-values';
+import { v4 as uuidv4 } from 'uuid';
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { supabase } from '@/utils/supabase';
 import { Session } from '@supabase/supabase-js';
@@ -27,7 +29,7 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
 
     getSession();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
     });
 

@@ -110,6 +110,10 @@ CREATE POLICY "Users can view their own and their partner's wallet"
 ON public.wallets FOR SELECT
 USING (auth.uid() = user_id OR user_id = (SELECT partner_id FROM public.users WHERE id = auth.uid()));
 
+CREATE POLICY "Users can create their own wallet"
+ON public.wallets FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+
 
 -- 4. =================================================================
 --    EVENTS TABLE (THE LEDGER)
@@ -218,14 +222,22 @@ WITH CHECK (auth.jwt()->>'is_admin' = 'true');
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
+DECLARE
+    new_invite_code TEXT;
 BEGIN
+    -- Generate a unique 8-character invite code
+    LOOP
+        new_invite_code := LEFT(UPPER(REPLACE(gen_random_uuid()::text, '-', '')), 8);
+        EXIT WHEN NOT EXISTS (SELECT 1 FROM public.users WHERE invite_code = new_invite_code);
+    END LOOP;
+
     -- Create a profile and a wallet for the new user
     INSERT INTO public.users (id, display_name, invite_code)
-    VALUES (NEW.id, NEW.raw_user_meta_data->>'display_name', gen_random_uuid()::text);
-    
+    VALUES (NEW.id, NEW.raw_user_meta_data->>'display_name', new_invite_code);
+
     INSERT INTO public.wallets (user_id)
     VALUES (NEW.id);
-    
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

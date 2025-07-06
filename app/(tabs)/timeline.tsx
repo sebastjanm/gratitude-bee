@@ -11,6 +11,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Heart, Star, Smile, Compass, MessageCircle, Filter, Calendar, Bug, X, CircleCheck as CheckCircle, Crown, Home as HomeIcon, Clock } from 'lucide-react-native';
 import { useSession } from '@/providers/SessionProvider';
@@ -32,33 +33,6 @@ interface TimelineEvent {
   cancelledBadges?: string[];
   status?: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'COMPLETED';
 }
-
-const mockEvents: TimelineEvent[] = [
-  {
-    id: '12',
-    type: 'received',
-    badgeName: 'Bring Me Coffee',
-    category: 'favor',
-    message: 'A perfect cup of coffee, just the way I like it',
-    timestamp: '2025-01-16T09:00:00Z',
-    partnerName: 'Sebastjan',
-    icon: Heart, // Replace with a real favor icon if you have one
-    color: '#8B4513',
-    status: 'PENDING',
-  },
-  {
-    id: '1',
-    type: 'sent',
-    badgeName: 'Morning Coffee',
-    category: 'kindness',
-    message: 'Thank you for always making my coffee just right ☕',
-    timestamp: '2025-01-15T08:30:00Z',
-    partnerName: 'Breda',
-    icon: Heart,
-    color: '#F87171',
-  },
-  // ... other mock events
-];
 
 const filterOptions = [
   { id: 'all', name: 'All Events' },
@@ -88,24 +62,60 @@ const getEventVisuals = (event: any) => {
   return { IconComponent: details.icon, color: details.color };
 };
 
+const transformEvent = (e: any, currentUserId: string, usersMap: Map<string, string>) => {
+  const { IconComponent, color } = getEventVisuals(e);
+  const partnerId = e.sender_id === currentUserId ? e.receiver_id : e.sender_id;
+  
+  return {
+    id: e.id,
+    type: (e.sender_id === currentUserId ? 'sent' : 'received') as 'sent' | 'received',
+    badgeName: e.content.title,
+    category: e.content.category_id || e.event_type.toLowerCase(),
+    message: e.content.message,
+    timestamp: e.created_at,
+    partnerName: usersMap.get(partnerId) || 'Partner',
+    icon: IconComponent,
+    color: color,
+    isNegative: e.event_type === 'HORNET',
+    status: e.status,
+  }
+};
+
 
 export default function TimelineScreen() {
   const { session } = useSession();
   const [filter, setFilter] = useState<'all' | 'sent' | 'received'>('all');
   const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const PAGE_SIZE = 10;
 
-  useEffect(() => {
-    if (session) {
-      fetchEvents();
+  useFocusEffect(
+    React.useCallback(() => {
+      if (session) {
+        fetchEvents(true);
+      }
+    }, [session, filter])
+  );
+
+  const fetchEvents = async (isInitialFetch = false) => {
+    if (!session || (!isInitialFetch && (loadingMore || !hasMore))) return;
+
+    if (isInitialFetch) {
+      setLoading(true);
+      setPage(0);
+      setHasMore(true);
+    } else {
+      setLoadingMore(true);
     }
-  }, [session, filter]);
 
-  const fetchEvents = async () => {
-    if (!session) return;
-    setLoading(true);
+    const currentPage = isInitialFetch ? 0 : page;
+    const from = currentPage * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
 
-    let query = supabase.from('events').select('*');
+    let query = supabase.from('events').select('*').range(from, to);
 
     if (filter === 'sent') {
       query = query.eq('sender_id', session.user.id);
@@ -115,39 +125,37 @@ export default function TimelineScreen() {
       query = query.or(`sender_id.eq.${session.user.id},receiver_id.eq.${session.user.id}`);
     }
 
-    const { data, error } = await query.order('created_at', { descending: true });
+    const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) {
       Alert.alert('Error', 'Could not fetch your timeline.');
       console.error(error);
-    } else {
+    } else if (data) {
       const { data: usersData, error: usersError } = await supabase.from('users').select('id, display_name');
-      if(usersError) {
-          console.error("Could not fetch user names for timeline");
+      if (usersError) {
+        console.error("Could not fetch user names for timeline");
       }
       const usersMap = new Map(usersData?.map(u => [u.id, u.display_name]));
 
-      const mappedEvents = data.map((e: any) => {
-        const { IconComponent, color } = getEventVisuals(e);
-        const partnerId = e.sender_id === session.user.id ? e.receiver_id : e.sender_id;
-        
-        return {
-          id: e.id,
-          type: e.sender_id === session.user.id ? 'sent' : 'received',
-          badgeName: e.content.title,
-          category: e.content.category_id || e.event_type.toLowerCase(),
-          message: e.content.message,
-          timestamp: e.created_at,
-          partnerName: usersMap.get(partnerId) || 'Partner',
-          icon: IconComponent,
-          color: color,
-          isNegative: e.event_type === 'HORNET',
-          status: e.status,
-        }
-      });
-      setEvents(mappedEvents);
+      const mappedEvents = data.map((e: any) => transformEvent(e, session.user.id, usersMap));
+
+      if (isInitialFetch) {
+        setEvents(mappedEvents);
+      } else {
+        setEvents(prevEvents => [...prevEvents, ...mappedEvents]);
+      }
+
+      if (data.length < PAGE_SIZE) {
+        setHasMore(false);
+      }
+      setPage(currentPage + 1);
     }
-    setLoading(false);
+    
+    if (isInitialFetch) {
+      setLoading(false);
+    } else {
+      setLoadingMore(false);
+    }
   };
   
   const handleFavorResponse = async (eventId: string, newStatus: 'ACCEPTED' | 'DECLINED') => {
@@ -160,7 +168,7 @@ export default function TimelineScreen() {
       Alert.alert('Error', 'Could not update the favor status.');
     } else {
       Alert.alert('Response Sent', `You have ${newStatus.toLowerCase()} the favor request.`);
-      fetchEvents();
+      fetchEvents(true);
     }
   };
 
@@ -174,7 +182,7 @@ export default function TimelineScreen() {
       Alert.alert('Error', 'Could not complete the favor.');
     } else {
       Alert.alert('Favor Completed!', 'You have marked the favor as complete. Points have been awarded!');
-      fetchEvents();
+      fetchEvents(true);
     }
   };
 
@@ -345,6 +353,14 @@ export default function TimelineScreen() {
               Try selecting different filters or start sending badges!
             </Text>
           </View>
+        )}
+        
+        {loadingMore && <ActivityIndicator size="small" color="#FF8C42" style={{ marginVertical: 20 }} />}
+        
+        {!loading && hasMore && (
+          <TouchableOpacity style={styles.loadMoreButton} onPress={() => fetchEvents()}>
+            <Text style={styles.loadMoreButtonText}>Load More</Text>
+          </TouchableOpacity>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -542,6 +558,24 @@ const styles = StyleSheet.create({
     color: '#999',
     marginTop: 8,
     textAlign: 'center',
+  },
+  loadMoreButton: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  loadMoreButtonText: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#FF8C42',
   },
   negativeTimelineIcon: {
     borderWidth: 2,

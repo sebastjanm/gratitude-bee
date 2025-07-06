@@ -10,10 +10,12 @@ import {
   Clipboard,
 } from 'react-native';
 import { router } from 'expo-router';
-import { Heart, Copy, Mail, Users, CircleCheck as CheckCircle, ArrowRight } from 'lucide-react-native';
+import { Heart, QrCode, Copy, Users, CircleCheck as CheckCircle, ArrowRight } from 'lucide-react-native';
 import { supabase } from '@/utils/supabase';
 import { useSession } from '@/providers/SessionProvider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import QRCodeModal from '@/components/QRCodeModal';
+import QRScannerModal from '@/components/QRScannerModal';
 
 export default function PartnerLinkScreen() {
   const { session } = useSession();
@@ -22,12 +24,15 @@ export default function PartnerLinkScreen() {
   const [isConnected, setIsConnected] = useState(false);
   const [loading, setLoading] = useState(false);
   const [partnerName, setPartnerName] = useState('');
+  const [isQRModalVisible, setQRModalVisible] = useState(false);
+  const [isScannerVisible, setScannerVisible] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
       if (session) {
+        // BUG FIX: Changed 'profiles' to 'users'
         const { data, error } = await supabase
-          .from('profiles')
+          .from('users')
           .select('invite_code, partner_id')
           .eq('id', session.user.id)
           .single();
@@ -37,9 +42,8 @@ export default function PartnerLinkScreen() {
         } else if (data) {
           setInviteCode(data.invite_code);
           if (data.partner_id) {
-            // If already connected, fetch partner's name
             const { data: partnerData } = await supabase
-              .from('profiles')
+              .from('users') // BUG FIX: Changed 'profiles' to 'users'
               .select('display_name')
               .eq('id', data.partner_id)
               .single();
@@ -56,9 +60,7 @@ export default function PartnerLinkScreen() {
     const checkStoredInvite = async () => {
       const storedCode = await AsyncStorage.getItem('invite_code');
       if (storedCode) {
-        setPartnerCode(storedCode);
         await AsyncStorage.removeItem('invite_code');
-        // Automatically attempt to connect
         handleConnectWithCode(storedCode);
       }
     };
@@ -66,28 +68,6 @@ export default function PartnerLinkScreen() {
   }, [session]);
 
   const inviteLink = `https://gratitudebee.app/invite/${inviteCode}`;
-
-  const handleCopyCode = async () => {
-    await Clipboard.setString(inviteCode);
-    Alert.alert('Copied!', 'Invite code copied to clipboard');
-  };
-
-  const handleCopyLink = async () => {
-    await Clipboard.setString(inviteLink);
-    Alert.alert('Copied!', 'Invite link copied to clipboard');
-  };
-
-  const handleShareInvite = async () => {
-    try {
-      await Share.share({
-        message: `Join me on GratitudeBee! Use my invite code: ${inviteCode} or click this link: ${inviteLink}`,
-        title: 'Join me on GratitudeBee',
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Something went wrong.';
-      Alert.alert('Error sharing', message);
-    }
-  };
 
   const handleConnectWithCode = async (codeToConnect?: string) => {
     const finalCode = codeToConnect || partnerCode;
@@ -107,6 +87,7 @@ export default function PartnerLinkScreen() {
       
       setPartnerName(data.partnerName);
       setIsConnected(true);
+      if (isScannerVisible) setScannerVisible(false);
       
       setTimeout(() => {
         Alert.alert(
@@ -119,7 +100,7 @@ export default function PartnerLinkScreen() {
             },
           ]
         );
-      }, 1000);
+      }, 500);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Invalid invite code. Please check and try again.';
       Alert.alert('Connection Failed', message);
@@ -135,6 +116,17 @@ export default function PartnerLinkScreen() {
   if (isConnected) {
     return (
       <View style={styles.container}>
+        <QRCodeModal
+          visible={isQRModalVisible}
+          onClose={() => setQRModalVisible(false)}
+          inviteCode={inviteCode}
+          inviteLink={inviteLink}
+        />
+        <QRScannerModal
+          visible={isScannerVisible}
+          onClose={() => setScannerVisible(false)}
+          onCodeScanned={handleConnectWithCode}
+        />
         <View style={styles.successContainer}>
           <View style={styles.successIcon}>
             <CheckCircle color="#4ECDC4" size={64} />
@@ -163,38 +155,25 @@ export default function PartnerLinkScreen() {
           Share appreciation badges and build stronger bonds together
         </Text>
       </View>
-
+      
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Share Your Invite</Text>
+        <Text style={styles.sectionTitle}>Scan or Enter Code</Text>
         <Text style={styles.sectionSubtitle}>
-          Send this code or link to your partner
+          Connect instantly using a QR code or by entering your partner's code manually.
         </Text>
-        
-        <View style={styles.inviteContainer}>
-          <View style={styles.codeContainer}>
-            <Text style={styles.codeLabel}>Your Invite Code</Text>
-            <View style={styles.codeBox}>
-              <Text style={styles.codeText}>{inviteCode}</Text>
-              <TouchableOpacity onPress={handleCopyCode} style={styles.copyButton}>
-                <Copy color="#FF8C42" size={20} />
-              </TouchableOpacity>
-            </View>
-          </View>
-          
-          <View style={styles.buttonRow}>
-            <TouchableOpacity style={styles.actionButton} onPress={handleCopyLink}>
-              <Copy color="#666" size={18} />
-              <Text style={styles.actionButtonText}>Copy Link</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.actionButton} onPress={handleShareInvite}>
-              <Mail color="#666" size={18} />
-              <Text style={styles.actionButtonText}>Share</Text>
-            </TouchableOpacity>
-          </View>
+
+        <View style={styles.qrButtonContainer}>
+          <TouchableOpacity style={styles.qrButton} onPress={() => setQRModalVisible(true)}>
+            <QrCode color="#666" size={20} />
+            <Text style={styles.qrButtonText}>Show My Code</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.qrButton, styles.scanButton]} onPress={() => setScannerVisible(true)}>
+            <QrCode color="white" size={20} />
+            <Text style={[styles.qrButtonText, { color: 'white' }]}>Scan Partner's Code</Text>
+          </TouchableOpacity>
         </View>
       </View>
-
+      
       <View style={styles.divider}>
         <View style={styles.dividerLine} />
         <Text style={styles.dividerText}>OR</Text>
@@ -203,9 +182,6 @@ export default function PartnerLinkScreen() {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Enter Partner's Code</Text>
-        <Text style={styles.sectionSubtitle}>
-          If your partner already has GratitudeBee
-        </Text>
         
         <View style={styles.inputContainer}>
           <TextInput
@@ -291,59 +267,27 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 20,
   },
-  inviteContainer: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  codeContainer: {
-    marginBottom: 20,
-  },
-  codeLabel: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#666',
-    marginBottom: 8,
-  },
-  codeBox: {
+  qrButtonContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF8F0',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 2,
-    borderColor: '#FFE0B2',
+    justifyContent: 'space-between',
+    gap: 12,
   },
-  codeText: {
+  qrButton: {
     flex: 1,
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-    color: '#FF8C42',
-    letterSpacing: 2,
-  },
-  copyButton: {
-    padding: 4,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8F9FA',
+    justifyContent: 'center',
+    backgroundColor: 'white',
     borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingVertical: 16,
     borderWidth: 1,
     borderColor: '#E0E0E0',
   },
-  actionButtonText: {
+  scanButton: {
+    backgroundColor: '#FF8C42',
+    borderColor: '#FF8C42',
+  },
+  qrButtonText: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
     color: '#666',
