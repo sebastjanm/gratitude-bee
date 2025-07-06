@@ -432,7 +432,7 @@ export default function AppreciationModal({
 
   const renderCategorySelection = () => (
     <View style={styles.categorySelection}>
-      <Text style={styles.modalTitle}>Choose Appreciation Category</Text>
+      <Text style={styles.modalTitle}>Select Appreciation</Text>
       <Text style={styles.modalSubtitle}>
         Select the type of appreciation you want to share
       </Text>
