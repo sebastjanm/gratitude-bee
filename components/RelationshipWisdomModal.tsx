@@ -144,20 +144,21 @@ export default function RelationshipWisdomModal({
             </Text>
           </View>
 
-          {selectedWisdom && (
-            <View style={styles.sendButtonContainer}>
-              <TouchableOpacity
-                style={[styles.sendButton, { backgroundColor: selectedWisdom.color }]}
-                onPress={handleSendWisdom}
-                activeOpacity={0.8}>
-                <Crown color="white" size={20} />
-                <Text style={styles.sendButtonText}>
-                  Send "{selectedWisdom.title}"
-                </Text>
-              </TouchableOpacity>
-            </View>
-          )}
         </ScrollView>
+
+        {selectedWisdom && (
+          <View style={styles.fixedSendButtonContainer}>
+            <TouchableOpacity
+              style={[styles.fixedSendButton, { backgroundColor: selectedWisdom.color }]}
+              onPress={handleSendWisdom}
+              activeOpacity={0.8}>
+              <Crown color="white" size={20} />
+              <Text style={styles.fixedSendButtonText}>
+                Send "{selectedWisdom.title}"
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     </Modal>
   );
@@ -313,10 +314,24 @@ const styles = StyleSheet.create({
     color: '#666',
     lineHeight: 20,
   },
-  sendButtonContainer: {
-    paddingBottom: 32,
+  fixedSendButtonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFF8F0',
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    paddingBottom: 40,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  sendButton: {
+  fixedSendButton: {
     borderRadius: 16,
     paddingVertical: 16,
     flexDirection: 'row',
@@ -328,7 +343,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 6,
   },
-  sendButtonText: {
+  fixedSendButtonText: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: 'white',
