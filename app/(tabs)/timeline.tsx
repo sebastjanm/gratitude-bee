@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,9 +8,13 @@ import {
   SafeAreaView,
   Platform,
   Dimensions,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Heart, Star, Smile, Compass, MessageCircle, Filter, Calendar, Bug, X, CircleCheck as CheckCircle, Crown, Chrome as Home, Clock } from 'lucide-react-native';
+import { useSession } from '@/providers/SessionProvider';
+import { supabase } from '@/utils/supabase';
 
 const { width } = Dimensions.get('window');
 
@@ -26,9 +30,22 @@ interface TimelineEvent {
   color: string;
   isNegative?: boolean;
   cancelledBadges?: string[];
+  status?: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'COMPLETED';
 }
 
 const mockEvents: TimelineEvent[] = [
+  {
+    id: '12',
+    type: 'received',
+    badgeName: 'Bring Me Coffee',
+    category: 'favor',
+    message: 'A perfect cup of coffee, just the way I like it',
+    timestamp: '2025-01-16T09:00:00Z',
+    partnerName: 'Sebastjan',
+    icon: Heart, // Replace with a real favor icon if you have one
+    color: '#8B4513',
+    status: 'PENDING',
+  },
   {
     id: '1',
     type: 'sent',
@@ -40,116 +57,7 @@ const mockEvents: TimelineEvent[] = [
     icon: Heart,
     color: '#F87171',
   },
-  {
-    id: '2',
-    type: 'received',
-    badgeName: 'Workout Support',
-    category: 'support',
-    message: 'You believed in me when I wanted to quit!',
-    timestamp: '2025-01-14T18:45:00Z',
-    partnerName: 'Sebastjan',
-    icon: Star,
-    color: '#4ECDC4',
-  },
-  {
-    id: '3',
-    type: 'sent',
-    badgeName: 'Silly Dance',
-    category: 'humor',
-    timestamp: '2025-01-13T20:15:00Z',
-    partnerName: 'Breda',
-    icon: Smile,
-    color: '#FFD93D',
-  },
-  {
-    id: '4',
-    type: 'received',
-    badgeName: 'Sunset Walk',
-    category: 'adventure',
-    message: 'Perfect timing for that beautiful sunset 🌅',
-    timestamp: '2025-01-12T19:30:00Z',
-    partnerName: 'Sebastjan',
-    icon: Compass,
-    color: '#6BCF7F',
-  },
-  {
-    id: '5',
-    type: 'sent',
-    badgeName: 'Sweet Message',
-    category: 'words',
-    message: 'Your good morning texts always make my day brighter',
-    timestamp: '2025-01-11T07:20:00Z',
-    partnerName: 'Breda',
-    icon: MessageCircle,
-    color: '#A8E6CF',
-  },
-  {
-    id: '6',
-    type: 'sent',
-    badgeName: 'Accountability Hornet',
-    category: 'hornet',
-    message: 'Need to address some issues we discussed',
-    timestamp: '2025-01-10T16:30:00Z',
-    partnerName: 'Breda',
-    icon: Bug,
-    color: '#FF4444',
-    isNegative: true,
-    cancelledBadges: ['1', '2'],
-  },
-  {
-    id: '7',
-    type: 'received',
-    badgeName: 'Whatever You Say',
-    category: 'whatever-you-say',
-    message: 'Thanks for letting me pick the restaurant without debate',
-    timestamp: '2025-01-09T19:15:00Z',
-    partnerName: 'Sebastjan',
-    icon: CheckCircle,
-    color: '#9B59B6',
-  },
-  {
-    id: '8',
-    type: 'sent',
-    badgeName: 'Yes, Dear',
-    category: 'yes-dear',
-    timestamp: '2025-01-08T14:30:00Z',
-    partnerName: 'Breda',
-    icon: Crown,
-    color: '#E67E22',
-  },
-  {
-    id: '9',
-    type: 'received',
-    badgeName: 'Happy Wife, Happy Life',
-    category: 'happy-wife',
-    message: 'You remembered to pick up my favorite dessert! 🍰',
-    timestamp: '2025-01-07T20:45:00Z',
-    partnerName: 'Sebastjan',
-    icon: Home,
-    color: '#27AE60',
-  },
-  {
-    id: '10',
-    type: 'sent',
-    badgeName: 'Don\'t Panic',
-    category: 'dont-panic',
-    message: 'Everything will be okay ❤️ Take a deep breath',
-    timestamp: '2025-01-06T15:20:00Z',
-    partnerName: 'Breda',
-    icon: Heart,
-    color: '#6366F1',
-  },
-  {
-    id: '11',
-    type: 'sent',
-    badgeName: 'I\'m Sorry',
-    category: 'im-sorry',
-    message: 'I\'m truly sorry for being late. You deserve better ❤️',
-    timestamp: '2025-01-05T18:30:00Z',
-    partnerName: 'Breda',
-    icon: Heart,
-    color: '#F87171',
-  },
+  // ... other mock events
 ];
 
 const filterOptions = [
@@ -159,9 +67,71 @@ const filterOptions = [
 ];
 
 export default function TimelineScreen() {
+  const { session } = useSession();
   const [filter, setFilter] = useState<'all' | 'sent' | 'received'>('all');
+  const [events, setEvents] = useState<TimelineEvent[]>(mockEvents);
+  const [loading, setLoading] = useState(false);
 
-  const filteredEvents = mockEvents.filter(event => {
+  useEffect(() => {
+    // We will uncomment this when we are ready to fetch real data
+    // if (session) {
+    //   fetchEvents();
+    // }
+  }, [session, filter]);
+
+  const fetchEvents = async () => {
+    if (!session) return;
+    setLoading(true);
+
+    let query = supabase.from('events').select('*');
+
+    if (filter === 'sent') {
+      query = query.eq('sender_id', session.user.id);
+    } else if (filter === 'received') {
+      query = query.eq('receiver_id', session.user.id);
+    } else {
+      query = query.or(`sender_id.eq.${session.user.id},receiver_id.eq.${session.user.id}`);
+    }
+
+    const { data, error } = await query.order('created_at', { descending: true });
+
+    if (error) {
+      Alert.alert('Error', 'Could not fetch your timeline.');
+      console.error(error);
+    } else {
+      // This is a temporary hack to map the event data to the TimelineEvent interface
+      // In a real app, this would be handled more robustly
+      const mappedEvents = data.map((e: any) => ({
+        id: e.id,
+        type: e.sender_id === session.user.id ? 'sent' : 'received',
+        badgeName: e.content.title,
+        category: e.content.category_id || e.event_type.toLowerCase(),
+        message: e.content.message,
+        timestamp: e.created_at,
+        partnerName: 'Partner', // In a real app, you'd fetch this
+        icon: Heart, // This needs a proper mapping
+        color: '#ccc', // This needs a proper mapping
+        isNegative: e.event_type === 'HORNET',
+        status: e.status,
+      }));
+      setEvents(mappedEvents);
+    }
+    setLoading(false);
+  };
+  
+  const handleFavorResponse = async (eventId: string, newStatus: 'ACCEPTED' | 'DECLINED') => {
+    // This will be connected to Supabase later
+    setEvents(events.map(e => e.id === eventId ? { ...e, status: newStatus } : e));
+    Alert.alert('Response Sent', `You have ${newStatus.toLowerCase()} the favor request.`);
+  };
+
+  const handleFavorCompletion = async (eventId: string) => {
+    // This will be connected to Supabase later
+    setEvents(events.map(e => e.id === eventId ? { ...e, status: 'COMPLETED' } : e));
+    Alert.alert('Favor Completed!', 'You have marked the favor as complete. Points have been awarded!');
+  };
+
+  const filteredEvents = events.filter(event => {
     if (filter === 'all') return true;
     return event.type === filter;
   });
@@ -262,6 +232,37 @@ export default function TimelineScreen() {
                 <Text style={styles.messageText}>"{event.message}"</Text>
               </View>
             )}
+
+            {/* Action Buttons for Favors */}
+            {event.category === 'favor' && event.type === 'received' && (
+              <View style={styles.actionsContainer}>
+                {event.status === 'PENDING' && (
+                  <>
+                    <TouchableOpacity 
+                      style={[styles.actionButton, styles.acceptButton]}
+                      onPress={() => handleFavorResponse(event.id, 'ACCEPTED')}>
+                      <CheckCircle color="white" size={16} />
+                      <Text style={styles.actionButtonText}>Accept</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={[styles.actionButton, styles.declineButton]}
+                      onPress={() => handleFavorResponse(event.id, 'DECLINED')}>
+                      <X color="white" size={16} />
+                      <Text style={styles.actionButtonText}>Decline</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+                {event.status === 'ACCEPTED' && (
+                  <TouchableOpacity 
+                    style={[styles.actionButton, styles.completeButton]}
+                    onPress={() => handleFavorCompletion(event.id)}>
+                    <CheckCircle color="white" size={16} />
+                    <Text style={styles.actionButtonText}>Mark as Complete</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
+            
           </View>
         </View>
       </View>
@@ -283,7 +284,9 @@ export default function TimelineScreen() {
       {renderSimpleFilters()}
 
       <ScrollView style={styles.timeline} showsVerticalScrollIndicator={false}>
-        {filteredEvents.length > 0 ? (
+        {loading ? (
+          <ActivityIndicator size="large" color="#FF8C42" style={{ marginTop: 50 }} />
+        ) : filteredEvents.length > 0 ? (
           filteredEvents.map(renderTimelineEvent)
         ) : (
           <View style={styles.emptyState}>
@@ -441,6 +444,39 @@ const styles = StyleSheet.create({
     color: '#333',
     lineHeight: 20,
     fontStyle: 'italic',
+  },
+  actionsContainer: {
+    flexDirection: 'row',
+    marginTop: 16,
+    gap: 10,
+  },
+  actionButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  actionButtonText: {
+    color: 'white',
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 14,
+    marginLeft: 6,
+  },
+  acceptButton: {
+    backgroundColor: '#4CAF50', // Green
+  },
+  declineButton: {
+    backgroundColor: '#F44336', // Red
+  },
+  completeButton: {
+    backgroundColor: '#2196F3', // Blue
   },
   emptyState: {
     alignItems: 'center',

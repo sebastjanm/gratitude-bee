@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,26 +9,63 @@ import {
   Platform,
   Switch,
   Alert,
+  Share,
 } from 'react-native';
 import { router } from 'expo-router';
 import { User, Settings, Bell, Heart, Target, Calendar, Share2, CircleHelp as HelpCircle, Smartphone, LogOut } from 'lucide-react-native';
-import { MockAuth } from '@/utils/mockAuth';
+import { useSession } from '@/providers/SessionProvider';
+import { supabase } from '@/utils/supabase';
 
 export default function ProfileScreen() {
+  const { session } = useSession();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [nudgesEnabled, setNudgesEnabled] = useState(false);
   const [reminderTime, setReminderTime] = useState('09:00');
   const [weeklyGoal, setWeeklyGoal] = useState(21);
+  const [inviteCode, setInviteCode] = useState('');
+  const [partnerName, setPartnerName] = useState('');
 
-  const handleConnectPartner = () => {
-    Alert.alert(
-      'Connect Partner',
-      'Send an invitation link to your partner to start sharing appreciation badges together.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Send Invite', onPress: () => console.log('Sending invite...') },
-      ]
-    );
+  useEffect(() => {
+    if (session) {
+      const fetchProfile = async () => {
+        const { data, error } = await supabase
+          .from('users')
+          .select('invite_code, partner_id')
+          .eq('id', session.user.id)
+          .single();
+        if (data) {
+          setInviteCode(data.invite_code);
+          if (data.partner_id) {
+            const { data: partnerData } = await supabase
+              .from('users')
+              .select('display_name')
+              .eq('id', data.partner_id)
+              .single();
+            if (partnerData) {
+              setPartnerName(partnerData.display_name);
+            }
+          }
+        }
+      };
+      fetchProfile();
+    }
+  }, [session]);
+
+
+  const handleConnectPartner = async () => {
+    if (!inviteCode) {
+      Alert.alert('Could not find your invite code.');
+      return;
+    }
+    try {
+      await Share.share({
+        message: `Join me on GratitudeBee! Use my invite code to connect: ${inviteCode}`,
+        title: 'Join me on GratitudeBee',
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Something went wrong.';
+      Alert.alert('Error', message);
+    }
   };
 
   const handleExportData = () => {
@@ -52,7 +89,7 @@ export default function ProfileScreen() {
           text: 'Sign Out', 
           style: 'destructive', 
           onPress: () => {
-            MockAuth.signOut();
+            supabase.auth.signOut();
             router.replace('/(auth)/auth');
           }
         },
@@ -60,7 +97,7 @@ export default function ProfileScreen() {
     );
   };
 
-  const currentUser = MockAuth.getCurrentUser();
+  const currentUser = session?.user;
 
   const renderUserInfo = () => (
     <View style={styles.userInfoContainer}>
@@ -73,9 +110,9 @@ export default function ProfileScreen() {
         </View>
       </View>
       <View style={styles.userDetails}>
-        <Text style={styles.userName}>{currentUser?.displayName || 'User'}</Text>
+        <Text style={styles.userName}>{currentUser?.user_metadata.display_name || 'User'}</Text>
         <Text style={styles.userSubtitle}>
-          {currentUser?.partnerName ? `Connected with ${currentUser.partnerName} ❤️` : 'No partner connected'}
+          {partnerName ? `Connected with ${partnerName} ❤️` : 'No partner connected'}
         </Text>
       </View>
     </View>

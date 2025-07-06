@@ -31,7 +31,7 @@
     "plugins": [
       "expo-router"
     ],
-    "scheme": "gratitudebee",
+    "scheme": "com.gratitudebee",
     "experiments": {
       "typedRoutes": true
     }

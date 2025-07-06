@@ -46,4 +46,27 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
     *   Refactored the `FavorsModal` to be fully dynamic, fetching available favor templates from the Supabase database.
     *   Implemented the `handleSendFavor` function to check the user's current point balance and, if sufficient, create a `FAVOR_REQUEST` event in the ledger.
     *   Updated the `send-notification` Edge Function to handle favor requests, ensuring the receiving partner is notified.
-*   **Next Step:** Implement the receiving side of favors (accepting/declining and completing). 
+*   **Next Step:** Implement the receiving side of favors (accepting/declining and completing).
+
+---
+
+### **Step 5: Favor Fulfillment**
+*   **Timestamp:** `2025-07-06T17:21:01Z`
+*   **Commit:** `541a125`
+*   **Description:**
+    *   Corrected the `handle_event_points` database function to correctly award favor points to the receiver upon completion.
+    *   Enhanced the `TimelineScreen` to display action buttons (Accept, Decline, Mark as Complete) for favor requests.
+    *   The UI now conditionally renders these buttons based on the favor's status and the current user's role (receiver).
+*   **Next Step:** Connect the favor action buttons to Supabase to update the event status.
+
+---
+
+### **Step 6: Invite Partner**
+*   **Timestamp:** `2025-07-06T17:46:29Z`
+*   **Commit:** `541a125`
+*   **Description:**
+    *   Implemented the "Invite Partner" functionality on the `ProfileScreen`.
+    *   The user's unique invite code is now fetched from the database.
+    *   The "Invite Partner" button now uses the native Share API to allow users to easily send their invite code.
+    *   The profile screen now dynamically displays the connection status and partner's name.
+*   **Next Step:** Finalize the favor fulfillment flow by connecting the UI to the backend. 

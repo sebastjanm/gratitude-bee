@@ -271,10 +271,10 @@ BEGIN
     ELSIF TG_OP = 'UPDATE' THEN
         IF NEW.event_type = 'FAVOR_REQUEST' AND NEW.status = 'COMPLETED' AND OLD.status != 'COMPLETED' THEN
             points_to_add := (NEW.content->>'points')::int;
-            -- Award points to the sender of the event (who completed the favor)
+            -- Award points to the receiver of the event (who completed the favor)
             UPDATE public.wallets
             SET favor_points = favor_points + points_to_add, updated_at = now()
-            WHERE user_id = NEW.sender_id;
+            WHERE user_id = NEW.receiver_id;
         END IF;
     END IF;
 
