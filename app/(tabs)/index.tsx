@@ -314,9 +314,6 @@ export default function HomeScreen() {
         <View style={styles.favorsButtonContent}>
           <HandHeart color="#8B5CF6" size={20} />
           <Text style={styles.favorsButtonText}>Request a Favor</Text>
-          <View style={styles.favorPointsBadge}>
-            <Text style={styles.favorPointsBadgeText}>{favorPoints}</Text>
-          </View>
         </View>
         <Text style={styles.favorsButtonSubtext}>
           Ask for help using your favor points
@@ -541,17 +538,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   favorsButton: {
-    backgroundColor: 'white',
+    backgroundColor: '#F8F7FF',
     borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
+    padding: 16,
     borderWidth: 2,
     borderColor: '#E5E3FF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
   },
   favorsButtonContent: {
     flexDirection: 'row',
@@ -560,27 +551,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   favorsButtonText: {
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: '#8B5CF6',
-    marginLeft: 12,
-    flex: 1,
-  },
-  favorPointsBadge: {
-    backgroundColor: '#8B5CF6',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    minWidth: 32,
-    alignItems: 'center',
-  },
-  favorPointsBadgeText: {
-    fontSize: 12,
-    fontFamily: 'Inter-Bold',
-    color: 'white',
+    marginLeft: 8,
   },
   favorsButtonSubtext: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'Inter-Regular',
     color: '#666',
     textAlign: 'center',
