@@ -14,6 +14,7 @@ import { Heart, Star, Smile, Compass, MessageCircle, Flame, Bug, TriangleAlert a
 import NegativeBadgeModal from '@/components/NegativeBadgeModal';
 import DontPanicModal from '@/components/DontPanicModal';
 import UserWelcome from '@/components/UserWelcome';
+import AppreciationModal from '@/components/AppreciationModal';
 
 const { width } = Dimensions.get('window');
 
@@ -113,11 +114,18 @@ export default function HomeScreen() {
   const [totalBadges, setTotalBadges] = useState(61);
   const [showNegativeModal, setShowNegativeModal] = useState(false);
   const [showDontPanicModal, setShowDontPanicModal] = useState(false);
+  const [showAppreciationModal, setShowAppreciationModal] = useState(false);
 
-  const handleSendBadge = (categoryId: string) => {
+  const handleSendBadge = (categoryId: string, badgeId?: string, badgeTitle?: string) => {
     // Mock badge sending - in real app this would sync with partner
     setTotalBadges(prev => prev + 1);
-    console.log(`Sending ${categoryId} badge to partner`);
+    console.log(`Sending ${badgeTitle || categoryId} badge to partner`);
+    
+    Alert.alert(
+      'Badge Sent! 🎉',
+      `Your "${badgeTitle || categoryId}" appreciation has been sent to your partner.`,
+      [{ text: 'OK' }]
+    );
   };
 
   const handleSendHornet = (message: string, cancelledBadges: string[]) => {
@@ -212,17 +220,19 @@ export default function HomeScreen() {
   const renderQuickSend = () => (
     <View style={styles.quickSendContainer}>
       <Text style={styles.sectionTitle}>Send Appreciation</Text>
-      <View style={styles.categoriesGrid}>
-        {badgeCategories.map(renderBadgeCategory)}
-      </View>
-      {selectedCategory && (
-        <TouchableOpacity
-          style={styles.sendButton}
-          onPress={() => handleSendBadge(selectedCategory)}
-          activeOpacity={0.8}>
-          <Text style={styles.sendButtonText}>Send Badge to Partner</Text>
-        </TouchableOpacity>
-      )}
+      
+      <TouchableOpacity
+        style={styles.appreciationButton}
+        onPress={() => setShowAppreciationModal(true)}
+        activeOpacity={0.8}>
+        <View style={styles.appreciationButtonContent}>
+          <Heart color="#FF8C42" size={24} />
+          <Text style={styles.appreciationButtonText}>Choose Appreciation Badge</Text>
+        </View>
+        <Text style={styles.appreciationButtonSubtext}>
+          Browse categories and select the perfect badge
+        </Text>
+      </TouchableOpacity>
       
       <View style={styles.divider} />
       {renderNegativeBadgeButton()}
@@ -277,6 +287,12 @@ export default function HomeScreen() {
         visible={showDontPanicModal}
         onClose={() => setShowDontPanicModal(false)}
         onSend={handleSendDontPanic}
+      />
+      
+      <AppreciationModal
+        visible={showAppreciationModal}
+        onClose={() => setShowAppreciationModal(false)}
+        onSendBadge={handleSendBadge}
       />
     </SafeAreaView>
   );
@@ -365,6 +381,37 @@ const styles = StyleSheet.create({
   quickSendContainer: {
     paddingHorizontal: 20,
     marginBottom: 24,
+  },
+  appreciationButton: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: '#FFE0B2',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  appreciationButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  appreciationButtonText: {
+    fontSize: 18,
+    fontFamily: 'Inter-SemiBold',
+    color: '#FF8C42',
+    marginLeft: 12,
+  },
+  appreciationButtonSubtext: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: '#666',
+    textAlign: 'center',
   },
   sectionTitle: {
     fontSize: 22,
