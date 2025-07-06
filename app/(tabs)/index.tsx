@@ -172,7 +172,7 @@ export default function HomeScreen() {
         </View>
       </View>
       <Text style={styles.streakEncouragement}>
-        Amazing work! You're building a beautiful habit together 💕
+        Amazing! You're building a beautiful relationship together 💕
       </Text>
     </View>
   );
