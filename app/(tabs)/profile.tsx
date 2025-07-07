@@ -12,7 +12,7 @@ import {
   Share,
 } from 'react-native';
 import { router } from 'expo-router';
-import { User, Settings, Bell, Heart, Target, Calendar, Share2, CircleHelp as HelpCircle, Smartphone, LogOut } from 'lucide-react-native';
+import { User, HelpCircle, Bell, Heart, Target, Calendar, Share2, CircleHelp as HelpCircleIcon, Smartphone, LogOut } from 'lucide-react-native';
 import { useSession } from '@/providers/SessionProvider';
 import { supabase } from '@/utils/supabase';
 import QRCodeModal from '@/components/QRCodeModal';
@@ -182,8 +182,8 @@ export default function ProfileScreen() {
           <User color="#FF8C42" size={28} />
           <Text style={styles.title}>Profile</Text>
         </View>
-        <TouchableOpacity style={styles.settingsButton}>
-          <Settings color="#666" size={24} />
+        <TouchableOpacity style={styles.headerButton}>
+          <HelpCircleIcon color="#666" size={24} />
         </TouchableOpacity>
       </View>
 
@@ -267,7 +267,7 @@ export default function ProfileScreen() {
           'Support',
           <>
             {renderSettingsItem(
-              HelpCircle,
+              HelpCircleIcon,
               'Help & FAQs',
               'Get answers to common questions',
               () => console.log('Open help')
@@ -303,6 +303,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'ios' ? 10 : 40,
     paddingBottom: 20,
+    backgroundColor: '#FFF8F0',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
   },
   headerContent: {
     flexDirection: 'row',
@@ -314,7 +317,7 @@ const styles = StyleSheet.create({
     color: '#333',
     marginLeft: 12,
   },
-  settingsButton: {
+  headerButton: {
     padding: 8,
   },
   content: {

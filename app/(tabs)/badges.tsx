@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Heart, Star, Smile, Compass, MessageCircle, Trophy, Award, Bug, X, CircleCheck as CheckCircle, Crown, Chrome as Home } from 'lucide-react-native';
+import { Heart, Star, Smile, Compass, MessageCircle, Award, Bug, X, CircleCheck as CheckCircle, Crown, Chrome as Home, HelpCircle } from 'lucide-react-native';
 import { supabase } from '@/utils/supabase';
 
 const { width } = Dimensions.get('window');
@@ -31,7 +31,7 @@ interface Badge {
 }
 
 const categories = [
-  { id: 'all', name: 'All Badges', icon: Trophy },
+  { id: 'all', name: 'All Badges', icon: null }, // Trophy icon removed
   { id: 'kindness', name: 'Kindness', icon: Heart },
   { id: 'support', name: 'Support', icon: Star },
   { id: 'humor', name: 'Humor', icon: Smile },
@@ -104,7 +104,7 @@ export default function BadgesScreen() {
             categoryId = 'relationship-wisdom';
         }
 
-        const meta = categoryMeta[categoryId] || { name: 'Badge', icon: Trophy };
+        const meta = categoryMeta[categoryId] || { name: 'Badge', icon: Award }; // Use Award icon as fallback
         const colorMap: { [key: string]: string } = {
           support: '#4ECDC4',
           kindness: '#FF6B9D',
@@ -177,15 +177,16 @@ export default function BadgesScreen() {
               ]}
               onPress={() => setSelectedCategory(category.id)}
               activeOpacity={0.7}>
-              <IconComponent
+              {IconComponent && <IconComponent
                 color={isSelected ? 'white' : '#666'}
                 size={16}
                 strokeWidth={isSelected ? 2.5 : 2}
-              />
+              />}
               <Text
                 style={[
                   styles.categoryFilterText,
                   isSelected && styles.selectedCategoryFilterText,
+                  !IconComponent && { marginTop: 0 }
                 ]}
                 numberOfLines={1}>
                 {category.name}
@@ -254,13 +255,9 @@ export default function BadgesScreen() {
     const totalBadges = badges.length;
     const positiveBadges = badges.filter(b => !b.isNegative);
     const negativeBadges = badges.filter(b => b.isNegative);
-    const bronzeCount = positiveBadges.filter(b => b.tier === 'bronze').length;
-    const silverCount = positiveBadges.filter(b => b.tier === 'silver').length;
-    const goldCount = positiveBadges.filter(b => b.tier === 'gold').length;
 
     return (
       <View style={styles.statsContainer}>
-        <Text style={styles.statsTitle}>Your Collection</Text>
         <View style={styles.statsGrid}>
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>{positiveBadges.length}</Text>
@@ -272,11 +269,7 @@ export default function BadgesScreen() {
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>{totalBadges}</Text>
-            <Text style={styles.statLabel}>Total Badges</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{goldCount}</Text>
-            <Text style={styles.statLabel}>🥇 Gold</Text>
+            <Text style={styles.statLabel}>Total</Text>
           </View>
         </View>
       </View>
@@ -285,18 +278,22 @@ export default function BadgesScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <Award color="#FF8C42" size={28} />
-          <Text style={styles.title}>Badge Collection</Text>
+      <View style={styles.fixedHeaderContainer}>
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <Award color="#FF8C42" size={28} />
+            <Text style={styles.title}>Your Badges</Text>
+          </View>
+          <TouchableOpacity style={styles.headerButton}>
+            <HelpCircle color="#666" size={24} />
+          </TouchableOpacity>
         </View>
         <Text style={styles.subtitle}>
           Beautiful moments you've shared together
         </Text>
+        {renderStats()}
+        {renderCategoryFilter()}
       </View>
-
-      {renderStats()}
-      {renderCategoryFilter()}
 
       <ScrollView style={styles.badgesList} showsVerticalScrollIndicator={false}>
         {loading ? (
@@ -307,10 +304,10 @@ export default function BadgesScreen() {
           <View style={styles.emptyState}>
             <Award color="#ccc" size={48} />
             <Text style={styles.emptyStateText}>
-              No badges match your filter
+              Sorry, no badges yet :(
             </Text>
             <Text style={styles.emptyStateSubtext}>
-              Try selecting different categories or tiers
+              Try selecting different categories
             </Text>
           </View>
         )}
@@ -324,15 +321,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFF8F0',
   },
+  fixedHeaderContainer: {
+    backgroundColor: '#FFF8F0',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+    paddingBottom: 20, // Add padding back
+  },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'ios' ? 10 : 40,
-    paddingBottom: 20,
+    paddingBottom: 12, // Adjusted padding
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
   },
   title: {
     fontSize: 28,
@@ -340,18 +345,23 @@ const styles = StyleSheet.create({
     color: '#333',
     marginLeft: 12,
   },
+  headerButton: {
+    padding: 8,
+  },
   subtitle: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
     color: '#666',
     lineHeight: 24,
+    paddingHorizontal: 20, // Added padding
   },
   statsContainer: {
     backgroundColor: 'white',
     marginHorizontal: 20,
-    marginBottom: 20,
+    marginTop: 20, // Added space from header
     borderRadius: 16,
-    padding: 20,
+    paddingVertical: 12, // Reduced padding
+    paddingHorizontal: 16, // Adjusted padding
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -362,7 +372,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
     color: '#333',
-    marginBottom: 16,
   },
   statsGrid: {
     flexDirection: 'row',
@@ -372,15 +381,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statNumber: {
-    fontSize: 24,
+    fontSize: 20, // Reduced size
     fontFamily: 'Inter-Bold',
-    color: '#FF8C42',
+    color: '#333',
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 11, // Reduced size
     fontFamily: 'Inter-Medium',
     color: '#666',
-    marginTop: 4,
+    marginTop: 2, // Adjusted margin
   },
   categoryFilter: {},
   categoryFilterContent: {
@@ -388,7 +397,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   categoryFilterContainer: {
-    marginBottom: 20,
+    paddingTop: 20, // Replaces marginBottom
     position: 'relative',
   },
   categoryFilterItem: {

@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChartBar as BarChart3, TrendingUp, Calendar, Award, Heart, Bug, Target, Zap, Clock, Users, Filter, ChevronDown } from 'lucide-react-native';
+import { ChartBar as BarChart3, TrendingUp, Calendar, Award, Heart, Bug, Target, Zap, Clock, Users, Filter, ChevronDown, HelpCircle } from 'lucide-react-native';
 import { supabase } from '@/utils/supabase';
 
 const { width } = Dimensions.get('window');
@@ -282,14 +282,20 @@ export default function AnalyticsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <BarChart3 color="#FF8C42" size={28} />
-          <Text style={styles.title}>Analytics</Text>
+      <View style={styles.fixedHeaderContainer}>
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <BarChart3 color="#FF8C42" size={28} />
+            <Text style={styles.title}>Analytics</Text>
+          </View>
+          <TouchableOpacity style={styles.headerButton}>
+            <HelpCircle color="#666" size={24} />
+          </TouchableOpacity>
         </View>
         <Text style={styles.subtitle}>
           Insights into your appreciation journey
         </Text>
+        {renderSimpleFilters()}
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -297,7 +303,6 @@ export default function AnalyticsScreen() {
           <ActivityIndicator size="large" color="#FF8C42" style={{ flex: 1, marginTop: 100 }} />
         ) : (
           <>
-            {renderSimpleFilters()}
             {renderMainStats()}
             {renderWeeklyBreakdown()}
             {renderCategoryBreakdown()}
@@ -316,15 +321,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFF8F0',
   },
+  fixedHeaderContainer: {
+    backgroundColor: '#FFF8F0',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+    paddingBottom: 24,
+  },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'ios' ? 10 : 40,
-    paddingBottom: 20,
+    paddingBottom: 12, // Adjusted padding
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
   },
   title: {
     fontSize: 28,
@@ -332,11 +345,15 @@ const styles = StyleSheet.create({
     color: '#333',
     marginLeft: 12,
   },
+  headerButton: {
+    padding: 8,
+  },
   subtitle: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
     color: '#666',
     lineHeight: 24,
+    paddingHorizontal: 20, // Added padding
   },
   content: {
     flex: 1,
@@ -345,7 +362,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginHorizontal: 20,
-    marginBottom: 24,
     backgroundColor: 'white',
     borderRadius: 16,
     padding: 8,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,16 +11,15 @@ import {
   Alert,
   Animated,
   Easing,
+  ActivityIndicator,
 } from 'react-native';
-import { Heart, Star, Smile, Compass, MessageCircle, Flame, Bug, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, Crown, Chrome as Home } from 'lucide-react-native';
+import { Heart, Star, Smile, Compass, MessageCircle, HelpCircle, Flame, Bug, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, Crown, Chrome as Home } from 'lucide-react-native';
 import { HandHeart } from 'lucide-react-native';
 import NegativeBadgeModal from '@/components/NegativeBadgeModal';
 import DontPanicModal from '@/components/DontPanicModal';
-import UserWelcome from '@/components/UserWelcome';
 import AppreciationModal from '@/components/AppreciationModal';
 import RelationshipWisdomModal from '@/components/RelationshipWisdomModal';
 import FavorsModal from '@/components/FavorsModal';
-import StreakCard from '@/components/StreakCard';
 import QuickSendActions from '@/components/QuickSendActions';
 import TodayTip from '@/components/TodayTip';
 import PingModal from '@/components/PingModal';
@@ -38,128 +37,74 @@ interface BadgeCategory {
   count: number;
 }
 
-const badgeCategories: BadgeCategory[] = [
-  {
-    id: 'kindness',
-    name: 'Kindness',
-    icon: Heart,
-    color: '#FF6B9D',
-    description: 'Gentle caring actions',
-    count: 12,
-  },
-  {
-    id: 'support',
-    name: 'Support',
-    icon: Star,
-    color: '#4ECDC4',
-    description: 'Being there when needed',
-    count: 8,
-  },
-  {
-    id: 'humor',
-    name: 'Humor',
-    icon: Smile,
-    color: '#FFD93D',
-    description: 'Bringing joy with laughter',
-    count: 15,
-  },
-  {
-    id: 'adventure',
-    name: 'Adventure',
-    icon: Compass,
-    color: '#6BCF7F',
-    description: 'Shared experiences',
-    count: 6,
-  },
-  {
-    id: 'words',
-    name: 'Love Notes',
-    icon: MessageCircle,
-    color: '#A8E6CF',
-    description: 'Words of affirmation',
-    count: 20,
-  },
-  {
-    id: 'whatever-you-say',
-    name: 'Whatever You Say',
-    icon: CheckCircle,
-    color: '#9B59B6',
-    description: 'So be it moments',
-    count: 3,
-  },
-  {
-    id: 'yes-dear',
-    name: 'Yes, Dear',
-    icon: Crown,
-    color: '#E67E22',
-    description: 'Agreeable responses',
-    count: 7,
-  },
-  {
-    id: 'happy-wife',
-    name: 'Happy Wife, Happy Life',
-    icon: Home,
-    color: '#27AE60',
-    description: 'Relationship wisdom',
-    count: 4,
-  },
-  {
-    id: 'dont-panic',
-    name: 'Don\'t Panic',
-    icon: Heart,
-    color: '#6366F1',
-    description: 'Calm reassurance after stress',
-    count: 2,
-  },
-  {
-    id: 'im-sorry',
-    name: 'I\'m Sorry',
-    icon: Heart,
-    color: '#F87171',
-    description: 'Heartfelt apologies and making amends',
-    count: 1,
-  },
-];
-
-const mockRecentBadges = [
-  { id: '1', name: 'Morning Coffee', category: 'kindness', earnedDate: '2025-01-15' },
-  { id: '2', name: 'Workout Support', category: 'support', earnedDate: '2025-01-14' },
-  { id: '3', name: 'Silly Dance', category: 'humor', earnedDate: '2025-01-13' },
+const badgeCategoryConfig: Omit<BadgeCategory, 'count'>[] = [
+  { id: 'kindness', name: 'Kindness', icon: Heart, color: '#FF6B9D', description: 'Gentle caring actions' },
+  { id: 'support', name: 'Support', icon: Star, color: '#4ECDC4', description: 'Being there when needed' },
+  { id: 'humor', name: 'Humor', icon: Smile, color: '#FFD93D', description: 'Bringing joy with laughter' },
+  { id: 'adventure', name: 'Adventure', icon: Compass, color: '#6BCF7F', description: 'Shared experiences' },
+  { id: 'words', name: 'Love Notes', icon: MessageCircle, color: '#A8E6CF', description: 'Words of affirmation' },
 ];
 
 export default function HomeScreen() {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [currentStreak, setCurrentStreak] = useState(12);
-  const [totalBadges, setTotalBadges] = useState(61);
   const [showNegativeModal, setShowNegativeModal] = useState(false);
   const [showDontPanicModal, setShowDontPanicModal] = useState(false);
   const [showAppreciationModal, setShowAppreciationModal] = useState(false);
   const [showRelationshipWisdomModal, setShowRelationshipWisdomModal] = useState(false);
   const [showFavorsModal, setShowFavorsModal] = useState(false);
   const [showPingModal, setShowPingModal] = useState(false);
-  const [favorPoints, setFavorPoints] = useState(45); // Mock favor points
+  const [favorPoints, setFavorPoints] = useState(45);
   const [heartAnimation] = useState(new Animated.Value(1));
+  const [badgeCollection, setBadgeCollection] = useState<BadgeCategory[]>([]);
+  const [loadingBadges, setLoadingBadges] = useState(true);
   const { session } = useSession();
+
+  const userName = session?.user?.user_metadata?.display_name || 'Breda';
+
+  useEffect(() => {
+    if (session?.user) {
+      fetchBadgeCollection();
+    }
+  }, [session]);
+  
+  const fetchBadgeCollection = async () => {
+    if (!session?.user) return;
+    setLoadingBadges(true);
+    
+    const { data, error } = await supabase.rpc('get_user_badge_collection', {
+      user_id_param: session.user.id
+    });
+
+    if (error) {
+      console.error('Error fetching badge collection:', error);
+      Alert.alert('Error', 'Could not fetch your badge collection.');
+    } else {
+      const collection = badgeCategoryConfig.map(category => ({
+        ...category,
+        count: data.find(d => d.category_id === category.id)?.count || 0,
+      }));
+      setBadgeCollection(collection);
+    }
+    setLoadingBadges(false);
+  };
 
   React.useEffect(() => {
     const animateHeart = () => {
-      Animated.sequence([
-        Animated.timing(heartAnimation, {
-          toValue: 1.2,
-          duration: 800,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(heartAnimation, {
-          toValue: 1,
-          duration: 800,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ]).start(() => {
-        // Repeat animation after a pause
-        setTimeout(animateHeart, 2000);
-      });
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(heartAnimation, {
+            toValue: 1.1,
+            duration: 1000,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(heartAnimation, {
+            toValue: 1,
+            duration: 1000,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
     };
 
     animateHeart();
@@ -362,12 +307,38 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <View style={styles.headerContent}>
+          <Home color="#FF8C42" size={28} />
+          <Text style={styles.title}>Hi <Text style={styles.headerName}>{userName}</Text> sweetie</Text>
+        </View>
+        <TouchableOpacity style={styles.headerButton}>
+          <HelpCircle color="#666" size={24} />
+        </TouchableOpacity>
+      </View>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <UserWelcome />
+        <View style={styles.collectionContainer}>
+          <Text style={styles.collectionTitle}>Your Badge Collection</Text>
+          {loadingBadges ? (
+            <ActivityIndicator color="#FF8C42" size="large" />
+          ) : (
+            <View style={styles.collectionGrid}>
+              {badgeCollection.map((category) => {
+                const Icon = category.icon;
+                return (
+                  <View key={category.id} style={styles.categoryItem}>
+                    <View style={[styles.categoryIcon, { backgroundColor: category.color + '20' }]}>
+                      <Icon color={category.color} size={24} />
+                    </View>
+                    <Text style={styles.categoryCount}>{category.count}</Text>
+                    <Text style={styles.categoryName}>{category.name}</Text>
+                  </View>
+                );
+              })}
+            </View>
+          )}
         </View>
 
-        <StreakCard currentStreak={currentStreak} totalBadges={totalBadges} />
         <QuickSendActions
           onShowAppreciationModal={() => setShowAppreciationModal(true)}
           onShowFavorsModal={() => setShowFavorsModal(true)}
@@ -385,7 +356,6 @@ export default function HomeScreen() {
         visible={showNegativeModal}
         onClose={() => setShowNegativeModal(false)}
         onSend={handleSendHornet}
-        recentPositiveBadges={mockRecentBadges}
       />
       
       <DontPanicModal
@@ -427,20 +397,36 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFF8F0',
   },
-  scrollView: {
-    flex: 1,
-  },
   header: {
-    padding: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
     paddingTop: Platform.OS === 'ios' ? 10 : 40,
+    paddingBottom: 20,
+    backgroundColor: '#FFF8F0', // Match container background
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
   },
-  welcomeText: {
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1, // Allow content to take up space
+  },
+  title: {
     fontSize: 28,
     fontFamily: 'Inter-Bold',
     color: '#333',
-    marginBottom: 8,
+    marginLeft: 12,
   },
-  headerSubtitle: {
+  headerName: {
+    color: '#FF8C42',
+  },
+  headerButton: {
+    padding: 8,
+    marginLeft: 16,
+  },
+  subtitle: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
     color: '#666',
@@ -566,4 +552,68 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
     color: 'white',
   },
+  collectionContainer: {
+    backgroundColor: 'white',
+    marginHorizontal: 20,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  collectionTitle: {
+    fontSize: 18,
+    fontFamily: 'Inter-SemiBold',
+    color: '#333',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  collectionGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
+  },
+  categoryItem: {
+    alignItems: 'center',
+    width: '30%',
+    marginBottom: 20,
+  },
+  categoryIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  categoryCount: {
+    fontSize: 20,
+    fontFamily: 'Inter-Bold',
+    color: '#333',
+  },
+  categoryName: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    color: '#666',
+    marginTop: 4,
+    textAlign: 'center',
+  },
 });
+
+// New Database Function to be created in Supabase SQL editor:
+/*
+CREATE OR REPLACE FUNCTION get_user_badge_collection(user_id_param uuid)
+RETURNS TABLE(category_id TEXT, count BIGINT) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        (jsonb_array_elements(data.appreciation_points)->>'category_id')::text AS category_id,
+        (jsonb_array_elements(data.appreciation_points)->>'count')::bigint AS count
+    FROM
+        (SELECT appreciation_points FROM wallets WHERE user_id = user_id_param) AS data;
+END;
+$$ LANGUAGE plpgsql;
+*/

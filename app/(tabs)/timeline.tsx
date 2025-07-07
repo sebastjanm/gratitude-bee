@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Heart, Star, Smile, Compass, MessageCircle, Filter, Calendar, Bug, X, CircleCheck as CheckCircle, Crown, Home as HomeIcon, Clock } from 'lucide-react-native';
+import { Heart, Star, Smile, Compass, MessageCircle, Filter, Calendar, Bug, X, CircleCheck as CheckCircle, Crown, Home as HomeIcon, Clock, HelpCircle } from 'lucide-react-native';
 import { useSession } from '@/providers/SessionProvider';
 import { supabase } from '@/utils/supabase';
 
@@ -326,17 +326,21 @@ export default function TimelineScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <Clock color="#FF8C42" size={28} />
-          <Text style={styles.title}>Timeline</Text>
+      <View style={styles.fixedHeaderContainer}>
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <Clock color="#FF8C42" size={28} />
+            <Text style={styles.title}>Timeline</Text>
+          </View>
+          <TouchableOpacity style={styles.headerButton}>
+            <HelpCircle color="#666" size={24} />
+          </TouchableOpacity>
         </View>
         <Text style={styles.subtitle}>
           Your beautiful journey together
         </Text>
+        {renderSimpleFilters()}
       </View>
-
-      {renderSimpleFilters()}
 
       <ScrollView style={styles.timeline} showsVerticalScrollIndicator={false}>
         {loading ? (
@@ -372,15 +376,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFF8F0',
   },
+  fixedHeaderContainer: {
+    backgroundColor: '#FFF8F0',
+    paddingBottom: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'ios' ? 10 : 40,
-    paddingBottom: 20,
+    paddingBottom: 12, // Adjusted padding
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
   },
   title: {
     fontSize: 28,
@@ -388,17 +400,20 @@ const styles = StyleSheet.create({
     color: '#333',
     marginLeft: 12,
   },
+  headerButton: {
+    padding: 8,
+  },
   subtitle: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
     color: '#666',
     lineHeight: 24,
+    paddingHorizontal: 20, // Added padding
   },
   simpleFilterContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginHorizontal: 20,
-    marginBottom: 24,
     backgroundColor: 'white',
     borderRadius: 16,
     padding: 8,
