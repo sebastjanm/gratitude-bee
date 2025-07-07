@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,9 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  SafeAreaView,
+  Animated,
+  Easing,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Heart, Mail, Lock, User, Eye, EyeOff } from 'lucide-react-native';
@@ -21,6 +24,29 @@ export default function AuthScreen() {
   const [displayName, setDisplayName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [heartAnimation] = useState(new Animated.Value(1));
+
+  useEffect(() => {
+    const animateHeart = () => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(heartAnimation, {
+            toValue: 1.25,
+            duration: 800,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(heartAnimation, {
+            toValue: 1,
+            duration: 800,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    };
+    animateHeart();
+  }, [heartAnimation]);
 
   const handleAuth = async () => {
     if (!email || !password || (isSignUp && !displayName)) {
@@ -86,113 +112,120 @@ export default function AuthScreen() {
     router.push('/(auth)/forgot-password');
   };
 
-  return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <View style={styles.logoContainer}>
-            <Heart color="#FF8C42" size={32} fill="#FF8C42" />
-          </View>
-          <Text style={styles.title}>
-            {isSignUp ? 'Join GratitudeBee' : 'Welcome Back'}
-          </Text>
-          <Text style={styles.subtitle}>
-            {isSignUp 
-              ? 'Start building daily appreciation together'
-              : 'Continue your appreciation journey'
-            }
-          </Text>
-        </View>
+  const animatedStyle = {
+    transform: [{ scale: heartAnimation }],
+  };
 
-        <View style={styles.form}>
-          {isSignUp && (
+  return (
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+          <View style={styles.header}>
+            <Animated.View style={[styles.logoContainer, animatedStyle]}>
+              <Heart color="#FF8C42" size={32} fill="#FF8C42" />
+            </Animated.View>
+            <Text style={styles.title}>
+              {isSignUp ? 'Join GratitudeBee' : 'Welcome Back'}
+            </Text>
+            <Text style={styles.subtitle}>
+              {isSignUp
+                ? 'Start building daily appreciation together'
+                : 'Continue your appreciation journey'
+              }
+            </Text>
+          </View>
+
+          <View style={styles.form}>
+            {isSignUp && (
+              <View style={styles.inputContainer}>
+                <User color="#666" size={20} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Display Name"
+                  value={displayName}
+                  onChangeText={setDisplayName}
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                />
+              </View>
+            )}
+
             <View style={styles.inputContainer}>
-              <User color="#666" size={20} style={styles.inputIcon} />
+              <Mail color="#666" size={20} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="Display Name"
-                value={displayName}
-                onChangeText={setDisplayName}
-                autoCapitalize="words"
+                placeholder="Email Address"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
                 autoCorrect={false}
               />
             </View>
-          )}
 
-          <View style={styles.inputContainer}>
-            <Mail color="#666" size={20} style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Email Address"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-          </View>
+            <View style={styles.inputContainer}>
+              <Lock color="#666" size={20} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              <TouchableOpacity
+                style={styles.eyeIcon}
+                onPress={() => setShowPassword(!showPassword)}>
+                {showPassword ? (
+                  <EyeOff color="#666" size={20} />
+                ) : (
+                  <Eye color="#666" size={20} />
+                )}
+              </TouchableOpacity>
+            </View>
 
-          <View style={styles.inputContainer}>
-            <Lock color="#666" size={20} style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
+            {!isSignUp && (
+              <TouchableOpacity onPress={handleForgotPassword}>
+                <Text style={styles.forgotPassword}>Forgot Password?</Text>
+              </TouchableOpacity>
+            )}
+
             <TouchableOpacity
-              style={styles.eyeIcon}
-              onPress={() => setShowPassword(!showPassword)}>
-              {showPassword ? (
-                <EyeOff color="#666" size={20} />
-              ) : (
-                <Eye color="#666" size={20} />
-              )}
+              style={[styles.authButton, loading && styles.disabledButton]}
+              onPress={handleAuth}
+              disabled={loading}>
+              <Text style={styles.authButtonText}>
+                {loading
+                  ? (isSignUp ? 'Creating Account...' : 'Signing In...')
+                  : (isSignUp ? 'Create Account' : 'Sign In')
+                }
+              </Text>
             </TouchableOpacity>
           </View>
-
-          {!isSignUp && (
-            <TouchableOpacity onPress={handleForgotPassword}>
-              <Text style={styles.forgotPassword}>Forgot Password?</Text>
-            </TouchableOpacity>
-          )}
 
           <TouchableOpacity
-            style={[styles.authButton, loading && styles.disabledButton]}
-            onPress={handleAuth}
-            disabled={loading}>
-            <Text style={styles.authButtonText}>
-              {loading 
-                ? (isSignUp ? 'Creating Account...' : 'Signing In...') 
-                : (isSignUp ? 'Create Account' : 'Sign In')
+            style={styles.switchModeButton}
+            onPress={() => setIsSignUp(!isSignUp)}>
+            <Text style={styles.switchModeText}>
+              {isSignUp
+                ? 'Already have an account? Sign in'
+                : 'Create an account'
               }
             </Text>
           </TouchableOpacity>
-        </View>
 
-        <TouchableOpacity 
-          style={styles.switchModeButton}
-          onPress={() => setIsSignUp(!isSignUp)}>
-          <Text style={styles.switchModeText}>
-            {isSignUp 
-              ? 'Already have an account? Sign in'
-              : 'Create an account'
-            }
-          </Text>
-        </TouchableOpacity>
-        
-        {isSignUp && (
-          <Text style={styles.termsText}>
-            By creating an account, you agree to our Terms of Service and Privacy Policy.
-          </Text>
-        )}
-      </ScrollView>
-    </KeyboardAvoidingView>
+          {isSignUp && (
+            <Text style={styles.termsText}>
+              By creating an account, you agree to our Terms of Service and Privacy Policy.
+            </Text>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -203,9 +236,9 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+    justifyContent: 'center',
     paddingHorizontal: 24,
-    paddingTop: 80,
-    paddingBottom: 40,
+    paddingVertical: 40,
   },
   header: {
     alignItems: 'center',

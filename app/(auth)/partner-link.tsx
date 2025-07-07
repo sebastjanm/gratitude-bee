@@ -8,6 +8,7 @@ import {
   Alert,
   Share,
   Clipboard,
+  SafeAreaView,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Heart, QrCode, Copy, Users, CircleCheck as CheckCircle, ArrowRight } from 'lucide-react-native';
@@ -114,7 +115,7 @@ export default function PartnerLinkScreen() {
 
   if (isConnected) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
         <QRCodeModal
           visible={isQRModalVisible}
           onClose={() => setQRModalVisible(false)}
@@ -139,12 +140,12 @@ export default function PartnerLinkScreen() {
             <Text style={styles.partnerText}>{session?.user.user_metadata.display_name} & {partnerName}</Text>
           </View>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.logoContainer}>
           <Heart color="#FF8C42" size={32} fill="#FF8C42" />
@@ -207,7 +208,7 @@ export default function PartnerLinkScreen() {
       <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
         <Text style={styles.skipButtonText}>I'll connect later</Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
 

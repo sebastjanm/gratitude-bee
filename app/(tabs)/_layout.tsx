@@ -1,59 +1,94 @@
+import React, { useEffect, useRef } from 'react';
 import { Tabs } from 'expo-router';
-import { Platform } from 'react-native';
-import { Chrome as Home, Award, Clock, User, ChartBar as BarChart3 } from 'lucide-react-native';
+import { Home, BarChart2, Award, Calendar, User } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Animated, Easing } from 'react-native';
+
+const AnimatedIcon = ({ focused, icon: Icon, color, size }) => {
+  const scale = useRef(new Animated.Value(focused ? 1.2 : 1)).current;
+
+  useEffect(() => {
+    Animated.spring(scale, {
+      toValue: focused ? 1.25 : 1,
+      friction: 4,
+      useNativeDriver: true,
+    }).start();
+  }, [focused]);
+
+  return (
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <Icon color={color} size={size} />
+    </Animated.View>
+  );
+};
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tabs
       screenOptions={{
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: '#FFF3E0',
-          borderTopColor: '#FFE0B2',
-          borderTopWidth: 1,
-          paddingBottom: Platform.OS === 'ios' ? 20 : 5,
-          height: Platform.OS === 'ios' ? 85 : 60,
-        },
         tabBarActiveTintColor: '#FF8C42',
-        tabBarInactiveTintColor: '#FFAB70',
-        tabBarLabelStyle: {
-          fontFamily: 'Inter-Medium',
-          fontSize: 12,
+        tabBarInactiveTintColor: '#999',
+        tabBarStyle: {
+          backgroundColor: '#FFFFFF',
+          borderTopWidth: 1,
+          borderTopColor: '#E0E0E0',
+          height: 70 + insets.bottom,
+          paddingBottom: insets.bottom,
+          paddingTop: 10,
         },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontFamily: 'Inter-Medium',
+          marginTop: 0,
+          paddingBottom: 5,
+        },
+        headerShown: false,
       }}>
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
-        }}
-      />
-      <Tabs.Screen
-        name="badges"
-        options={{
-          title: 'Badges',
-          tabBarIcon: ({ color, size }) => <Award color={color} size={size} />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <AnimatedIcon icon={Home} color={color} size={size} focused={focused} />
+          ),
         }}
       />
       <Tabs.Screen
         name="timeline"
         options={{
           title: 'Timeline',
-          tabBarIcon: ({ color, size }) => <Clock color={color} size={size} />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <AnimatedIcon icon={Calendar} color={color} size={size} focused={focused} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="badges"
+        options={{
+          title: 'Badges',
+          tabBarIcon: ({ color, size, focused }) => (
+            <AnimatedIcon icon={Award} color={color} size={size} focused={focused} />
+          ),
         }}
       />
       <Tabs.Screen
         name="analytics"
         options={{
           title: 'Analytics',
-          tabBarIcon: ({ color, size }) => <BarChart3 color={color} size={size} />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <AnimatedIcon icon={BarChart2} color={color} size={size} focused={focused} />
+          ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <AnimatedIcon icon={User} color={color} size={size} focused={focused} />
+          ),
         }}
       />
     </Tabs>

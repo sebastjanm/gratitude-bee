@@ -198,7 +198,7 @@ export default function AppreciationModal({
                     </View>
                   </View>
                 </View>
-              </View>
+              </View>s
               
               <Text style={styles.badgeDescription}>{badge.description}</Text>
               

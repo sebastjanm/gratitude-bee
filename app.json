@@ -29,6 +29,11 @@
         "backgroundColor": "#FFF8F0"
       },
       "package": "com.gratitudebee",
+      "googleServicesFile": "./google-services.json",
+      "androidNavigationBar": {
+        "visible": "sticky-immersive",
+        "backgroundColor": "#FFF8F0"
+      },
       "intentFilters": [
         {
           "action": "VIEW",

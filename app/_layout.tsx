@@ -7,6 +7,7 @@ import { SessionProvider, useSession } from '../providers/SessionProvider';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -48,9 +49,11 @@ export default function RootLayout() {
   }
 
   return (
-    <SessionProvider>
-      <InitialLayout />
-      <StatusBar style="auto" />
-    </SessionProvider>
+    <SafeAreaProvider>
+      <SessionProvider>
+        <InitialLayout />
+        <StatusBar style="auto" />
+      </SessionProvider>
+    </SafeAreaProvider>
   );
 }

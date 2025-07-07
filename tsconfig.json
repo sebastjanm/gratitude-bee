@@ -1,8 +1,13 @@
 {
   "compilerOptions": {
+    "strict": true,
+    "jsx": "rreact-native",
+    "esModuleInterop": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["*"]
+      "@/*": [
+        "./*"
+      ]
     }
   },
   "extends": "expo/tsconfig.base",
