@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Heart, Star, Smile, Compass, MessageCircle, Award, Bug, X, CircleCheck as CheckCircle, Crown, Chrome as Home, HelpCircle } from 'lucide-react-native';
+import { Heart, Star, Smile, Compass, MessageCircle, Award, Bug, X, CircleCheck as CheckCircle, Crown, Gift, Bell, HelpCircle } from 'lucide-react-native';
 import { supabase } from '@/utils/supabase';
 
 const { width } = Dimensions.get('window');
@@ -43,10 +43,26 @@ const categories = [
   { id: 'relationship-wisdom', name: 'Relationship Wisdom', icon: Crown },
 ];
 
+const statsConfig = [
+  { key: 'appreciations', name: 'Praises', icon: Award, color: '#4ECDC4' },
+  { key: 'favors', name: 'Favors', icon: Gift, color: '#FFD93D' },
+  { key: 'wisdom', name: 'Wisdom', icon: Crown, color: '#9B59B6' },
+  { key: 'pings', name: 'Pings', icon: Bell, color: '#6366F1' },
+  { key: 'hornets', name: 'Hornets', icon: Bug, color: '#FF4444' },
+];
+
+
 export default function BadgesScreen() {
   const [badges, setBadges] = useState<Badge[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [stats, setStats] = useState({
+    appreciations: 0,
+    favors: 0,
+    wisdom: 0,
+    pings: 0,
+    hornets: 0,
+  });
 
   useFocusEffect(
     React.useCallback(() => {
@@ -64,15 +80,34 @@ export default function BadgesScreen() {
 
     const { data: events, error } = await supabase
       .from('events')
+      .select('event_type') // Only select the column we need for stats
+      .eq('receiver_id', user.id);
+
+    if (error) {
+      console.error('Error fetching stats:', error);
+    } else {
+      const newStats = {
+        appreciations: events.filter(e => e.event_type === 'APPRECIATION').length,
+        favors: events.filter(e => e.event_type === 'FAVOR_REQUEST').length,
+        wisdom: events.filter(e => e.event_type === 'WISDOM').length,
+        pings: 0, // Pings are not yet implemented as events
+        hornets: events.filter(e => e.event_type === 'HORNET').length,
+      };
+      setStats(newStats);
+    }
+
+    // This can be a separate call or could be combined if performance is a concern
+    const { data: badgeEvents, error: badgeError } = await supabase
+      .from('events')
       .select('*')
       .eq('receiver_id', user.id)
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching badges:', error);
+    if (badgeError) {
+      console.error('Error fetching badges:', badgeError);
       setBadges([]);
     } else {
-      const transformedBadges = transformEventsToBadges(events);
+      const transformedBadges = transformEventsToBadges(badgeEvents);
       setBadges(transformedBadges);
     }
     setLoading(false);
@@ -251,30 +286,24 @@ export default function BadgesScreen() {
     );
   };
 
-  const renderStats = () => {
-    const totalBadges = badges.length;
-    const positiveBadges = badges.filter(b => !b.isNegative);
-    const negativeBadges = badges.filter(b => b.isNegative);
-
-    return (
-      <View style={styles.statsContainer}>
-        <View style={styles.statsGrid}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{positiveBadges.length}</Text>
-            <Text style={styles.statLabel}>Positive</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, styles.negativeStatNumber]}>{negativeBadges.length}</Text>
-            <Text style={styles.statLabel}>Hornets</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{totalBadges}</Text>
-            <Text style={styles.statLabel}>Total</Text>
-          </View>
-        </View>
+  const renderStats = () => (
+    <View style={styles.statsContainer}>
+      <View style={styles.statsGrid}>
+        {statsConfig.map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <View key={stat.key} style={styles.statItem}>
+              <View style={[styles.statIcon, { backgroundColor: stat.color + '20' }]}>
+                <Icon color={stat.color} size={22} />
+              </View>
+              <Text style={styles.statNumber}>{stats[stat.key]}</Text>
+              <Text style={styles.statLabel}>{stat.name}</Text>
+            </View>
+          );
+        })}
       </View>
-    );
-  };
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -325,7 +354,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF8F0',
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
-    paddingBottom: 20, // Add padding back
+    paddingBottom: 20, // This will create the space
   },
   header: {
     flexDirection: 'row',
@@ -360,8 +389,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginTop: 20, // Added space from header
     borderRadius: 16,
-    paddingVertical: 12, // Reduced padding
-    paddingHorizontal: 16, // Adjusted padding
+    paddingVertical: 16,
+    paddingHorizontal: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -375,21 +404,30 @@ const styles = StyleSheet.create({
   },
   statsGrid: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
   },
   statItem: {
     alignItems: 'center',
+    flex: 1,
+  },
+  statIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
   },
   statNumber: {
-    fontSize: 20, // Reduced size
+    fontSize: 20,
     fontFamily: 'Inter-Bold',
     color: '#333',
   },
   statLabel: {
-    fontSize: 11, // Reduced size
+    fontSize: 11,
     fontFamily: 'Inter-Medium',
     color: '#666',
-    marginTop: 2, // Adjusted margin
+    marginTop: 4,
   },
   categoryFilter: {},
   categoryFilterContent: {
@@ -397,7 +435,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   categoryFilterContainer: {
-    paddingTop: 20, // Replaces marginBottom
+    paddingTop: 20, // This provides space above the filters
     position: 'relative',
   },
   categoryFilterItem: {
@@ -476,12 +514,13 @@ const styles = StyleSheet.create({
   badgesList: {
     flex: 1,
     paddingHorizontal: 20,
+    paddingTop: 20, // Add space at the top of the list
   },
   badgeCard: {
     backgroundColor: 'white',
     borderRadius: 16,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 16, // Add space between cards
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,

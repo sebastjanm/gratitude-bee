@@ -32,6 +32,13 @@ interface TimelineEvent {
   isNegative?: boolean;
   cancelledBadges?: string[];
   status?: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'COMPLETED';
+  content?: {
+    title: string;
+    category_id: string;
+    message?: string;
+    points?: number;
+    points_icon?: string;
+  };
 }
 
 const filterOptions = [
@@ -57,6 +64,14 @@ const categoryDetails: { [key: string]: { icon: any; color: string } } = {
 };
 
 const getEventVisuals = (event: any) => {
+  if (event.event_type === 'APPRECIATION' && event.content?.icon) {
+    const category = categoryDetails[event.content.category_id] || categoryDetails.default;
+    return { 
+      IconComponent: () => <Text style={{fontSize: 16}}>{event.content.icon}</Text>, 
+      color: category.color 
+    };
+  }
+
   const category = event.content?.category_id || event.event_type.toLowerCase();
   const details = categoryDetails[category] || categoryDetails.default;
   return { IconComponent: details.icon, color: details.color };
@@ -78,6 +93,7 @@ const transformEvent = (e: any, currentUserId: string, usersMap: Map<string, str
     color: color,
     isNegative: e.event_type === 'HORNET',
     status: e.status,
+    content: e.content,
   }
 };
 
@@ -256,18 +272,21 @@ export default function TimelineScreen() {
           ]}>
             <View style={styles.eventHeader}>
               <Text style={styles.eventTitle}>
-                {event.isNegative 
-                  ? (event.type === 'sent' ? 'You sent' : 'You received')
-                  : (event.type === 'sent' ? 'You sent' : 'You received')
-                } {event.badgeName}
+                {event.badgeName}
               </Text>
-              <Text style={styles.eventTime}>
-                {formatTimestamp(event.timestamp)}
-              </Text>
+              {event.content?.points && (
+                <View style={styles.pointsContainer}>
+                  <Text style={styles.pointsText}>{event.content.points} {event.content.points_icon}</Text>
+                </View>
+              )}
             </View>
             
+            <Text style={styles.eventTime}>
+              {formatTimestamp(event.timestamp)}
+            </Text>
+            
             <Text style={styles.eventPartner}>
-              {event.type === 'sent' ? `To ${event.partnerName}` : `From ${event.partnerName}`}
+              {event.type === 'sent' ? `To: ${event.partnerName}` : `From: ${event.partnerName}`}
             </Text>
             
             {event.isNegative && event.cancelledBadges && (
@@ -408,7 +427,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: '#666',
     lineHeight: 24,
-    paddingHorizontal: 20, // Added padding
+    paddingHorizontal: 20,
+    paddingBottom: 20, // Add more space
   },
   simpleFilterContainer: {
     flexDirection: 'row',
@@ -449,6 +469,7 @@ const styles = StyleSheet.create({
   timeline: {
     flex: 1,
     paddingHorizontal: 20,
+    paddingTop: 20, // Add space at the top of the timeline
   },
   timelineItem: {
     flexDirection: 'row',
@@ -489,7 +510,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 8,
+    marginBottom: 4, // Adjusted
   },
   eventTitle: {
     fontSize: 16,
@@ -498,10 +519,22 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 8,
   },
+  pointsContainer: {
+    backgroundColor: '#FFF3E0',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  pointsText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Bold',
+    color: '#FF8C42',
+  },
   eventTime: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
     color: '#999',
+    marginBottom: 8, // Moved from eventHeader
   },
   eventPartner: {
     fontSize: 14,

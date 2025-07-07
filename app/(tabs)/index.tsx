@@ -13,7 +13,7 @@ import {
   Easing,
   ActivityIndicator,
 } from 'react-native';
-import { Heart, Star, Smile, Compass, MessageCircle, HelpCircle, Flame, Bug, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, Crown, Chrome as Home } from 'lucide-react-native';
+import { Heart, Star, Smile, Compass, MessageCircle, HelpCircle, Award, Gift, Bell, Bug, Crown, Chrome as Home } from 'lucide-react-native';
 import { HandHeart } from 'lucide-react-native';
 import NegativeBadgeModal from '@/components/NegativeBadgeModal';
 import DontPanicModal from '@/components/DontPanicModal';
@@ -45,6 +45,14 @@ const badgeCategoryConfig: Omit<BadgeCategory, 'count'>[] = [
   { id: 'words', name: 'Love Notes', icon: MessageCircle, color: '#A8E6CF', description: 'Words of affirmation' },
 ];
 
+const statsConfig = [
+  { key: 'appreciations', name: 'Praises', icon: Award, color: '#4ECDC4' },
+  { key: 'favors', name: 'Favors', icon: Gift, color: '#FFD93D' },
+  { key: 'wisdom', name: 'Wisdom', icon: Crown, color: '#9B59B6' },
+  { key: 'pings', name: 'Pings', icon: Bell, color: '#6366F1' },
+  { key: 'hornets', name: 'Hornets', icon: Bug, color: '#FF4444' },
+];
+
 export default function HomeScreen() {
   const [showNegativeModal, setShowNegativeModal] = useState(false);
   const [showDontPanicModal, setShowDontPanicModal] = useState(false);
@@ -54,37 +62,47 @@ export default function HomeScreen() {
   const [showPingModal, setShowPingModal] = useState(false);
   const [favorPoints, setFavorPoints] = useState(45);
   const [heartAnimation] = useState(new Animated.Value(1));
-  const [badgeCollection, setBadgeCollection] = useState<BadgeCategory[]>([]);
-  const [loadingBadges, setLoadingBadges] = useState(true);
+  const [stats, setStats] = useState({
+    appreciations: 0,
+    favors: 0,
+    wisdom: 0,
+    pings: 0,
+    hornets: 0,
+  });
+  const [loadingStats, setLoadingStats] = useState(true);
   const { session } = useSession();
 
   const userName = session?.user?.user_metadata?.display_name || 'Breda';
 
   useEffect(() => {
     if (session?.user) {
-      fetchBadgeCollection();
+      fetchStats();
     }
   }, [session]);
   
-  const fetchBadgeCollection = async () => {
+  const fetchStats = async () => {
     if (!session?.user) return;
-    setLoadingBadges(true);
+    setLoadingStats(true);
     
-    const { data, error } = await supabase.rpc('get_user_badge_collection', {
-      user_id_param: session.user.id
-    });
+    const { data, error } = await supabase
+      .from('events')
+      .select('event_type')
+      .eq('receiver_id', session.user.id);
 
     if (error) {
-      console.error('Error fetching badge collection:', error);
-      Alert.alert('Error', 'Could not fetch your badge collection.');
+      console.error('Error fetching stats:', error);
+      Alert.alert('Error', 'Could not fetch your stats.');
     } else {
-      const collection = badgeCategoryConfig.map(category => ({
-        ...category,
-        count: data.find(d => d.category_id === category.id)?.count || 0,
-      }));
-      setBadgeCollection(collection);
+      const newStats = {
+        appreciations: data.filter(e => e.event_type === 'APPRECIATION').length,
+        favors: data.filter(e => e.event_type === 'FAVOR_REQUEST').length,
+        wisdom: data.filter(e => e.event_type === 'WISDOM').length,
+        pings: 0, // Pings not implemented yet
+        hornets: data.filter(e => e.event_type === 'HORNET').length,
+      };
+      setStats(newStats);
     }
-    setLoadingBadges(false);
+    setLoadingStats(false);
   };
 
   React.useEffect(() => {
@@ -110,7 +128,7 @@ export default function HomeScreen() {
     animateHeart();
   }, [heartAnimation]);
 
-  const handleSendBadge = async (categoryId: string, badgeId: string, badgeTitle: string) => {
+  const handleSendBadge = async (categoryId: string, badgeId: string, badgeTitle: string, badgeIcon: string, points: number, pointsIcon: string) => {
     if (!session) {
       Alert.alert('Not authenticated', 'You must be logged in to send a badge.');
       return;
@@ -136,6 +154,9 @@ export default function HomeScreen() {
           category_id: categoryId,
           badge_id: badgeId,
           title: badgeTitle,
+          icon: badgeIcon,
+          points: points,
+          points_icon: pointsIcon,
         },
       },
     ]);
@@ -305,39 +326,42 @@ export default function HomeScreen() {
     );
   };
 
+  const renderStats = () => (
+    <View style={styles.statsContainer}>
+      <View style={styles.statsGrid}>
+        {statsConfig.map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <View key={stat.key} style={styles.statItem}>
+              <View style={[styles.statIcon, { backgroundColor: stat.color + '20' }]}>
+                <Icon color={stat.color} size={22} />
+              </View>
+              <Text style={styles.statNumber}>{stats[stat.key]}</Text>
+              <Text style={styles.statLabel}>{stat.name}</Text>
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <Home color="#FF8C42" size={28} />
-          <Text style={styles.title}>Hi <Text style={styles.headerName}>{userName}</Text> sweetie</Text>
+      <View style={styles.fixedHeaderContainer}>
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <Home color="#FF8C42" size={28} />
+            <Text style={styles.title}>Hi, <Text style={styles.headerName}>{userName}</Text></Text>
+          </View>
+          <TouchableOpacity style={styles.headerButton}>
+            <HelpCircle color="#666" size={24} />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.headerButton}>
-          <HelpCircle color="#666" size={24} />
-        </TouchableOpacity>
+        <Text style={styles.subtitle}>How are you doing today?</Text>
       </View>
+
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={styles.collectionContainer}>
-          <Text style={styles.collectionTitle}>Your Badge Collection</Text>
-          {loadingBadges ? (
-            <ActivityIndicator color="#FF8C42" size="large" />
-          ) : (
-            <View style={styles.collectionGrid}>
-              {badgeCollection.map((category) => {
-                const Icon = category.icon;
-                return (
-                  <View key={category.id} style={styles.categoryItem}>
-                    <View style={[styles.categoryIcon, { backgroundColor: category.color + '20' }]}>
-                      <Icon color={category.color} size={24} />
-                    </View>
-                    <Text style={styles.categoryCount}>{category.count}</Text>
-                    <Text style={styles.categoryName}>{category.name}</Text>
-                  </View>
-                );
-              })}
-            </View>
-          )}
-        </View>
+        {loadingStats ? <ActivityIndicator color="#FF8C42" size="large" /> : renderStats()}
 
         <QuickSendActions
           onShowAppreciationModal={() => setShowAppreciationModal(true)}
@@ -397,16 +421,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFF8F0',
   },
+  fixedHeaderContainer: {
+    backgroundColor: '#FFF8F0',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+    paddingBottom: 20,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'ios' ? 10 : 40,
-    paddingBottom: 20,
-    backgroundColor: '#FFF8F0', // Match container background
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    paddingBottom: 12,
   },
   headerContent: {
     flexDirection: 'row',
@@ -431,6 +458,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: '#666',
     lineHeight: 24,
+    paddingHorizontal: 20,
   },
   streakCard: {
     backgroundColor: 'white',
@@ -557,6 +585,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     borderRadius: 20,
     padding: 20,
+    marginTop: 20, // Add space above this container
     marginBottom: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -600,6 +629,46 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 4,
     textAlign: 'center',
+  },
+  statsContainer: {
+    backgroundColor: 'white',
+    marginHorizontal: 20,
+    borderRadius: 20,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  statItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  statNumber: {
+    fontSize: 20,
+    fontFamily: 'Inter-Bold',
+    color: '#333',
+  },
+  statLabel: {
+    fontSize: 11,
+    fontFamily: 'Inter-Medium',
+    color: '#666',
+    marginTop: 4,
   },
 });
 

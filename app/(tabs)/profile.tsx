@@ -177,14 +177,17 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <User color="#FF8C42" size={28} />
-          <Text style={styles.title}>Profile</Text>
+      <View style={styles.fixedHeaderContainer}>
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <User color="#FF8C42" size={28} />
+            <Text style={styles.title}>Profile</Text>
+          </View>
+          <TouchableOpacity style={styles.headerButton}>
+            <HelpCircleIcon color="#666" size={24} />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.headerButton}>
-          <HelpCircleIcon color="#666" size={24} />
-        </TouchableOpacity>
+        <Text style={styles.subtitle}>Manage your profile and settings</Text>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -296,16 +299,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFF8F0',
   },
+  fixedHeaderContainer: {
+    backgroundColor: '#FFF8F0',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+    paddingBottom: 20,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'ios' ? 10 : 40,
-    paddingBottom: 20,
-    backgroundColor: '#FFF8F0',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    paddingBottom: 12,
   },
   headerContent: {
     flexDirection: 'row',
@@ -322,6 +328,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    paddingTop: 20, // Add space at the top of the scrollable content
   },
   userInfoContainer: {
     backgroundColor: 'white',
@@ -478,5 +485,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     color: '#666',
+  },
+  subtitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#666',
+    lineHeight: 24,
+    paddingHorizontal: 20,
   },
 });

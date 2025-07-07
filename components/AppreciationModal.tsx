@@ -38,7 +38,7 @@ interface SubCategory {
 interface AppreciationModalProps {
   visible: boolean;
   onClose: () => void;
-  onSendBadge: (categoryId: string, badgeId: string, badgeTitle: string) => void;
+  onSendBadge: (categoryId: string, badgeId: string, badgeTitle: string, badgeIcon: string, points: number, pointsIcon: string) => void;
 }
 
 // Hardcoded data is removed. We will fetch this from Supabase.
@@ -108,7 +108,14 @@ export default function AppreciationModal({
 
   const handleSendBadge = () => {
     if (selectedCategory && selectedBadge) {
-      onSendBadge(selectedCategory, selectedBadge.id, selectedBadge.title);
+      onSendBadge(
+        selectedCategory,
+        selectedBadge.id,
+        selectedBadge.title,
+        selectedBadge.icon,
+        selectedBadge.points,
+        selectedBadge.points_icon
+      );
       handleClose();
     }
   };
@@ -198,7 +205,7 @@ export default function AppreciationModal({
                     </View>
                   </View>
                 </View>
-              </View>s
+              </View>
               
               <Text style={styles.badgeDescription}>{badge.description}</Text>
               

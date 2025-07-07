@@ -353,10 +353,12 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: '#666',
     lineHeight: 24,
-    paddingHorizontal: 20, // Added padding
+    paddingHorizontal: 20,
+    paddingBottom: 20, // Add more space
   },
   content: {
     flex: 1,
+    paddingTop: 24, // Add space at the top of the scrollable content
   },
   simpleFilterContainer: {
     flexDirection: 'row',
