@@ -31,7 +31,7 @@ export default function ProfileScreen() {
     if (session) {
       const fetchProfile = async () => {
         const { data, error } = await supabase
-          .from('users') // CORRECTED
+          .from('users')
           .select('invite_code, partner_id')
           .eq('id', session.user.id)
           .single();
@@ -42,7 +42,7 @@ export default function ProfileScreen() {
           setInviteCode(data.invite_code);
           if (data.partner_id) {
             const { data: partnerData, error: partnerError } = await supabase
-              .from('users') // CORRECTED
+              .from('users')
               .select('display_name')
               .eq('id', data.partner_id)
               .single();

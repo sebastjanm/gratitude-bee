@@ -30,7 +30,6 @@ export default function PartnerLinkScreen() {
   useEffect(() => {
     const fetchProfile = async () => {
       if (session) {
-        // BUG FIX: Changed 'profiles' to 'users'
         const { data, error } = await supabase
           .from('users')
           .select('invite_code, partner_id')
@@ -43,7 +42,7 @@ export default function PartnerLinkScreen() {
           setInviteCode(data.invite_code);
           if (data.partner_id) {
             const { data: partnerData } = await supabase
-              .from('users') // BUG FIX: Changed 'profiles' to 'users'
+              .from('users')
               .select('display_name')
               .eq('id', data.partner_id)
               .single();

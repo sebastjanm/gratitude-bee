@@ -171,13 +171,13 @@ export default function HomeScreen() {
       return;
     }
 
-    const { data: partnerData, error: partnerError } = await supabase
-      .from('profiles')
-      .select('id')
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('partner_id')
       .eq('id', session.user.id)
       .single();
 
-    if (partnerError || !partnerData || !partnerData.partner_id) {
+    if (userError || !userData || !userData.partner_id) {
       Alert.alert('Not Connected', 'You must be connected to a partner to send badges.');
       return;
     }
@@ -185,7 +185,7 @@ export default function HomeScreen() {
     const { error } = await supabase.from('events').insert([
       {
         sender_id: session.user.id,
-        receiver_id: partnerData.partner_id,
+        receiver_id: userData.partner_id,
         event_type: 'APPRECIATION',
         content: {
           category_id: categoryId,
@@ -278,13 +278,13 @@ export default function HomeScreen() {
       return;
     }
 
-    const { data: partnerData, error: partnerError } = await supabase
+    const { data: userData, error: userError } = await supabase
       .from('users')
-      .select('id, partner_id')
+      .select('partner_id')
       .eq('id', session.user.id)
       .single();
 
-    if (partnerError || !partnerData || !partnerData.partner_id) {
+    if (userError || !userData || !userData.partner_id) {
       Alert.alert('Not Connected', 'You must be connected to a partner to send a hornet.');
       return;
     }
@@ -292,7 +292,7 @@ export default function HomeScreen() {
     const { error } = await supabase.from('events').insert([
       {
         sender_id: session.user.id,
-        receiver_id: partnerData.partner_id,
+        receiver_id: userData.partner_id,
         event_type: 'HORNET',
         content: {
           hornet_id: selectedOption.id,
