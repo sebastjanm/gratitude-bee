@@ -19,11 +19,10 @@ The project will be executed in three distinct phases:
 ### **Phase 1: Dependencies & Configuration**
 
 1.  **Install Libraries:**
-    -   `expo-camera`: To access the device's camera for the scanner.
-    -   `expo-barcode-scanner`: To handle the detection and decoding of QR codes from the camera feed.
+    -   Native camera app: Users will use their device's built-in camera to scan QR codes.
     -   `react-native-qrcode-svg`: To generate a vector-based QR code image for the user to share.
 2.  **Configure Permissions:**
-    -   Update `app.json` to include the `expo-camera` plugin and add the `NSCameraUsageDescription` key for iOS to request camera permissions from the user.
+    -   Users will be guided to use their native camera app, eliminating the need for special permissions or camera plugins.
 
 ### **Phase 2: Create QR Code Components**
 
@@ -31,7 +30,7 @@ The project will be executed in three distinct phases:
     -   This new component will be a modal that displays the current user's unique QR code.
     -   The QR code will embed the full invitation link (e.g., `https://gratitudebee.app/invite/{inviteCode}`) to ensure it is functional both for in-app scanning and for external camera apps (which will trigger the existing deep link flow).
 2.  **Build `QRScannerModal.tsx`:**
-    -   This modal will contain the `CameraView` for scanning.
+    -   This modal will guide users to use their native camera app for scanning.
     -   It will manage the camera permission flow, prompting the user if access has not been granted.
     -   It will process scanned data, gracefully handling both full URLs and raw invite codes.
     -   Upon a successful scan and connection via the `connect-partner` Supabase function, it will automatically navigate the user to the "Connected!" success view.

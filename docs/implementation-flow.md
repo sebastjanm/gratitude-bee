@@ -155,7 +155,7 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
 *   **Commit:** `[pending_commit]`
 *   **Description:**
     *   Implemented a full QR code invitation system to provide a seamless partner connection experience.
-    *   Installed and configured `expo-camera`, `expo-barcode-scanner`, and `react-native-qrcode-svg`.
+    *   Simplified QR code scanning by directing users to use native camera app and `react-native-qrcode-svg` for generation.
     *   Created `QRCodeModal.tsx` to display a user's invite code and `QRScannerModal.tsx` to handle scanning.
     *   Refactored `partner-link.tsx` to integrate the new QR modals, simplify the UI, and fix a bug where it was querying a non-existent `profiles` table.
     *   Corrected the same database query bug in `profile.tsx`.

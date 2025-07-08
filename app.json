@@ -29,7 +29,6 @@
         "backgroundColor": "#FFF8F0"
       },
       "package": "com.gratitudebee",
-      "googleServicesFile": "./google-services.json",
       "androidNavigationBar": {
         "visible": "sticky-immersive",
         "backgroundColor": "#FFF8F0"
@@ -50,23 +49,13 @@
             "DEFAULT"
           ]
         }
-      ],
-      "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router",
-      [
-        "expo-camera",
-        {
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera to scan your partner's QR code."
-        }
-      ]
+      "expo-router"
     ],
     "experiments": {
       "typedRoutes": true
