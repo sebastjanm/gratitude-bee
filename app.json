@@ -21,7 +21,8 @@
       ],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "appleTeamId": "3QA7JH9R8U"
     },
     "android": {
       "adaptiveIcon": {
