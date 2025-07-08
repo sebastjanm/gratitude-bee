@@ -13,7 +13,9 @@ import {
   Easing,
   ActivityIndicator,
   RefreshControl,
+  StatusBar as RNStatusBar,
 } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { Heart, Star, Smile, Compass, MessageCircle, HelpCircle, Award, Gift, Bell, Bug, Crown, ArrowUpCircle, ArrowDownCircle, Home } from 'lucide-react-native';
 import { HandHeart } from 'lucide-react-native';
 import NegativeBadgeModal from '@/components/NegativeBadgeModal';
@@ -391,6 +393,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar style="dark" backgroundColor="#FFF8F0" translucent={false} />
       <View style={styles.fixedHeaderContainer}>
         <View style={styles.header}>
           <View style={styles.headerContent}>
@@ -489,7 +492,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'ios' ? 10 : 40,
+    paddingTop: 10,
     paddingBottom: 12,
   },
   headerContent: {

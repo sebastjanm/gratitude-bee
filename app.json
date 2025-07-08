@@ -30,6 +30,12 @@
         "backgroundColor": "#FFF8F0"
       },
       "package": "com.gratitudebee",
+      "statusBar": {
+        "barStyle": "dark-content",
+        "backgroundColor": "#FFF8F0",
+        "translucent": false,
+        "hidden": false
+      },
       "androidNavigationBar": {
         "visible": "sticky-immersive",
         "backgroundColor": "#FFF8F0"
