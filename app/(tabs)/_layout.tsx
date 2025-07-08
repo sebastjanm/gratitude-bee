@@ -4,7 +4,14 @@ import { Home, BarChart2, Award, Calendar, User } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Animated, Easing } from 'react-native';
 
-const AnimatedIcon = ({ focused, icon: Icon, color, size }) => {
+interface AnimatedIconProps {
+  focused: boolean;
+  icon: React.ComponentType<any>;
+  color: string;
+  size: number;
+}
+
+const AnimatedIcon: React.FC<AnimatedIconProps> = ({ focused, icon: Icon, color, size }) => {
   const scale = useRef(new Animated.Value(focused ? 1.2 : 1)).current;
 
   useEffect(() => {

@@ -406,7 +406,15 @@ export default function HomeScreen() {
             <Home color="#FF8C42" size={28} />
             <Text style={styles.title}>Hi, <Text style={styles.headerName}>{userName}</Text></Text>
           </View>
-          <TouchableOpacity style={styles.headerButton} onPress={() => router.push('/help')}>
+          <TouchableOpacity style={styles.headerButton} onPress={() => {
+            console.log('Help button pressed - navigating to /help');
+            try {
+              router.push('/help');
+              console.log('Navigation completed successfully');
+            } catch (error) {
+              console.error('Navigation error:', error);
+            }
+          }}>
             <HelpCircle color="#666" size={24} />
           </TouchableOpacity>
         </View>

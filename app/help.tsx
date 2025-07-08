@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -35,6 +35,14 @@ const videos = [
 
 export default function HelpScreen() {
   const insets = useSafeAreaInsets();
+  
+  // Debug logging
+  useEffect(() => {
+    console.log('HelpScreen mounted - modal should be visible now');
+    return () => {
+      console.log('HelpScreen unmounted');
+    };
+  }, []);
 
   return (
     <View style={[styles.container, {
@@ -88,7 +96,10 @@ export default function HelpScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFF8F0' },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#FFF8F0'
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

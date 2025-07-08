@@ -298,7 +298,7 @@ export default function BadgesScreen() {
               <View style={[styles.statIcon, { backgroundColor: stat.color + '20' }]}>
                 <Icon color={stat.color} size={22} />
               </View>
-              <Text style={styles.statNumber}>{stats[stat.key]}</Text>
+              <Text style={styles.statNumber}>{stats[stat.key as keyof typeof stats]}</Text>
               <Text style={styles.statLabel}>{stat.name}</Text>
             </View>
           );

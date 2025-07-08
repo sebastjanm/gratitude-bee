@@ -19,8 +19,9 @@ const InitialLayout = () => {
     if (loading) return;
 
     const inTabsGroup = segments[0] === '(tabs)';
+    const inHelpScreen = segments[0] === 'help';
 
-    if (session && !inTabsGroup) {
+    if (session && !inTabsGroup && !inHelpScreen) {
       router.replace('/(tabs)');
     } else if (!session && inTabsGroup) {
       router.replace('/(auth)/auth');
@@ -31,7 +32,7 @@ const InitialLayout = () => {
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-      <Stack.Screen name="help" options={{ presentation: 'modal', headerShown: false }} />
+      <Stack.Screen name="help" options={{ headerShown: false }} />
     </Stack>
   );
 };
