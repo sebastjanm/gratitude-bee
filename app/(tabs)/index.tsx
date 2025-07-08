@@ -12,6 +12,7 @@ import {
   Animated,
   Easing,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { Heart, Star, Smile, Compass, MessageCircle, HelpCircle, Award, Gift, Bell, Bug, Crown, ArrowUpCircle, ArrowDownCircle, Home } from 'lucide-react-native';
 import { HandHeart } from 'lucide-react-native';
@@ -23,6 +24,7 @@ import FavorsModal from '@/components/FavorsModal';
 import QuickSendActions from '@/components/QuickSendActions';
 import TodayTip from '@/components/TodayTip';
 import PingModal from '@/components/PingModal';
+import SadCatCard from '@/components/SadCatCard';
 import { supabase } from '@/utils/supabase';
 import { useSession } from '@/providers/SessionProvider';
 import { router } from 'expo-router';
@@ -67,6 +69,7 @@ export default function HomeScreen() {
     favor_points: 0,
   });
   const [loadingStats, setLoadingStats] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const { session } = useSession();
 
   const userName = session?.user?.user_metadata?.display_name || 'Breda';
@@ -77,9 +80,14 @@ export default function HomeScreen() {
     }
   }, [session]);
   
-  const fetchStats = async () => {
+  const fetchStats = async (isRefresh = false) => {
     if (!session?.user) return;
-    setLoadingStats(true);
+    
+    if (isRefresh) {
+      setRefreshing(true);
+    } else {
+      setLoadingStats(true);
+    }
     
     const { data, error } = await supabase.rpc('get_daily_stats', {
       p_user_id: session.user.id
@@ -95,7 +103,16 @@ export default function HomeScreen() {
         favor_points: data[0].favor_points,
       });
     }
-    setLoadingStats(false);
+    
+    if (isRefresh) {
+      setRefreshing(false);
+    } else {
+      setLoadingStats(false);
+    }
+  };
+
+  const onRefresh = () => {
+    fetchStats(true);
   };
 
   React.useEffect(() => {
@@ -319,25 +336,58 @@ export default function HomeScreen() {
     );
   };
 
-  const renderStats = () => (
-    <View style={styles.statsContainer}>
-      <Text style={styles.statsTitle}>Today's Stats <Text style={styles.statsSubtitle}>(restarts every 24 hours)</Text></Text>
-      <View style={styles.statsGrid}>
-        {statsConfig.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <View key={stat.key} style={styles.statItem}>
-              <View style={[styles.statIcon, { backgroundColor: stat.color + '20' }]}>
-                <Icon color={stat.color} size={22} />
+  const shouldShowSadCat = () => {
+    // Don't show after 10 sent messages
+    if (stats.sent_today >= 10) return false;
+    
+    // Always show if no messages sent
+    if (stats.sent_today === 0) return true;
+    
+    // Random chance decreases as messages increase
+    // 0-2 messages: 80% chance
+    // 3-5 messages: 60% chance  
+    // 6-7 messages: 40% chance
+    // 8-9 messages: 20% chance
+    const chances = [1, 0.8, 0.8, 0.6, 0.6, 0.6, 0.4, 0.4, 0.2, 0.2];
+    const chance = chances[stats.sent_today] || 0;
+    
+    // Use a deterministic random based on current date and stats for consistency
+    const seed = new Date().toDateString() + stats.sent_today + stats.received_today;
+    const hash = seed.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    const random = Math.abs(hash % 100) / 100;
+    
+    return random < chance;
+  };
+
+  const renderStats = () => {
+    // Show sad cat card randomly until 10 sent messages
+    if (shouldShowSadCat()) {
+      return <SadCatCard sentToday={stats.sent_today} />;
+    }
+
+    return (
+      <View style={styles.statsContainer}>
+        <Text style={styles.statsTitle}>Today's Stats <Text style={styles.statsSubtitle}>(restarts every 24 hours)</Text></Text>
+        <View style={styles.statsGrid}>
+          {statsConfig.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <View key={stat.key} style={styles.statItem}>
+                <View style={[styles.statIcon, { backgroundColor: stat.color + '20' }]}>
+                  <Icon color={stat.color} size={22} />
+                </View>
+                <Text style={styles.statNumber}>{stats[stat.key as keyof typeof stats]}</Text>
+                <Text style={styles.statLabel}>{stat.name}</Text>
               </View>
-              <Text style={styles.statNumber}>{stats[stat.key]}</Text>
-              <Text style={styles.statLabel}>{stat.name}</Text>
-            </View>
-          );
-        })}
+            );
+          })}
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -354,7 +404,20 @@ export default function HomeScreen() {
         <Text style={styles.subtitle}>How are you doing today?</Text>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.scrollView} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#FF8C42']}
+            tintColor="#FF8C42"
+            title="Pull to refresh"
+            titleColor="#666"
+          />
+        }
+      >
         {loadingStats ? <ActivityIndicator color="#FF8C42" size="large" /> : renderStats()}
 
         <QuickSendActions
@@ -453,6 +516,9 @@ const styles = StyleSheet.create({
     color: '#666',
     lineHeight: 24,
     paddingHorizontal: 20,
+  },
+  scrollView: {
+    flex: 1,
   },
   streakCard: {
     backgroundColor: 'white',
@@ -604,7 +670,7 @@ const styles = StyleSheet.create({
     width: '30%',
     marginBottom: 20,
   },
-  categoryIcon: {
+  collectionCategoryIcon: {
     width: 56,
     height: 56,
     borderRadius: 28,
@@ -612,12 +678,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
-  categoryCount: {
+  collectionCategoryCount: {
     fontSize: 20,
     fontFamily: 'Inter-Bold',
     color: '#333',
   },
-  categoryName: {
+  collectionCategoryName: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
     color: '#666',
@@ -630,6 +696,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingVertical: 16,
     paddingHorizontal: 12,
+    marginTop: 20,
     marginBottom: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -679,6 +746,9 @@ const styles = StyleSheet.create({
 });
 
 /*
+Added SadCatCard component that appears randomly until 10 sent messages.
+Added pull-down refresh functionality to update stats.
+
 CREATE OR REPLACE FUNCTION get_daily_stats(p_user_id uuid)
 RETURNS TABLE(sent_today bigint, received_today bigint, favor_points integer) AS $$
 BEGIN
