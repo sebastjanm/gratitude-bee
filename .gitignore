@@ -12,3 +12,7 @@ expo-env.d.ts
 
 # Environment variables
 .env
+
+# macOS system files
+.DS_Store
+**/.DS_Store
