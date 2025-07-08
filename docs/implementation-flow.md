@@ -212,4 +212,49 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
     *   **Badges Screen:** Replaced the static "Gold" stat with a dynamic summary of all event types.
     *   **Animations:** Added a pulsing animation to the heart icon on the login screen and a spring animation to the active tab bar icons for a more polished feel.
     *   **Headers:** Added a consistent "Help" icon to all main tab screen headers.
-*   **Next Step:** Final review and testing. 
+*   **Next Step:** Remove over-engineered camera dependencies and simplify QR scanning.
+
+---
+
+### **Step 19: Camera Dependencies Removal & QR Scanning Simplification**
+*   **Timestamp:** `2025-01-16T00:00:00Z`
+*   **Commit:** `ff5ead90ee1fe87eca854c8bfac72fbba45cc868`
+*   **Description:**
+    *   **CRITICAL ARCHITECTURAL CHANGE:** Removed over-engineered camera dependencies to simplify the application and eliminate unnecessary complexity.
+    *   **Packages Removed:**
+        *   `expo-camera` (^16.1.10) - 16.1MB of unnecessary camera functionality
+        *   `expo-barcode-scanner` (^13.0.1) - Redundant QR scanning library
+        *   Total: 39 packages removed from node_modules, significantly reducing bundle size
+    *   **Permission Cleanup in app.json:**
+        *   Removed `expo-camera` plugin and associated camera permission descriptions
+        *   Removed `android.permission.CAMERA` permission
+        *   Removed `android.permission.RECORD_AUDIO` permission
+        *   Removed `googleServicesFile: "./google-services.json"` reference (Firebase dependency elimination)
+    *   **QRScannerModal Complete Rewrite:**
+        *   Replaced complex expo-camera implementation with simple instructional modal
+        *   Eliminated camera permission flow complexity
+        *   Now guides users to use native device camera app (more reliable, better UX)
+        *   Reduced component from 222 lines to ~150 lines of cleaner code
+        *   Removed error handling for camera-specific issues
+        *   Simplified UI with step-by-step instructions
+    *   **Documentation Updates:**
+        *   Updated `docs/invitation_qr_implementation.md` to reflect native camera approach
+        *   Updated `docs/implementation-flow.md` to remove camera package references
+        *   Removed all references to CameraView, useCameraPermissions, and related APIs
+    *   **Build Scripts Enhancement:**
+        *   User updated package.json scripts to use `expo run:android` and `expo run:ios` for better development builds
+    *   **Rationale:**
+        *   Native camera apps are more reliable and familiar to users
+        *   Eliminates app store review complexity around camera permissions
+        *   Reduces potential security concerns with camera access
+        *   Significantly smaller app bundle size
+        *   Removes Firebase/Google Services dependency (no google-services.json needed)
+        *   QR code deep linking works seamlessly with native camera apps
+        *   Follows principle of using platform capabilities rather than re-implementing them
+    *   **Impact on Future Development:**
+        *   No camera-related permission debugging needed
+        *   Simplified deployment (no camera permission descriptions required)
+        *   Reduced potential for camera-related crashes or compatibility issues
+        *   Faster build times due to fewer native dependencies
+        *   No Firebase configuration required for new environments
+*   **Next Step:** Final review and testing with simplified architecture. 
