@@ -5,12 +5,12 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   Platform,
   Switch,
   Alert,
   Share,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { User, HelpCircle, Bell, Heart, Target, Calendar, Share2, CircleHelp as HelpCircleIcon, Smartphone, LogOut } from 'lucide-react-native';
 import { useSession } from '@/providers/SessionProvider';
@@ -20,6 +20,7 @@ import QRCodeModal from '@/components/QRCodeModal';
 export default function ProfileScreen() {
   const { session } = useSession();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const insets = useSafeAreaInsets();
   const [nudgesEnabled, setNudgesEnabled] = useState(false);
   const [reminderTime, setReminderTime] = useState('09:00');
   const [weeklyGoal, setWeeklyGoal] = useState(21);
@@ -176,7 +177,12 @@ export default function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, {
+      paddingTop: insets.top,
+      paddingBottom: insets.bottom,
+      paddingLeft: insets.left,
+      paddingRight: insets.right,
+    }]}>
       <View style={styles.fixedHeaderContainer}>
         <View style={styles.header}>
           <View style={styles.headerContent}>
@@ -290,7 +296,7 @@ export default function ProfileScreen() {
         inviteCode={inviteCode}
         inviteLink={`https://gratitudebee.app/invite/${inviteCode}`}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -310,7 +316,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'ios' ? 10 : 40,
+    paddingTop: 10,
     paddingBottom: 12,
   },
   headerContent: {

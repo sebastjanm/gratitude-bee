@@ -5,11 +5,11 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   Platform,
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChartBar as BarChart3, TrendingUp, Calendar, Award, Heart, Bug, Target, Zap, Clock, Users, Filter, ChevronDown, HelpCircle } from 'lucide-react-native';
@@ -46,6 +46,7 @@ const periodFilters = [
 export default function AnalyticsScreen() {
   const [selectedPeriod, setSelectedPeriod] = useState<string>('month');
   const [loading, setLoading] = useState(true);
+  const insets = useSafeAreaInsets();
   
   // State for all dynamic data
   const [mainStats, setMainStats] = useState<StatCard[]>([]);
@@ -282,7 +283,12 @@ export default function AnalyticsScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, {
+      paddingTop: insets.top,
+      paddingBottom: insets.bottom,
+      paddingLeft: insets.left,
+      paddingRight: insets.right,
+    }]}>
       <View style={styles.fixedHeaderContainer}>
         <View style={styles.header}>
           <View style={styles.headerContent}>
@@ -313,7 +319,7 @@ export default function AnalyticsScreen() {
         
         <View style={styles.bottomSpacing} />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -333,8 +339,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'ios' ? 10 : 40,
-    paddingBottom: 12, // Adjusted padding
+    paddingTop: 10,
+    paddingBottom: 12,
   },
   headerContent: {
     flexDirection: 'row',

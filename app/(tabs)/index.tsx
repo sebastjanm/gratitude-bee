@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   Platform,
   Dimensions,
   Alert,
@@ -16,6 +15,7 @@ import {
   StatusBar as RNStatusBar,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Heart, Star, Smile, Compass, MessageCircle, HelpCircle, Award, Gift, Bell, Bug, Crown, ArrowUpCircle, ArrowDownCircle, Home } from 'lucide-react-native';
 import { HandHeart } from 'lucide-react-native';
 import NegativeBadgeModal from '@/components/NegativeBadgeModal';
@@ -73,6 +73,7 @@ export default function HomeScreen() {
   const [loadingStats, setLoadingStats] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const { session } = useSession();
+  const insets = useSafeAreaInsets();
 
   const userName = session?.user?.user_metadata?.display_name || 'Breda';
 
@@ -392,7 +393,12 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, {
+      paddingTop: insets.top,
+      paddingBottom: insets.bottom,
+      paddingLeft: insets.left,
+      paddingRight: insets.right,
+    }]}>
       <StatusBar style="dark" backgroundColor="#FFF8F0" translucent={false} />
       <View style={styles.fixedHeaderContainer}>
         <View style={styles.header}>
@@ -472,7 +478,7 @@ export default function HomeScreen() {
         onClose={() => setShowPingModal(false)}
         onSendPing={handleSendPing}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
