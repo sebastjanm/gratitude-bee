@@ -1,3 +1,9 @@
+// Updated Profile screen with Legal section
+// - Added Legal section with Terms & Conditions, Privacy Policy, and Impressum
+// - Created separate pages for each legal document with comprehensive content
+// - Fixed Help button navigation from both header and Support section
+// - Reorganized settings into logical groups: Connection, Notifications, Goals, Support, Legal, Account
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -12,7 +18,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { User, HelpCircle, Bell, Heart, Target, Calendar, Share2, CircleHelp as HelpCircleIcon, Smartphone, LogOut } from 'lucide-react-native';
+import { User, HelpCircle, Bell, Heart, Target, Calendar, Share2, CircleHelp as HelpCircleIcon, Smartphone, LogOut, FileText, Shield, Info } from 'lucide-react-native';
 import { useSession } from '@/providers/SessionProvider';
 import { supabase } from '@/utils/supabase';
 import QRCodeModal from '@/components/QRCodeModal';
@@ -279,8 +285,38 @@ export default function ProfileScreen() {
               HelpCircleIcon,
               'Help & FAQs',
               'Get answers to common questions',
-              () => console.log('Open help')
+              () => router.push('/help')
             )}
+          </>
+        )}
+
+        {renderSettingsSection(
+          'Legal',
+          <>
+            {renderSettingsItem(
+              FileText,
+              'Terms & Conditions',
+              'Our terms of service',
+              () => router.push('/terms')
+            )}
+            {renderSettingsItem(
+              Shield,
+              'Privacy Policy',
+              'How we protect your data',
+              () => router.push('/privacy')
+            )}
+            {renderSettingsItem(
+              Info,
+              'Impressum',
+              'Legal information and contact',
+              () => router.push('/impressum')
+            )}
+          </>
+        )}
+
+        {renderSettingsSection(
+          'Account',
+          <>
             {renderSettingsItem(
               LogOut,
               'Sign Out',

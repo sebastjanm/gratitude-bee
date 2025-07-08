@@ -19,9 +19,9 @@ const InitialLayout = () => {
     if (loading) return;
 
     const inTabsGroup = segments[0] === '(tabs)';
-    const inHelpScreen = segments[0] === 'help';
+    const inLegalScreens = ['help', 'terms', 'privacy', 'impressum'].includes(segments[0]);
 
-    if (session && !inTabsGroup && !inHelpScreen) {
+    if (session && !inTabsGroup && !inLegalScreens) {
       router.replace('/(tabs)');
     } else if (!session && inTabsGroup) {
       router.replace('/(auth)/auth');
@@ -33,6 +33,9 @@ const InitialLayout = () => {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="help" options={{ headerShown: false }} />
+      <Stack.Screen name="terms" options={{ headerShown: false }} />
+      <Stack.Screen name="privacy" options={{ headerShown: false }} />
+      <Stack.Screen name="impressum" options={{ headerShown: false }} />
     </Stack>
   );
 };
