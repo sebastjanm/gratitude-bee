@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "strict": true,
-    "jsx": "rreact-native",
+    "jsx": "react-native",
     "esModuleInterop": true,
     "baseUrl": ".",
     "paths": {
