@@ -347,3 +347,104 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
         *   Better mobile performance (smaller asset loading)
         *   Improved git repository hygiene
 *   **Next Step:** Final review and testing with fully optimized architecture. 
+
+---
+
+### **Step 20: Development Build Critical Debugging & Native Module Resolution**
+*   **Timestamp:** `2025-07-08T21:00:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   **CRITICAL DEBUGGING SESSION:** Resolved a complete development build failure where the app was stuck at splash screen, requiring comprehensive native module debugging and configuration fixes.
+    
+    *   **Initial Problem:**
+        *   Development build hung indefinitely at splash screen on both Android emulator and real device
+        *   Expo Go worked perfectly, indicating the issue was specific to development builds
+        *   No error messages visible to user, requiring deep debugging to identify root causes
+    
+    *   **Root Causes Discovered:**
+        
+        **1. Metro Bundler Port Conflict:**
+        *   Port 8081 was occupied by another process (pid 11950), preventing Metro from starting
+        *   Caused misleading ESM (ES Module) error messages that were red herrings
+        *   **Solution:** Identified and killed conflicting process with `lsof -ti :8081` and `kill -9`
+        
+        **2. TypeScript JSX Compilation Failure:**
+        *   Critical typo in `tsconfig.json`: `"jsx": "rreact-native"` (extra 'r')
+        *   Caused TypeScript to fail compiling all `.tsx` files with "Cannot use JSX unless the '--jsx' flag is provided"
+        *   Generated broken JavaScript bundle that development build couldn't execute
+        *   **Solution:** Fixed typo to `"jsx": "react-native"` in tsconfig.json
+        
+        **3. Missing Native Module: react-native-safe-area-context:**
+        *   `RNCSafeAreaProvider` component not found in ViewManagerResolver
+        *   Package was installed but not properly linked in development build
+        *   Caused `UIFrameGuarded` runtime exceptions when SafeAreaProvider components tried to render
+        *   **Solution:** Uninstalled and reinstalled with `npx expo install react-native-safe-area-context`, then rebuilt development build
+        
+        **4. Missing Native Module: react-native-screens:**
+        *   `RNSScreenContentWrapper` component not found in ViewManagerResolver
+        *   Required for Expo Router navigation to function properly
+        *   **Solution:** Ensured proper installation and rebuilt development build to include native module
+    
+    *   **Debugging Tools & Techniques Used:**
+        *   `adb logcat` for real-time Android device log monitoring
+        *   `adb devices` to manage connected devices and emulators
+        *   `npx tsc --noEmit` to verify TypeScript compilation
+        *   `lsof` and `ps aux` for process and port conflict detection
+        *   Metro bundler logs for JavaScript compilation verification
+        *   ViewManagerResolver native module inspection through device logs
+    
+    *   **Development Environment Configuration:**
+        *   **Android SDK Setup:** Configured Android Studio paths in shell environment
+            *   `ANDROID_HOME=~/Library/Android/sdk`
+            *   `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"`
+            *   Added platform-tools and emulator to PATH
+        *   **Emulator Management:** Set up Pixel 8 API 35 emulator for testing
+        *   **Device Testing:** Used real Android device (46071FDAS0005C) for final verification
+    
+    *   **Development Build Process:**
+        *   **Clean Build Required:** Native module changes necessitated complete rebuild with `npx expo run:android`
+        *   **Gradle Clean:** Used `./gradlew clean` to clear Android build cache
+        *   **Metro Cache Clear:** Used `--clear` flag to reset bundler cache
+        *   **APK Installation:** Manual APK installation to devices with proper version management
+    
+    *   **Critical Insights for Future Development:**
+        *   **Expo Go vs Development Build:** Expo Go bypasses TypeScript compilation and uses pre-built modules, masking issues that only appear in development builds
+        *   **Native Module Linking:** Expo SDK upgrades require rebuilding development builds to include updated native modules
+        *   **Port Conflicts:** Metro bundler conflicts can cause misleading error messages about ES modules or TypeScript
+        *   **Error Message Hierarchy:** Always resolve port/bundler issues first before investigating TypeScript or native module errors
+    
+    *   **Verification & Success Metrics:**
+        *   ✅ App launches past splash screen and displays main interface
+        *   ✅ SafeAreaProvider components render without ViewManagerResolver errors
+        *   ✅ Navigation screens (react-native-screens) function properly
+        *   ✅ Metro bundler connects successfully (http://192.168.178.48:8081)
+        *   ✅ Development build shows RESUMED state in Android activity manager
+        *   ✅ No UIFrameGuarded exceptions in device logs
+        *   ✅ Fast refresh and hot reloading working correctly
+    
+    *   **Build Configuration Updates:**
+        *   **tsconfig.json:** Fixed JSX compilation with correct `"jsx": "react-native"` setting
+        *   **Metro Config:** Enhanced with ESM compatibility settings for Node.js 22
+        *   **Babel Config:** Updated for React 19 and modern JSX transform
+        *   **Package Dependencies:** All packages properly installed via `npx expo install` for SDK compatibility
+    
+    *   **Performance Impact:**
+        *   Development build size increased slightly due to included native modules
+        *   App startup time improved significantly (no more splash screen hang)
+        *   Metro bundler connection stable and fast
+        *   Memory usage normal with proper native module linking
+    
+    *   **Documentation & Knowledge Transfer:**
+        *   Created comprehensive debugging log for future reference
+        *   Identified key tools and commands for similar issues
+        *   Documented the relationship between Expo Go, development builds, and native modules
+        *   Established debugging hierarchy: Port conflicts → TypeScript → Native modules
+    
+    *   **Architectural Lessons:**
+        *   **Development Build Necessity:** Custom native modules require development builds, not Expo Go
+        *   **Dependency Management:** Use `npx expo install` for all packages to ensure SDK compatibility
+        *   **Build Process:** Native module changes always require complete development build rebuild
+        *   **Environment Setup:** Proper Android SDK and Java environment critical for builds
+        *   **Error Diagnosis:** Start with infrastructure (ports, bundler) before investigating application code
+    
+*   **Next Step:** Full end-to-end testing of all application features with working development build, followed by production build verification. 
