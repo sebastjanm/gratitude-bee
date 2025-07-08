@@ -14,6 +14,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Heart, Star, Smile, Compass, MessageCircle, Award, Bug, X, CircleCheck as CheckCircle, Crown, Gift, Bell, HelpCircle } from 'lucide-react-native';
 import { supabase } from '@/utils/supabase';
+import { router } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
@@ -313,7 +314,7 @@ export default function BadgesScreen() {
             <Award color="#FF8C42" size={28} />
             <Text style={styles.title}>Your Badges</Text>
           </View>
-          <TouchableOpacity style={styles.headerButton}>
+          <TouchableOpacity style={styles.headerButton} onPress={() => router.push('/help')}>
             <HelpCircle color="#666" size={24} />
           </TouchableOpacity>
         </View>

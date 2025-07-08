@@ -10,12 +10,14 @@ import {
   Dimensions,
   Alert,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Heart, Star, Smile, Compass, MessageCircle, Filter, Calendar, Bug, X, CircleCheck as CheckCircle, Crown, Home as HomeIcon, Clock, HelpCircle } from 'lucide-react-native';
 import { useSession } from '@/providers/SessionProvider';
 import { supabase } from '@/utils/supabase';
+import { router } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
@@ -42,9 +44,9 @@ interface TimelineEvent {
 }
 
 const filterOptions = [
-  { id: 'all', name: 'All Events' },
-  { id: 'sent', name: 'Sent' },
   { id: 'received', name: 'Received' },
+  { id: 'sent', name: 'Sent' },
+  { id: 'all', name: 'All Events' },
 ];
 
 const categoryDetails: { [key: string]: { icon: any; color: string } } = {
@@ -100,13 +102,14 @@ const transformEvent = (e: any, currentUserId: string, usersMap: Map<string, str
 
 export default function TimelineScreen() {
   const { session } = useSession();
-  const [filter, setFilter] = useState<'all' | 'sent' | 'received'>('all');
+  const [filter, setFilter] = useState<'all' | 'sent' | 'received'>('received');
   const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const PAGE_SIZE = 10;
+  const [refreshing, setRefreshing] = useState(false);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -115,6 +118,11 @@ export default function TimelineScreen() {
       }
     }, [session, filter])
   );
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    fetchEvents(true).then(() => setRefreshing(false));
+  }, []);
 
   const fetchEvents = async (isInitialFetch = false) => {
     if (!session || (!isInitialFetch && (loadingMore || !hasMore))) return;
@@ -210,12 +218,32 @@ export default function TimelineScreen() {
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
     const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
-    if (diffInHours < 1) return 'Just now';
-    if (diffInHours < 24) return `${diffInHours}h ago`;
-    if (diffInHours < 48) return 'Yesterday';
-    
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    const intervals = {
+      year: 31536000,
+      month: 2592000,
+      week: 604800,
+      day: 86400,
+      hour: 3600,
+      minute: 60,
+    };
+
+    if (seconds < 60) return 'just now';
+    if (seconds < intervals.hour) {
+      const minutes = Math.floor(seconds / intervals.minute);
+      return `${minutes}m ago`;
+    }
+    if (seconds < intervals.day) {
+      const hours = Math.floor(seconds / intervals.hour);
+      return `${hours}h ago`;
+    }
+    if (seconds < intervals.week * 2) {
+      const days = Math.floor(seconds / intervals.day);
+      if (days === 1) return 'yesterday';
+      return `${days}d ago`;
+    }
+
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -351,7 +379,7 @@ export default function TimelineScreen() {
             <Clock color="#FF8C42" size={28} />
             <Text style={styles.title}>Timeline</Text>
           </View>
-          <TouchableOpacity style={styles.headerButton}>
+          <TouchableOpacity style={styles.headerButton} onPress={() => router.push('/help')}>
             <HelpCircle color="#666" size={24} />
           </TouchableOpacity>
         </View>
@@ -361,7 +389,13 @@ export default function TimelineScreen() {
         {renderSimpleFilters()}
       </View>
 
-      <ScrollView style={styles.timeline} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.timeline} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF8C42" />
+        }
+      >
         {loading ? (
           <ActivityIndicator size="large" color="#FF8C42" style={{ marginTop: 50 }} />
         ) : filteredEvents.length > 0 ? (

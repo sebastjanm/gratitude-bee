@@ -14,6 +14,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChartBar as BarChart3, TrendingUp, Calendar, Award, Heart, Bug, Target, Zap, Clock, Users, Filter, ChevronDown, HelpCircle } from 'lucide-react-native';
 import { supabase } from '@/utils/supabase';
+import { router } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
@@ -288,7 +289,7 @@ export default function AnalyticsScreen() {
             <BarChart3 color="#FF8C42" size={28} />
             <Text style={styles.title}>Analytics</Text>
           </View>
-          <TouchableOpacity style={styles.headerButton}>
+          <TouchableOpacity style={styles.headerButton} onPress={() => router.push('/help')}>
             <HelpCircle color="#666" size={24} />
           </TouchableOpacity>
         </View>

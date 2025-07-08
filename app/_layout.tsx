@@ -2,7 +2,7 @@
 // It sets up the root layout and session provider.
 
 import React, { useEffect } from 'react';
-import { Slot, router, useSegments } from 'expo-router';
+import { router, Slot, Stack, useSegments } from 'expo-router';
 import { SessionProvider, useSession } from '../providers/SessionProvider';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
@@ -27,7 +27,13 @@ const InitialLayout = () => {
     }
   }, [session, loading, segments]);
 
-  return <Slot />;
+  return (
+    <Stack>
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Screen name="help" options={{ presentation: 'modal', headerShown: false }} />
+    </Stack>
+  );
 };
 
 export default function RootLayout() {

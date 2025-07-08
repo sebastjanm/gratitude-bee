@@ -183,7 +183,7 @@ export default function ProfileScreen() {
             <User color="#FF8C42" size={28} />
             <Text style={styles.title}>Profile</Text>
           </View>
-          <TouchableOpacity style={styles.headerButton}>
+          <TouchableOpacity style={styles.headerButton} onPress={() => router.push('/help')}>
             <HelpCircleIcon color="#666" size={24} />
           </TouchableOpacity>
         </View>

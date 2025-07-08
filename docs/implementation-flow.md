@@ -170,4 +170,46 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
     *   **RLS Policies:** Resolved a critical bug preventing new user sign-ups by adding the necessary `INSERT` policies to the `users` and `wallets` tables. Provided a backfill script to sync existing `auth.users` with the `public.users` table after a database reset.
     *   **Invite Code UX:** Replaced non-user-friendly UUID invite codes with short, 8-character alphanumeric codes. Created a backfill script to update codes for existing users.
     *   **Clipboard API:** Fixed a native module crash (`RNCClipboard not found`) by replacing an incorrect third-party clipboard library with the official `expo-clipboard` package, removing the need for a custom development build.
-*   **Next Step:** Continued application monitoring and stability improvements. 
+*   **Next Step:** Continued application monitoring and stability improvements.
+
+---
+
+### **Step 16: Dependency Upgrade & Bug Fixes**
+*   **Timestamp:** `2025-07-08T00:00:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   Resolved a critical Metro bundler crash by upgrading all project dependencies to be compatible with **Expo SDK 53**. This included updating `react-native`, `expo-router`, `react`, and all `expo-*` packages.
+    *   Fixed a recurring bug by replacing all database queries targeting the non-existent `profiles` table with the correct `users` table across multiple files (`index.tsx`, `partner-link.tsx`, `profile.tsx`).
+    *   Resolved a `ReferenceError` for a missing `Home` icon import in `index.tsx`.
+*   **Next Step:** Comprehensive UI and layout review.
+
+---
+
+### **Step 17: Layout & HCI Polish**
+*   **Timestamp:** `2025-07-08T00:10:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   **Safe Areas:** Implemented `react-native-safe-area-context` across the app. Wrapped the root layout in a `SafeAreaProvider` and updated all screens to use `SafeAreaView`, ensuring content is not obscured by device notches or system bars.
+    *   **Edge-to-Edge:** Enabled a true edge-to-edge display on Android by configuring the `androidNavigationBar` in `app.json`.
+    *   **Login Screens:** Centered the content on the `auth.tsx` and `forgot-password.tsx` screens for better focus and visual balance. Implemented a platform-aware `KeyboardAvoidingView` to prevent the UI from being obscured by the keyboard on both iOS and Android.
+    *   **Back Arrow:** Correctly positioned the back arrow on the `forgot-password` screen to be independent of the keyboard and respect device-specific safe area insets.
+    *   **Tab Bar:** Refined the bottom tab bar spacing to meet Apple HIG and Android Material Design guidelines for touch targets, improving usability.
+*   **Next Step:** Refine home screen and timeline UI.
+
+---
+
+### **Step 18: UI & Feature Refinement**
+*   **Timestamp:** `2025-07-08T00:20:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   **Home Screen:** Replaced the generic stats view with a "Today's Stats" component that shows daily sent/received counts. Created and documented a new `get_daily_stats` SQL function and added it to a migration file.
+    *   **Timeline:**
+        *   Added "pull-to-refresh" functionality.
+        *   Reordered filters to `Received | Sent | All` and set the default view to "Received".
+        *   Improved timestamp formatting to be human-readable (e.g., "5m ago").
+        *   Enhanced timeline events to display the specific icon and point value for each appreciation.
+        *   Removed redundant "You sent/received" text for a cleaner look.
+    *   **Badges Screen:** Replaced the static "Gold" stat with a dynamic summary of all event types.
+    *   **Animations:** Added a pulsing animation to the heart icon on the login screen and a spring animation to the active tab bar icons for a more polished feel.
+    *   **Headers:** Added a consistent "Help" icon to all main tab screen headers.
+*   **Next Step:** Final review and testing. 

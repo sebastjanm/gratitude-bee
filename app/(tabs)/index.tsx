@@ -13,7 +13,7 @@ import {
   Easing,
   ActivityIndicator,
 } from 'react-native';
-import { Heart, Star, Smile, Compass, MessageCircle, HelpCircle, Award, Gift, Bell, Bug, Crown, Chrome as Home } from 'lucide-react-native';
+import { Heart, Star, Smile, Compass, MessageCircle, HelpCircle, Award, Gift, Bell, Bug, Crown, ArrowUpCircle, ArrowDownCircle, Home } from 'lucide-react-native';
 import { HandHeart } from 'lucide-react-native';
 import NegativeBadgeModal from '@/components/NegativeBadgeModal';
 import DontPanicModal from '@/components/DontPanicModal';
@@ -25,6 +25,7 @@ import TodayTip from '@/components/TodayTip';
 import PingModal from '@/components/PingModal';
 import { supabase } from '@/utils/supabase';
 import { useSession } from '@/providers/SessionProvider';
+import { router } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
@@ -46,11 +47,9 @@ const badgeCategoryConfig: Omit<BadgeCategory, 'count'>[] = [
 ];
 
 const statsConfig = [
-  { key: 'appreciations', name: 'Praises', icon: Award, color: '#4ECDC4' },
-  { key: 'favors', name: 'Favors', icon: Gift, color: '#FFD93D' },
-  { key: 'wisdom', name: 'Wisdom', icon: Crown, color: '#9B59B6' },
-  { key: 'pings', name: 'Pings', icon: Bell, color: '#6366F1' },
-  { key: 'hornets', name: 'Hornets', icon: Bug, color: '#FF4444' },
+  { key: 'sent_today', name: 'Sent Today', icon: ArrowUpCircle, color: '#4ECDC4' },
+  { key: 'received_today', name: 'Received Today', icon: ArrowDownCircle, color: '#FF6B9D' },
+  { key: 'favor_points', name: 'Favor Points', icon: Gift, color: '#FFD93D' },
 ];
 
 export default function HomeScreen() {
@@ -63,11 +62,9 @@ export default function HomeScreen() {
   const [favorPoints, setFavorPoints] = useState(45);
   const [heartAnimation] = useState(new Animated.Value(1));
   const [stats, setStats] = useState({
-    appreciations: 0,
-    favors: 0,
-    wisdom: 0,
-    pings: 0,
-    hornets: 0,
+    sent_today: 0,
+    received_today: 0,
+    favor_points: 0,
   });
   const [loadingStats, setLoadingStats] = useState(true);
   const { session } = useSession();
@@ -84,23 +81,19 @@ export default function HomeScreen() {
     if (!session?.user) return;
     setLoadingStats(true);
     
-    const { data, error } = await supabase
-      .from('events')
-      .select('event_type')
-      .eq('receiver_id', session.user.id);
+    const { data, error } = await supabase.rpc('get_daily_stats', {
+      p_user_id: session.user.id
+    });
 
     if (error) {
-      console.error('Error fetching stats:', error);
-      Alert.alert('Error', 'Could not fetch your stats.');
-    } else {
-      const newStats = {
-        appreciations: data.filter(e => e.event_type === 'APPRECIATION').length,
-        favors: data.filter(e => e.event_type === 'FAVOR_REQUEST').length,
-        wisdom: data.filter(e => e.event_type === 'WISDOM').length,
-        pings: 0, // Pings not implemented yet
-        hornets: data.filter(e => e.event_type === 'HORNET').length,
-      };
-      setStats(newStats);
+      console.error('Error fetching daily stats:', error);
+      Alert.alert('Error', 'Could not fetch your daily stats.');
+    } else if (data) {
+      setStats({
+        sent_today: data[0].sent_today,
+        received_today: data[0].received_today,
+        favor_points: data[0].favor_points,
+      });
     }
     setLoadingStats(false);
   };
@@ -328,6 +321,7 @@ export default function HomeScreen() {
 
   const renderStats = () => (
     <View style={styles.statsContainer}>
+      <Text style={styles.statsTitle}>Today's Stats <Text style={styles.statsSubtitle}>(restarts every 24 hours)</Text></Text>
       <View style={styles.statsGrid}>
         {statsConfig.map((stat) => {
           const Icon = stat.icon;
@@ -353,7 +347,7 @@ export default function HomeScreen() {
             <Home color="#FF8C42" size={28} />
             <Text style={styles.title}>Hi, <Text style={styles.headerName}>{userName}</Text></Text>
           </View>
-          <TouchableOpacity style={styles.headerButton}>
+          <TouchableOpacity style={styles.headerButton} onPress={() => router.push('/help')}>
             <HelpCircle color="#666" size={24} />
           </TouchableOpacity>
         </View>
@@ -670,19 +664,33 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 4,
   },
+  statsTitle: {
+    fontSize: 18,
+    fontFamily: 'Inter-SemiBold',
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  statsSubtitle: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    color: '#999',
+  },
 });
 
-// New Database Function to be created in Supabase SQL editor:
 /*
-CREATE OR REPLACE FUNCTION get_user_badge_collection(user_id_param uuid)
-RETURNS TABLE(category_id TEXT, count BIGINT) AS $$
+CREATE OR REPLACE FUNCTION get_daily_stats(p_user_id uuid)
+RETURNS TABLE(sent_today bigint, received_today bigint, favor_points integer) AS $$
 BEGIN
     RETURN QUERY
+    WITH daily_events AS (
+        SELECT * FROM events
+        WHERE created_at >= date_trunc('day', now()) AND created_at < date_trunc('day', now()) + interval '1 day'
+    )
     SELECT
-        (jsonb_array_elements(data.appreciation_points)->>'category_id')::text AS category_id,
-        (jsonb_array_elements(data.appreciation_points)->>'count')::bigint AS count
-    FROM
-        (SELECT appreciation_points FROM wallets WHERE user_id = user_id_param) AS data;
+        (SELECT count(*) FROM daily_events WHERE sender_id = p_user_id) AS sent_today,
+        (SELECT count(*) FROM daily_events WHERE receiver_id = p_user_id) AS received_today,
+        (SELECT w.favor_points FROM wallets w WHERE w.user_id = p_user_id) AS favor_points;
 END;
 $$ LANGUAGE plpgsql;
 */
