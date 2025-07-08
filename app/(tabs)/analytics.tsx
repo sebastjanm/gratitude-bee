@@ -151,45 +151,57 @@ export default function AnalyticsScreen() {
     </View>
   );
 
-  const renderWeeklyBreakdown = () => (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Weekly Breakdown</Text>
-      <View style={styles.weeklyChart}>
-        {weeklyData.map((week, index) => (
-          <View key={index} style={styles.weeklyBar}>
-            <View style={styles.barContainer}>
-              <View 
-                style={[
-                  styles.bar, 
-                  styles.positiveBar,
-                  { height: Math.max((week.positive / 25) * 80, 8) }
-                ]} 
-              />
-              <View 
-                style={[
-                  styles.bar, 
-                  styles.negativeBar,
-                  { height: Math.max((week.negative / 25) * 80, 4) }
-                ]} 
-              />
-            </View>
-            <Text style={styles.weekLabel}>{week.week}</Text>
-            <Text style={styles.weekTotal}>{week.total}</Text>
+  const renderWeeklyBreakdown = () => {
+    // Limit to last 7 weeks to prevent overflow
+    const displayData = weeklyData.slice(-7);
+    
+    return (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Weekly Breakdown</Text>
+        <View style={styles.weeklyChart}>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.weeklyChartContent}
+            style={styles.weeklyChartScroll}
+          >
+            {displayData.map((week, index) => (
+              <View key={index} style={styles.weeklyBar}>
+                <View style={styles.barContainer}>
+                  <View 
+                    style={[
+                      styles.bar, 
+                      styles.positiveBar,
+                      { height: Math.max((week.positive / 25) * 80, 8) }
+                    ]} 
+                  />
+                  <View 
+                    style={[
+                      styles.bar, 
+                      styles.negativeBar,
+                      { height: Math.max((week.negative / 25) * 80, 4) }
+                    ]} 
+                  />
+                </View>
+                <Text style={styles.weekLabel}>{week.week}</Text>
+                <Text style={styles.weekTotal}>{week.total}</Text>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+        <View style={styles.chartLegend}>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: '#4ECDC4' }]} />
+            <Text style={styles.legendText}>Positive</Text>
           </View>
-        ))}
-      </View>
-      <View style={styles.chartLegend}>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#4ECDC4' }]} />
-          <Text style={styles.legendText}>Positive</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#FF4444' }]} />
-          <Text style={styles.legendText}>Hornets</Text>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: '#FF4444' }]} />
+            <Text style={styles.legendText}>Hornets</Text>
+          </View>
         </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   const renderCategoryBreakdown = () => (
     <View style={styles.section}>
@@ -483,9 +495,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 16,
     padding: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'flex-end',
     height: 140,
     marginBottom: 16,
     shadowColor: '#000',
@@ -494,9 +503,18 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
+  weeklyChartScroll: {
+    flex: 1,
+  },
+  weeklyChartContent: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    paddingHorizontal: 10,
+  },
   weeklyBar: {
     alignItems: 'center',
-    flex: 1,
+    width: 50,
+    marginHorizontal: 8,
   },
   barContainer: {
     height: 80,
