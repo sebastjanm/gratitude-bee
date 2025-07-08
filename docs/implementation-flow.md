@@ -257,4 +257,41 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
         *   Reduced potential for camera-related crashes or compatibility issues
         *   Faster build times due to fewer native dependencies
         *   No Firebase configuration required for new environments
-*   **Next Step:** Final review and testing with simplified architecture. 
+*   **Next Step:** Continue dependency cleanup by removing unused audio/video packages.
+
+---
+
+### **Step 19b: Audio/Video Dependencies Cleanup**
+*   **Timestamp:** `2025-01-16T00:10:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   **Additional Package Removal:** Continued architectural simplification by removing unused audio/video functionality.
+    *   **Package Removed:**
+        *   `expo-av` (~15.1.7) - 1.8MB audio/video library
+        *   1 additional package removed from node_modules
+    *   **Analysis Performed:**
+        *   Comprehensive codebase scan for audio/video usage (`Audio`, `Video`, `Sound`, `Play`, `av`)
+        *   Verified zero imports or references to expo-av functionality
+        *   Confirmed no audio/video features planned or implemented
+    *   **Rationale:**
+        *   GratitudeBee is a text-based messaging app with no audio/video requirements
+        *   1.8MB bundle size reduction with zero functionality loss
+        *   Eliminates potential audio permission complexities
+        *   Follows principle of keeping dependencies minimal and purposeful
+        *   No future audio/video features planned in current roadmap
+    *   **Impact:**
+        *   Faster app downloads and installations
+        *   Reduced memory footprint
+        *   Cleaner dependency tree
+        *   No audio-related permission prompts or app store review complications
+    *   **Other Packages Analyzed but Retained:**
+        *   `react-native-webview` (992KB) - Currently used for SadCatCard animated GIF display
+        *   `expo-dev-client` (208KB) - Required for development builds
+        *   `@expo-google-fonts/inter` + `expo-font` - Extensively used throughout app UI
+        *   `expo-linear-gradient` - Used in multiple components (FavorsModal, badges, timeline, analytics)
+    *   **Total Cleanup Summary (Steps 19 + 19b):**
+        *   40 packages removed total
+        *   ~3.6MB bundle size reduction
+        *   Eliminated camera, audio/video, and Firebase dependencies
+        *   Significantly simplified app architecture and permissions
+*   **Next Step:** Final review and testing with fully simplified architecture. 
