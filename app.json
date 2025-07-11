@@ -30,6 +30,7 @@
         "backgroundColor": "#FFF8F0"
       },
       "package": "com.gratitudebee",
+      "edgeToEdge": true,
       "statusBar": {
         "barStyle": "dark-content",
         "backgroundColor": "#FFF8F0",
@@ -68,9 +69,6 @@
         {
           "icon": "./assets/images/icon.png",
           "color": "#FF8C42",
-          "sounds": [
-            "./assets/notification.wav"
-          ],
           "iosDisplayInForeground": true
         }
       ],
