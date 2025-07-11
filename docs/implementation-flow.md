@@ -448,3 +448,34 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
         *   **Error Diagnosis:** Start with infrastructure (ports, bundler) before investigating application code
     
 *   **Next Step:** Full end-to-end testing of all application features with working development build, followed by production build verification. 
+
+---
+
+### **Step 21: Push Notification System Overhaul & Debugging**
+*   **Timestamp:** `2025-07-09T00:00:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   **CRITICAL END-TO-END DEBUGGING:** Executed a deep debugging process to resolve a complete failure of the push notification system, from initial setup to partner-to-partner delivery.
+    
+    *   **Android `InvalidCredentials` Fix:**
+        *   **Problem:** Android push notifications failed with an `InvalidCredentials` error, while iOS worked.
+        *   **Root Cause:** The project was configured with a deprecated FCM Legacy API key. Expo's modern backend requires a newer FCM v1 Service Account JSON key.
+        *   **Solution:** Bypassed a faulty `eas-cli` credentials manager by manually uploading the correct FCM v1 JSON key directly through the EAS (Expo Application Services) web dashboard and rebuilding the application. This immediately resolved the credentialing issue.
+
+    *   **Partner-to-Partner Notification Implementation & Debugging:**
+        *   **Goal:** Enable users to receive instant notifications when their partner sends them an event (e.g., appreciation, favor).
+        *   **Initial Setup:** A `send-notification` Supabase Edge Function was designed to be triggered by new entries in the `events` table.
+        
+        *   **Multi-Stage Bug Resolution:**
+            1.  **Function Deployment:** Discovered that the `send-notification` and `connect-partner` Edge Functions were never deployed, causing initial `404 Not Found` errors. **Solution:** Deployed all functions using the Supabase CLI.
+            2.  **Database Trigger Fix:** Corrected the SQL database trigger to ensure it passed the complete event payload to the `send-notification` function.
+            3.  **Data Model Mismatch:** Uncovered the primary architectural flaw: the app stored push tokens in the `public.users` table, while the backend functions were incorrectly attempting to query a non-existent `profiles` table. **Solution:** Rewrote all database queries in both Edge Functions to target the correct `users` table.
+            4.  **Deno Runtime Incompatibility:** After fixing the data model, a `TypeError: C.Headers is not a constructor` error emerged. This was traced to a fundamental incompatibility between the `expo-server-sdk` and the Deno runtime environment used by Supabase Edge Functions.
+            5.  **Architectural Shift:** To resolve the incompatibility, the `expo-server-sdk` dependency was completely removed from the `send-notification` function. The logic was rewritten to use the native `fetch` API, making direct POST requests to Expo's push notification endpoint. This created a more robust, dependency-free notification sender.
+
+    *   **Key Architectural Outcomes:**
+        *   **Unified Push Credentials:** Standardized on FCM v1 for both iOS and Android.
+        *   **Decoupled Backend:** The `send-notification` function is now a lean, self-contained utility with no external SDK dependencies, making it more resilient to runtime environment changes.
+        *   **Corrected Data Flow:** Ensured a consistent data model where both the client application and backend services correctly reference the `users` table for all user-related data, including push tokens.
+
+*   **Next Step:** Perform final regression testing on all notification-triggering events (appreciations, favors, hornets, etc.) to ensure system-wide stability. 
