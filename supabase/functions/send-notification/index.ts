@@ -59,15 +59,15 @@ Deno.serve(async (req) => {
 
     } else if (event.event_type === 'PING_SENT') {
        title = `${event.content.title}`;
-       body = event.content.description || 'They are trying to reach you.';
+       body = event.content.description || 'Trying to reach you.';
     
     } else if (event.event_type === 'DONT_PANIC') {
       title = event.content.title;
-      body = `${event.content.description}, ${sender.display_name} sent you a calming thought ❤️`;
+      body = `${event.content.description}`;
     
     } else if (event.event_type === 'WISDOM') {
       title = event.content.title;
-      body = `${event.content.description}, ${sender.display_name} is th you some wisdom ✨`;
+      body = `${event.content.description}, ${sender.display_name} is thinking of you.`;
     }
 
     const message = {

@@ -37,14 +37,14 @@ const pingOptions: PingOption[] = [
   },
   {
     id: 'worried',
-    title: 'A bit worried',
-    description: 'Please text back when you get a chance.',
+    title: 'I\'m a bit worried',
+    description: 'Alles gut? Please text back when you get a chance.',
     icon: '😟',
     color: '#F59E0B',
   },
   {
     id: 'urgent',
-    title: 'URGENT: Are you safe?',
+    title: 'URGENT: Are you safe and okay?',
     description: 'Please let me know you are okay as soon as possible.',
     icon: '🚨',
     color: '#EF4444',
@@ -52,7 +52,7 @@ const pingOptions: PingOption[] = [
   {
     id: 'hornet-alert',
     title: 'Hornet Alert',
-    description: 'This is the final warning. A storm is coming.',
+    description: 'This is the final warning. Call or text me back asap.',
     icon: '☣️',
     color: '#DC2626',
   },
