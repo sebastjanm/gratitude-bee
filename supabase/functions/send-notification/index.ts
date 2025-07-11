@@ -16,7 +16,6 @@ Deno.serve(async (req) => {
 
   try {
     const { record: event } = await req.json();
-    console.log('Received event:', JSON.stringify(event, null, 2));
 
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -31,15 +30,21 @@ Deno.serve(async (req) => {
       console.error(`Receiver ${event.receiver_id} does not have a push token.`);
       return new Response('ok: No token for receiver');
     }
-    
-    console.log(`Found push token for receiver ${event.receiver_id}: ${receiver.expo_push_token}`);
 
-    let title = 'New Appreciation!';
-    let body = `${sender.display_name} sent you a badge.`;
+    let title = 'New message!';
+    let body = `${sender.display_name} sent you a message.`;
 
     if (event.event_type === 'APPRECIATION') {
-      title = `You received a ${event.content.title} badge!`;
-      body = `${sender.display_name} is thinking of you.`;
+      title = event.content.title || 'New Appreciation';
+      if (event.content.points && event.content.points_icon) {
+        title += ` (+${event.content.points} ${event.content.points_icon})`;
+      }
+      
+      if (event.content.description) {
+        body = `${event.content.description}. ${sender.display_name} is thinking of you.`;
+      } else {
+        body = `${sender.display_name} is thinking of you.`;
+      }
     } else if (event.event_type === 'FAVOR_REQUEST') {
       title = 'New Favor Request';
       body = `${sender.display_name} has requested a favor: "${event.content.title}"`;
@@ -50,8 +55,8 @@ Deno.serve(async (req) => {
       title = `A message from ${sender.display_name}`;
       body = event.content.message;
     } else if (event.event_type === 'WISDOM') {
-      title = `A little wisdom from ${sender.display_name}`;
-      body = event.content.title;
+      title = event.content.title || 'A little wisdom from';
+      body = event.content.description || `${sender.display_name} is thinking of you.`;
     }
 
     const message = {

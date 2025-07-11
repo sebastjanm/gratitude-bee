@@ -141,7 +141,16 @@ export default function HomeScreen() {
     animateHeart();
   }, [heartAnimation]);
 
-  const handleSendBadge = async (categoryId: string, badgeId: string, badgeTitle: string, badgeIcon: string, points: number, pointsIcon: string) => {
+  const handleSendBadge = async (
+    categoryId: string, 
+    badgeId: string, 
+    badgeTitle: string, 
+    badgeIcon: string, 
+    points: number, 
+    pointsIcon: string,
+    description?: string,
+    notificationText?: string
+  ) => {
     if (!session) {
       Alert.alert('Not authenticated', 'You must be logged in to send a badge.');
       return;
@@ -170,6 +179,8 @@ export default function HomeScreen() {
           icon: badgeIcon,
           points: points,
           points_icon: pointsIcon,
+          description: description,
+          notification_text: notificationText,
         },
       },
     ]);

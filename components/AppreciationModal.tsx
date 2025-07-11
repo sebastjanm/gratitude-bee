@@ -27,6 +27,17 @@ interface BadgeOption {
   icon: string;
 }
 
+interface SubCategoryItem {
+  id: string;
+  title: string;
+  description: string;
+  points: number;
+  points_icon: string;
+  point_unit: string;
+  icon: string;
+  notification_text?: string;
+}
+
 interface SubCategory {
   id: string;
   name: string;
@@ -38,7 +49,7 @@ interface SubCategory {
 interface AppreciationModalProps {
   visible: boolean;
   onClose: () => void;
-  onSendBadge: (categoryId: string, badgeId: string, badgeTitle: string, badgeIcon: string, points: number, pointsIcon: string) => void;
+  onSendBadge: (categoryId: string, badgeId: string, badgeTitle: string, badgeIcon: string, points: number, pointsIcon: string, description: string, notificationText: string) => void;
 }
 
 // Hardcoded data is removed. We will fetch this from Supabase.
@@ -93,6 +104,7 @@ export default function AppreciationModal({
                   point_unit: badge.point_unit,
                   points_icon: badge.points_icon,
                   icon: badge.icon,
+                  notification_text: badge.notification_text,
               });
           }
       });
@@ -114,7 +126,9 @@ export default function AppreciationModal({
         selectedBadge.title,
         selectedBadge.icon,
         selectedBadge.points,
-        selectedBadge.points_icon
+        selectedBadge.points_icon,
+        selectedBadge.description,
+        selectedBadge.notification_text
       );
       handleClose();
     }

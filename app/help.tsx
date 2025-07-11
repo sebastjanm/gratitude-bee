@@ -1,16 +1,10 @@
-// Updated Help screen with categorized FAQs and embedded video guides
-// - Split into FAQ categories (Getting Started, Features, Points System, Troubleshooting)
-// - Added category cards that open detailed FAQ lists
-// - Implemented embedded video playback using expo-av
-// - Added navigation between category overview and detail views
-// - Improved UI with better spacing, shadows, and interactive elements
-
+// Update: Replaced deprecated 'expo-av' with 'expo-video' to resolve deprecation warning.
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Platform, Modal, Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { ArrowLeft, HelpCircle, Video, MessageSquare, Users, Heart, Settings, Gift, Play, X, ChevronRight } from 'lucide-react-native';
-import { Video as ExpoVideo, ResizeMode } from 'expo-av';
+import { Video as ExpoVideo, ResizeMode } from 'expo-video';
 
 const { width } = Dimensions.get('window');
 

@@ -479,3 +479,44 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
         *   **Corrected Data Flow:** Ensured a consistent data model where both the client application and backend services correctly reference the `users` table for all user-related data, including push tokens.
 
 *   **Next Step:** Perform final regression testing on all notification-triggering events (appreciations, favors, hornets, etc.) to ensure system-wide stability. 
+
+---
+
+### **Step 22: Advanced Push Notification Debugging & Cross-Platform Refinement**
+*   **Timestamp:** `2025-07-11T20:00:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   **COMPLEX DEBUGGING SESSION:** Resolved a stubborn issue where push notifications were not updating to a new, richer format despite successful function deployments. This required a multi-stage investigation that went beyond the application code.
+    
+    *   **Initial Problem:**
+        *   A new notification format (with title, subtitle, body, points, and icon) was implemented in the `send-notification` function.
+        *   Despite multiple successful deployments, the user's device (a Google Pixel) continued to receive notifications in the old format.
+
+    *   **Root Causes Discovered:**
+        
+        **1. Critical Project Mismatch:**
+        *   The primary cause of the failure was a mismatch between the local development environment and the production app's configuration.
+        *   The local Supabase CLI was linked to a test project (`pmeddntmeuwvnxytwlav`), while the application's database trigger was correctly pointing to the production project (`scdvcmxewjwkbvvcadhz`).
+        *   This meant all function deployments were being sent to the wrong project and were never executed by the app.
+        *   **Solution:** Re-authenticated the Supabase CLI and correctly linked the local environment to the production project (`scdvcmxewjwkbvvcadhz`).
+
+        **2. Android `subtitle` Field Incompatibility:**
+        *   After fixing the project mismatch, the notification appeared but was missing the points and icon.
+        *   Server-side logs confirmed the complete notification payload (including a `subtitle` with points) was being sent correctly.
+        *   Client-side logs on the Google Pixel device showed that the `subtitle` field was arriving as `null`.
+        *   **Conclusion:** The `subtitle` field in push notifications, while supported on iOS, is not reliably supported on Android and was being stripped out by the push notification service or the OS.
+
+    *   **Final Solution & Architectural Refinement:**
+        *   The `send-notification` function was refactored to be fully cross-platform compatible.
+        *   The `subtitle` field was removed entirely.
+        *   All information was consolidated into the universally supported `title` and `body` fields.
+        *   **Final Format:**
+            *   `title`: "[Badge Title] (+[Points] [Icon])"
+            *   `body`: "[Badge Description]. [Sender's Name] is thinking of you."
+
+    *   **Key Architectural Lessons:**
+        *   **Verify Environment Parity:** Always ensure the local development environment (CLI links, environment variables) perfectly matches the target deployment environment (app config, database triggers).
+        *   **Cross-Platform Push Payloads:** Design notification payloads for the lowest common denominator. Rely only on fields like `title` and `body` that are universally supported across iOS and Android to ensure a consistent user experience. Avoid platform-specific fields like `subtitle` for critical information.
+        *   **Trust But Verify Deployments:** When a deployment seems to have no effect, use logging to verify that the new code is actually being executed.
+
+*   **Next Step:** Monitor application stability and continue with final testing. 
