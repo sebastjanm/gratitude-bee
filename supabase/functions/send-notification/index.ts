@@ -45,18 +45,29 @@ Deno.serve(async (req) => {
       } else {
         body = `${sender.display_name} is thinking of you.`;
       }
+      
     } else if (event.event_type === 'FAVOR_REQUEST') {
-      title = 'New Favor Request';
-      body = `${sender.display_name} has requested a favor: "${event.content.title}"`;
+      title = `${event.content.title}`;
+      if (event.content.points) {
+        title += ` (${event.content.points} pts)`;
+      }
+      
+      body = `${sender.display_name} has requested a favor.`;
+      if (event.content.description) {
+        body = `${event.content.description}. ${body}`;
+      }
+
     } else if (event.event_type === 'PING_SENT') {
-       title = `Ping from ${sender.display_name}`;
-       body = event.content.title;
+       title = `${event.content.title}`;
+       body = event.content.description || 'They are trying to reach you.';
+    
     } else if (event.event_type === 'DONT_PANIC') {
-      title = `A message from ${sender.display_name}`;
-      body = event.content.message;
+      title = event.content.title;
+      body = `${event.content.description}, ${sender.display_name} sent you a calming thought ❤️`;
+    
     } else if (event.event_type === 'WISDOM') {
-      title = event.content.title || 'A little wisdom from';
-      body = event.content.description || `${sender.display_name} is thinking of you.`;
+      title = event.content.title;
+      body = `${event.content.description}, ${sender.display_name} is th you some wisdom ✨`;
     }
 
     const message = {

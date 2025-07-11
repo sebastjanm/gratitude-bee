@@ -37,7 +37,7 @@ const categoryDetails = {
 interface FavorsModalProps {
   visible: boolean;
   onClose: () => void;
-  onSendFavor: (favorId: string, favorTitle: string, points: number, customMessage?: string) => void;
+  onSendFavor: (favorId: string, favorTitle: string, points: number, description: string, customMessage?: string) => void;
   currentFavorPoints: number;
 }
 
@@ -90,7 +90,13 @@ export default function FavorsModal({
 
   const handleSendFavor = () => {
     if (selectedFavor) {
-      onSendFavor(selectedFavor.id, selectedFavor.title, selectedFavor.points, customMessage);
+      onSendFavor(
+        selectedFavor.id,
+        selectedFavor.title,
+        selectedFavor.points,
+        selectedFavor.description,
+        customMessage
+      );
       handleClose();
     }
   };

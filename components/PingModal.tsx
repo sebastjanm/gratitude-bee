@@ -24,7 +24,7 @@ interface PingOption {
 interface PingModalProps {
   visible: boolean;
   onClose: () => void;
-  onSendPing: (pingId: string, pingTitle: string) => void;
+  onSendPing: (pingId: string, pingTitle: string, description: string) => void;
 }
 
 const pingOptions: PingOption[] = [
@@ -72,7 +72,7 @@ export default function PingModal({
 
   const handleSend = () => {
     if (selectedPing) {
-      onSendPing(selectedPing.id, selectedPing.title);
+      onSendPing(selectedPing.id, selectedPing.title, selectedPing.description);
       handleClose();
     }
   };

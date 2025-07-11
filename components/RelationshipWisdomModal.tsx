@@ -24,7 +24,7 @@ interface WisdomOption {
 interface RelationshipWisdomModalProps {
   visible: boolean;
   onClose: () => void;
-  onSendWisdom: (wisdomId: string, wisdomTitle: string) => void;
+  onSendWisdom: (wisdomId: string, wisdomTitle: string, wisdomDescription: string) => void;
 }
 
 const wisdomOptions: WisdomOption[] = [
@@ -72,7 +72,7 @@ export default function RelationshipWisdomModal({
 
   const handleSendWisdom = () => {
     if (selectedWisdom) {
-      onSendWisdom(selectedWisdom.id, selectedWisdom.title);
+      onSendWisdom(selectedWisdom.id, selectedWisdom.title, selectedWisdom.description);
       handleClose();
     }
   };

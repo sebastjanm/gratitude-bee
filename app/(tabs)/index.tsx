@@ -197,7 +197,7 @@ export default function HomeScreen() {
     }
   };
 
-  const handleSendFavor = async (favorId: string, favorTitle: string, points: number, customMessage?: string) => {
+  const handleSendFavor = async (favorId: string, favorTitle: string, points: number, description: string, customMessage?: string) => {
     if (!session) {
       Alert.alert('Not authenticated', 'You must be logged in to request a favor.');
       return;
@@ -245,6 +245,7 @@ export default function HomeScreen() {
           favor_id: favorId,
           title: favorTitle,
           points,
+          description,
           message: customMessage,
         },
       },
@@ -315,7 +316,7 @@ export default function HomeScreen() {
         sender_id: session.user.id,
         receiver_id: partnerData.partner_id,
         event_type: 'DONT_PANIC',
-        content: { title: quickResponse, message },
+        content: { title: quickResponse, message, description: message },
       },
     ]);
 
@@ -323,7 +324,7 @@ export default function HomeScreen() {
     else Alert.alert('Message Sent', 'Your calming message has been sent.');
   };
 
-  const handleSendWisdom = async (wisdomId: string, wisdomTitle: string) => {
+  const handleSendWisdom = async (wisdomId: string, wisdomTitle: string, wisdomDescription: string) => {
     if (!session) return;
     const { data: partnerData } = await supabase.from('users').select('partner_id').eq('id', session.user.id).single();
     if (!partnerData?.partner_id) return;
@@ -333,21 +334,32 @@ export default function HomeScreen() {
         sender_id: session.user.id,
         receiver_id: partnerData.partner_id,
         event_type: 'WISDOM',
-        content: { wisdom_id: wisdomId, title: wisdomTitle },
+        content: { wisdom_id: wisdomId, title: wisdomTitle, description: wisdomDescription },
       },
     ]);
     if (error) Alert.alert('Error', 'Could not send the wisdom.');
     else Alert.alert('Wisdom Sent', 'Your wise words have been shared.');
   };
 
-  const handleSendPing = (pingId: string, pingTitle: string) => {
-    // Mock ping sending
-    console.log(`Sending ${pingTitle} ping to partner`);
-    Alert.alert(
-      'Ping Sent!',
-      `Your "${pingTitle}" ping has been sent to your partner.`,
-      [{ text: 'OK' }]
-    );
+  const handleSendPing = async (pingId: string, pingTitle: string, description: string) => {
+    if (!session) return;
+    const { data: partnerData } = await supabase.from('users').select('partner_id').eq('id', session.user.id).single();
+    if (!partnerData?.partner_id) return;
+
+    const { error } = await supabase.from('events').insert([
+      {
+        sender_id: session.user.id,
+        receiver_id: partnerData.partner_id,
+        event_type: 'PING_SENT',
+        content: { ping_id: pingId, title: pingTitle, description: description },
+      },
+    ]);
+
+    if (error) {
+      Alert.alert('Error', 'Could not send the ping.');
+    } else {
+      Alert.alert('Ping Sent!', `Your "${pingTitle}" ping has been sent.`);
+    }
   };
 
   const shouldShowSadCat = () => {
@@ -497,6 +509,8 @@ export default function HomeScreen() {
         onClose={() => setShowPingModal(false)}
         onSendPing={handleSendPing}
       />
+      
+      <SadCatCard isVisible={shouldShowSadCat()} />
     </View>
   );
 }
