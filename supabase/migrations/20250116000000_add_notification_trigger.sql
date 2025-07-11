@@ -5,18 +5,25 @@
 -- Create a function that calls the notification edge function
 CREATE OR REPLACE FUNCTION public.send_push_notification()
 RETURNS TRIGGER AS $$
+DECLARE
+  project_url TEXT := 'https://scdvcmxewjwkbvvcadhz.supabase.co';
+  service_role_key TEXT := 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjZHZjbXhld2p3a2J2dmNhZGh6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MTgyMTAwOCwiZXhwIjoyMDY3Mzk3MDA4fQ.nNUQog4AtvAO8t4NLWyF0FZHDdTsoDEFM6kEZFSaHKo';
 BEGIN
+  RAISE LOG '[Push Notification Trigger] Fired for event ID: %', NEW.id;
   -- Only send notifications for events that have a receiver
   IF NEW.receiver_id IS NOT NULL THEN
+    RAISE LOG '[Push Notification Trigger] Receiver ID found: %. Calling Edge Function.', NEW.receiver_id;
     -- Call the edge function asynchronously using pg_net
     PERFORM net.http_post(
-      url := 'https://scdvcmxewjwkbvvcadhz.supabase.co/functions/v1/send-notification',
+      url := project_url || '/functions/v1/send-notification',
       headers := jsonb_build_object(
         'Content-Type', 'application/json',
-        'Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjZHZjbXhld2p3a2J2dmNhZGh6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MTgyMTAwOCwiZXhwIjoyMDY3Mzk3MDA4fQ.nNUQog4AtvAO8t4NLWyF0FZHDdTsoDEFM6kEZFSaHKo'
+        'Authorization', 'Bearer ' || service_role_key
       ),
-      body := jsonb_build_object('eventId', NEW.id)
+      body := jsonb_build_object('record', row_to_json(NEW))
     );
+  ELSE
+    RAISE LOG '[Push Notification Trigger] Receiver ID is NULL. Skipping notification.';
   END IF;
   
   RETURN NEW;

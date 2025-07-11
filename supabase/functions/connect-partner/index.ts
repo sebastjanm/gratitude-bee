@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
 
     // Find the partner with the given invite code
     const { data: partner, error: partnerError } = await supabaseAdmin
-      .from('profiles')
+      .from('users')
       .select('id, display_name')
       .eq('invite_code', inviteCode)
       .single();
@@ -49,12 +49,12 @@ Deno.serve(async (req) => {
 
     // Link the two users
     await supabaseAdmin
-      .from('profiles')
+      .from('users')
       .update({ partner_id: partner.id })
       .eq('id', user.id);
       
     await supabaseAdmin
-      .from('profiles')
+      .from('users')
       .update({ partner_id: user.id })
       .eq('id', partner.id);
 

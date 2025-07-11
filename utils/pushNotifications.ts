@@ -10,7 +10,9 @@ import { supabase } from './supabase';
 // Configure how notifications are handled when app is in foreground
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
+    shouldShowAlert: true, // For backwards compatibility
+    shouldShowBanner: true, // For iOS 14+
+    shouldShowList: true, // For Android
     shouldPlaySound: true,
     shouldSetBadge: false,
   }),
@@ -117,6 +119,6 @@ export function cleanupNotificationListeners(listeners: {
   notificationListener: Notifications.Subscription;
   responseListener: Notifications.Subscription;
 }) {
-  Notifications.removeNotificationSubscription(listeners.notificationListener);
-  Notifications.removeNotificationSubscription(listeners.responseListener);
+  listeners.notificationListener.remove();
+  listeners.responseListener.remove();
 } 

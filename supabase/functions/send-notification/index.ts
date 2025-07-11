@@ -2,7 +2,6 @@
 // It contains the Supabase Edge Function for sending push notifications.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { Expo } from 'https://esm.sh/expo-server-sdk@3.7.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -17,22 +16,23 @@ Deno.serve(async (req) => {
 
   try {
     const { record: event } = await req.json();
+    console.log('Received event:', JSON.stringify(event, null, 2));
 
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
     
-    const expo = new Expo();
-
     // Fetch sender and receiver profiles
-    const { data: sender } = await supabaseAdmin.from('profiles').select('display_name').eq('id', event.sender_id).single();
-    const { data: receiver } = await supabaseAdmin.from('profiles').select('expo_push_token').eq('id', event.receiver_id).single();
+    const { data: sender } = await supabaseAdmin.from('users').select('display_name').eq('id', event.sender_id).single();
+    const { data: receiver } = await supabaseAdmin.from('users').select('expo_push_token').eq('id', event.receiver_id).single();
 
     if (!receiver?.expo_push_token) {
-      console.log('Receiver does not have a push token.');
-      return new Response('ok');
+      console.error(`Receiver ${event.receiver_id} does not have a push token.`);
+      return new Response('ok: No token for receiver');
     }
+    
+    console.log(`Found push token for receiver ${event.receiver_id}: ${receiver.expo_push_token}`);
 
     let title = 'New Appreciation!';
     let body = `${sender.display_name} sent you a badge.`;
@@ -61,8 +61,25 @@ Deno.serve(async (req) => {
       body,
       data: { eventId: event.id },
     };
+    
+    console.log('Constructed notification message:', JSON.stringify(message, null, 2));
 
-    await expo.sendPushNotificationsAsync([message]);
+    try {
+      const res = await fetch('https://exp.host/--/api/v2/push/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Accept-Encoding': 'gzip, deflate',
+        },
+        body: JSON.stringify([message]),
+      });
+      
+      const ticket = await res.json();
+      console.log('Received push ticket from Expo:', JSON.stringify(ticket, null, 2));
+    } catch (error) {
+      console.error('Error sending push notification via fetch:', error);
+    }
 
     return new Response('ok');
 
