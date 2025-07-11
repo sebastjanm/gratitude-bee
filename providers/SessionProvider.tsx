@@ -1,11 +1,18 @@
 // This file was created by the assistant.
 // It contains the session provider for managing user authentication state.
+// Updated to include push notification registration.
 
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { supabase } from '@/utils/supabase';
 import { Session } from '@supabase/supabase-js';
+import { 
+  registerForPushNotificationsAsync, 
+  savePushTokenToSupabase, 
+  setupNotificationListeners,
+  cleanupNotificationListeners
+} from '@/utils/pushNotifications';
 
 const SessionContext = createContext<{ session: Session | null; loading: boolean }>({
   session: null,
@@ -37,6 +44,37 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
       authListener.subscription.unsubscribe();
     };
   }, []);
+
+  // Setup push notifications when user signs in
+  useEffect(() => {
+    let notificationListeners: any = null;
+
+    const setupPushNotifications = async () => {
+      if (session?.user) {
+        console.log('🔔 Setting up push notifications for user:', session.user.id);
+        
+        // Register for push notifications and get token
+        const token = await registerForPushNotificationsAsync();
+        
+        if (token) {
+          // Save token to Supabase
+          await savePushTokenToSupabase(token, session.user.id);
+        }
+        
+        // Setup notification listeners
+        notificationListeners = setupNotificationListeners();
+      }
+    };
+
+    setupPushNotifications();
+
+    return () => {
+      // Clean up notification listeners
+      if (notificationListeners) {
+        cleanupNotificationListeners(notificationListeners);
+      }
+    };
+  }, [session?.user?.id]);
 
   return (
     <SessionContext.Provider value={{ session, loading }}>
