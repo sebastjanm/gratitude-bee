@@ -47,8 +47,25 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     }
 
     const { actionIdentifier } = response;
-    const { categoryIdentifier } = notification.request.content;
-    const { sender_id, recipient_id, title, body, alreadyThanked } = notification.request.content.data as any;
+    const { categoryIdentifier, title: notificationTitle } = notification.request.content; // Use the main notification title for the sender's name
+
+    const { event, alreadyThanked } = notification.request.content.data as any;
+    const sender_id = event?.sender_id;
+    const recipient_id = event?.receiver_id;
+    const title = event?.content?.title; // This is the badge title
+    const body = event?.content?.description;
+    const points = event?.content?.points;
+    const icon = event?.content?.icon;
+    const created_at = event?.created_at;
+    
+    // Extract sender's name from the notification title string
+    let senderName = 'Your partner';
+    if (typeof notificationTitle === 'string') {
+        const match = notificationTitle.match(/from (.*?) !/);
+        if (match && match[1]) {
+            senderName = match[1];
+        }
+    }
 
     console.log('[NotificationProvider] Checking category:', categoryIdentifier);
     if (categoryIdentifier?.toLowerCase().startsWith('appreciation')) {
@@ -77,6 +94,10 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
             sender_id,
             recipient_id,
             alreadyThanked: (alreadyThanked === 'true' || alreadyThanked === true).toString(),
+            points: points?.toString(),
+            icon,
+            created_at,
+            senderName,
           },
         });
       }

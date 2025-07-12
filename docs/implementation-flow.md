@@ -520,3 +520,73 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
         *   **Trust But Verify Deployments:** When a deployment seems to have no effect, use logging to verify that the new code is actually being executed.
 
 *   **Next Step:** Monitor application stability and continue with final testing. 
+---
+
+### **Step 23: Interactive Notification & Modal Flow Refactoring**
+*   **Timestamp:** `2025-07-12T19:00:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   **ARCHITECTURAL REFACTOR:** Executed a critical refactoring of the interactive notification system to fix a complete failure in the "tap-to-thank" flow, which was preventing users from responding to appreciations.
+    
+    *   **Initial Problem:**
+        *   Tapping a push notification was intended to open a modal where the user could send a "thank you" response.
+        *   This flow was failing with a `"Could not send thank you, missing information"` error.
+        *   Initial debugging showed that `sender_id` and `recipient_id` were arriving at the modal as `undefined`.
+
+    *   **Bug Analysis & Resolution:**
+        
+        **1. Incorrect Custom Modal Implementation:**
+        *   The root of the problem was the introduction of a redundant, custom-built modal system (`ModalProvider`, `AppreciationDetailModal.tsx`).
+        *   This system conflicted with the application's existing, correct architecture, which uses Expo Router's route-based modals (`/app/(modals)/...`).
+        *   This custom implementation was not wired into the navigation stack correctly, causing it to fail to receive props.
+        *   **Solution:** The entire custom modal system was dismantled. `providers/ModalProvider.tsx` and `components/AppreciationDetailModal.tsx` were deleted.
+        
+        **2. Restoring the Correct Modal Route:**
+        *   The root layout (`app/_layout.tsx`) was corrected to properly register the existing modal route group by adding `<Stack.Screen name="(modals)" ... />`.
+        *   This ensured that the application's navigator was aware of and could correctly route to the `app/(modals)/appreciation.tsx` screen.
+        
+        **3. Fixing the Data Payload Path:**
+        *   The final bug was a data structure mismatch in the `NotificationProvider`. The notification payload nested the user IDs inside an `event` object (e.g., `data.event.sender_id`), but the code was attempting to access them from the top level (`data.sender_id`).
+        *   **Solution:** The destructuring logic in `NotificationProvider.tsx` was corrected to access the deeply nested `sender_id` and `receiver_id` from the `event` object within the notification's data payload.
+        *   The provider was then updated to use `router.push` to navigate to the correct `/(modals)/appreciation` route, passing the now-correct IDs as navigation parameters.
+
+    *   **Architectural Lessons & Technical Outcome:**
+        *   **Adhere to Existing Patterns:** Re-confirmed the project principle of using the established Expo Router modal pattern (`/app/(modals)`) instead of introducing conflicting custom solutions. This maintains a single, predictable navigation architecture.
+        *   **Data Contract Verification:** Reinforced the importance of verifying the exact data structure of API and notification payloads. Assumptions about flat data structures can lead to subtle but critical bugs.
+        *   **System Integrity:** The interactive notification system is now correctly integrated with the application's core navigation and data flow. Tapping a notification reliably opens the correct modal with all necessary data, resolving the "missing information" error and restoring the "thank you" feature.
+
+*   **Next Step:** Final validation of all interactive notification paths. 
+---
+
+### **Step 24: Modal Data Enhancement & Payload Debugging**
+*   **Timestamp:** `2025-07-12T19:30:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   **UI/UX REFINEMENT:** Enhanced the interactive appreciation modal to provide a richer, more contextual experience by displaying the sender's name, the specific badge icon, points awarded, and a formatted timestamp.
+    
+    *   **Initial Problem:**
+        *   While the modal was functional, it lacked key details that would make the appreciation feel personal and informative.
+        *   An attempt to fetch the sender's name directly from the database failed with a `column users.full_name does not exist` error, indicating a schema mismatch and an inefficient approach.
+
+    *   **Bug Analysis & "Big Picture" Refactoring:**
+        
+        **1. Identifying the Correct Data Source:**
+        *   A deep analysis of the notification payload revealed that the sender's name was already being embedded in the main notification `title` by the `send-notification` function (e.g., "New Appreciation from Breda ! 🧡").
+        *   The initial database query was therefore redundant and unnecessary.
+        
+        **2. Refactoring the Notification Provider:**
+        *   The logic in `NotificationProvider.tsx` was significantly simplified and made more robust.
+        *   The failing database query was removed.
+        *   The provider now parses the sender's name directly from the notification `title` string using a regex match.
+        *   The provider was also updated to extract the badge's `icon`, `points`, and `created_at` timestamp from the nested `event.content` object.
+
+        **3. Updating the Modal UI:**
+        *   The `app/(modals)/appreciation.tsx` screen was updated to receive and render all the new data fields (`senderName`, `icon`, `points`, `created_at`).
+        *   The UI was adjusted to display this new metadata in a clean, readable format, with a dedicated section for the timestamp and points.
+
+    *   **Architectural Lessons & Technical Outcome:**
+        *   **Leverage Existing Data Payloads:** Re-emphasized the principle of thoroughly inspecting existing data contracts before adding new network requests. The required information (`senderName`) was already available, making the fix more efficient.
+        *   **End-to-End Log Verification:** The entire flow was validated by adding temporary logs and tracing the data from the initial "send" event to the modal's rendering. This confirmed that the correct data was being passed at every step.
+        *   **Richer User Experience:** The appreciation modal now provides a complete picture of the interaction, significantly improving the user experience by making the appreciation more personal and tangible.
+
+*   **Next Step:** Final cleanup of temporary debugging logs and prepare for production release. 
