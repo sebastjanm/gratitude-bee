@@ -77,6 +77,13 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     }
     
     const category = categoryIdentifier?.split('.')[0];
+
+    // Explicitly handle or ignore the 'default' category
+    if (category === 'default') {
+      console.log('[NotificationProvider] Ignoring "default" category notification tap.');
+      return; // Do nothing further for 'default' category
+    }
+
     const route = category ? categoryRouteMapping[category] : undefined;
 
     if (route && payload) {
