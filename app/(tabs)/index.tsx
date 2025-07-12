@@ -167,33 +167,48 @@ export default function HomeScreen() {
       return;
     }
 
-    const { error } = await supabase.from('events').insert([
-      {
-        sender_id: session.user.id,
-        receiver_id: userData.partner_id,
-        event_type: 'APPRECIATION',
-        content: {
-          category_id: categoryId,
-          badge_id: badgeId,
-          title: badgeTitle,
-          icon: badgeIcon,
-          points: points,
-          points_icon: pointsIcon,
-          description: description,
-          notification_text: notificationText,
-        },
+    const eventPayload = {
+      sender_id: session.user.id,
+      receiver_id: userData.partner_id,
+      event_type: 'APPRECIATION',
+      content: {
+        category_id: categoryId,
+        badge_id: badgeId,
+        title: badgeTitle,
+        icon: badgeIcon,
+        points: points,
+        points_icon: pointsIcon,
+        description: description,
+        notification_text: notificationText,
       },
-    ]);
+    };
+
+    console.log('[handleSendBadge] Inserting event:', eventPayload);
+    const { data: eventData, error } = await supabase.from('events').insert(eventPayload).select().single();
 
     if (error) {
       Alert.alert('Error', 'Could not send the badge. Please try again.');
-      console.error(error);
+      console.error('Error inserting event:', error);
     } else {
       Alert.alert(
         'Badge Sent! 🎉',
         `Your "${badgeTitle}" appreciation has been sent to your partner.`,
         [{ text: 'OK' }]
       );
+      
+      console.log('[handleSendBadge] Event inserted, now invoking send-notification');
+      // Now, invoke the notification function
+      const { error: notificationError } = await supabase.functions.invoke('send-notification', {
+        body: { record: eventData }, // Pass the newly created event record
+      });
+
+      if (notificationError) {
+        // Log the error but don't show another alert to the user,
+        // as the main action (sending the badge) was successful.
+        console.error('Error sending push notification:', notificationError);
+      } else {
+        console.log('[handleSendBadge] Successfully invoked send-notification.');
+      }
     }
   };
 

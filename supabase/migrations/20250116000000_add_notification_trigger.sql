@@ -1,15 +1,32 @@
--- Migration: Add automatic push notification trigger
--- This trigger calls the send-notification edge function whenever a new event is inserted
--- Ensures partners get notified immediately when they receive badges, favors, pings, etc.
+-- Migration: Update push notification trigger to use Supabase Vault
+-- This change removes the hardcoded service_role_key from the trigger
+-- and instead fetches it securely from Supabase Vault, which is the
+-- recommended and most secure practice.
 
--- Create a function that calls the notification edge function
+-- 1. Ensure pg_net is available
+CREATE EXTENSION IF NOT EXISTS pg_net WITH SCHEMA "extensions";
+
+-- 2. Update the function to pull the key from Vault
 CREATE OR REPLACE FUNCTION public.send_push_notification()
 RETURNS TRIGGER AS $$
 DECLARE
   project_url TEXT := 'https://scdvcmxewjwkbvvcadhz.supabase.co';
-  service_role_key TEXT := 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjZHZjbXhld2p3a2J2dmNhZGh6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MTgyMTAwOCwiZXhwIjoyMDY3Mzk3MDA4fQ.nNUQog4AtvAO8t4NLWyF0FZHDdTsoDEFM6kEZFSaHKo';
+  service_role_key TEXT; -- Key will be fetched from Vault
 BEGIN
+  -- Securely fetch the service_role_key from Supabase Vault
+  -- Note: You must add 'service_role_key' to your project's Vault.
+  SELECT decrypted_secret
+  INTO service_role_key
+  FROM vault.decrypted_secrets
+  WHERE name = 'service_role_key';
+
+  IF service_role_key IS NULL THEN
+    RAISE LOG '[Push Notification Trigger] service_role_key not found in Vault. Please add it in your Supabase project settings.';
+    RETURN NULL;
+  END IF;
+
   RAISE LOG '[Push Notification Trigger] Fired for event ID: %', NEW.id;
+  
   -- Only send notifications for events that have a receiver
   IF NEW.receiver_id IS NOT NULL THEN
     RAISE LOG '[Push Notification Trigger] Receiver ID found: %. Calling Edge Function.', NEW.receiver_id;
@@ -30,7 +47,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Create the trigger that fires after each insert on the events table
+-- 3. The trigger definition itself doesn't need to change.
 DROP TRIGGER IF EXISTS trigger_send_push_notification ON public.events;
 
 CREATE TRIGGER trigger_send_push_notification
@@ -38,6 +55,6 @@ CREATE TRIGGER trigger_send_push_notification
   FOR EACH ROW
   EXECUTE FUNCTION public.send_push_notification();
 
--- Grant necessary permissions
+-- 4. Grant necessary permissions
 GRANT EXECUTE ON FUNCTION public.send_push_notification() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.send_push_notification() TO service_role; 

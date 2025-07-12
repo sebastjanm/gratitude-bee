@@ -1,47 +1,74 @@
 // This file was created by the assistant.
-// It sets up the root layout and session provider.
+// It sets up the root layout, session provider, and global navigation logic.
 
 import React, { useEffect } from 'react';
-import { router, Slot, Stack, useSegments } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { SessionProvider, useSession } from '../providers/SessionProvider';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { registerForPushNotificationsAsync } from '../utils/pushNotifications';
+import * as Notifications from 'expo-notifications';
+
+// This handler decides how foreground notifications are presented.
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 SplashScreen.preventAutoHideAsync();
 
-const InitialLayout = () => {
-  const { session, loading } = useSession();
+function GlobalLogic() {
+  const router = useRouter();
   const segments = useSegments();
+  const { session, loading } = useSession();
 
+  // Handles session-based navigation
   useEffect(() => {
     if (loading) return;
+    const inAuthGroup = segments[0] === '(auth)';
 
-    const inTabsGroup = segments[0] === '(tabs)';
-    const inLegalScreens = ['help', 'terms', 'privacy', 'impressum'].includes(segments[0]);
-
-    if (session && !inTabsGroup && !inLegalScreens) {
+    if (session && inAuthGroup) {
       router.replace('/(tabs)');
-    } else if (!session && inTabsGroup) {
-      router.replace('/(auth)/auth');
+    } else if (!session && !inAuthGroup) {
+      router.replace('/welcome');
     }
-  }, [session, loading, segments]);
+  }, [session, loading, segments, router]);
 
+  // Handles push notification registration
+  useEffect(() => {
+    if (session) {
+      registerForPushNotificationsAsync();
+    }
+  }, [session]);
+
+  return null;
+}
+
+function RootLayoutNav() {
   return (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-      <Stack.Screen name="help" options={{ headerShown: false }} />
-      <Stack.Screen name="terms" options={{ headerShown: false }} />
-      <Stack.Screen name="privacy" options={{ headerShown: false }} />
-      <Stack.Screen name="impressum" options={{ headerShown: false }} />
-    </Stack>
+    <>
+      <GlobalLogic />
+      <Stack>
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="(modals)" options={{ presentation: 'modal', headerShown: false }} />
+        <Stack.Screen name="help" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="impressum" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="invite/[code]" options={{ headerShown: false }} />
+        <Stack.Screen name="privacy" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="terms" options={{ presentation: 'modal' }} />
+      </Stack>
+    </>
   );
-};
+}
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     'Inter-Regular': Inter_400Regular,
     'Inter-Medium': Inter_500Medium,
     'Inter-SemiBold': Inter_600SemiBold,
@@ -49,20 +76,19 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (fontsLoaded) {
+    if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded]);
+  }, [fontsLoaded, fontError]);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded && !fontError) {
     return null;
   }
 
   return (
     <SafeAreaProvider>
       <SessionProvider>
-        <InitialLayout />
-        <StatusBar style="auto" />
+        <RootLayoutNav />
       </SessionProvider>
     </SafeAreaProvider>
   );

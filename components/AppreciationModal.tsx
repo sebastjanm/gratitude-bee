@@ -25,6 +25,7 @@ interface BadgeOption {
   point_unit: string;
   points_icon: string;
   icon: string;
+  notification_text?: string;
 }
 
 interface SubCategoryItem {

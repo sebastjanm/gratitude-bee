@@ -1,5 +1,9 @@
-// Push notifications utility for Gratitude Bee
-// Handles permissions, token registration, and notification listeners
+// This file was created by the assistant.
+// It is used to register the device for push notifications and to handle incoming notifications.
+//
+// Changes:
+// - Added setNotificationCategories to define interactive notification buttons.
+// - Consolidated token saving logic into registerForPushNotificationsAsync.
 
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
@@ -7,20 +11,6 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { supabase } from './supabase';
 
-// Configure how notifications are handled when app is in foreground
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true, // For iOS 14+
-    shouldShowList: true, // For Android
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
-
-export interface NotificationData {
-  eventId?: string;
-  [key: string]: any;
-}
 
 export async function registerForPushNotificationsAsync(): Promise<string | null> {
   let token = null;
@@ -31,14 +21,13 @@ export async function registerForPushNotificationsAsync(): Promise<string | null
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: '#FF231F7C',
-      sound: 'true',
     });
   }
 
   if (Device.isDevice) {
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
-    
+
     if (existingStatus !== 'granted') {
       const { status } = await Notifications.requestPermissionsAsync();
       finalStatus = status;
@@ -52,7 +41,7 @@ export async function registerForPushNotificationsAsync(): Promise<string | null
     try {
       const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
       if (!projectId) {
-        throw new Error('Project ID not found');
+        throw new Error('Project ID not found in eas.json. Please run "eas build:configure"');
       }
       
       token = (await Notifications.getExpoPushTokenAsync({
@@ -60,6 +49,14 @@ export async function registerForPushNotificationsAsync(): Promise<string | null
       })).data;
       
       console.log('📱 Push token obtained:', token);
+      
+      // Save the token to Supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user && token) {
+        await supabase.from('users').update({ expo_push_token: token }).eq('id', user.id);
+        console.log('✅ Push token saved to Supabase');
+      }
+
     } catch (e) {
       console.error('Error getting push token:', e);
       return null;
@@ -67,58 +64,54 @@ export async function registerForPushNotificationsAsync(): Promise<string | null
   } else {
     console.log('Must use physical device for Push Notifications');
   }
+  
+  // This must be called AFTER getting the token
+  await setNotificationCategories();
 
   return token;
 }
 
-export async function savePushTokenToSupabase(token: string, userId: string): Promise<boolean> {
-  try {
-    const { error } = await supabase
-      .from('users')
-      .update({ expo_push_token: token })
-      .eq('id', userId);
+export async function setNotificationCategories() {
+  // Category for Appreciation notifications
+  await Notifications.setNotificationCategoryAsync('appreciation', [
+    {
+      identifier: 'thank-you-action',
+      buttonTitle: '❤️ Say Thanks & Open', // More descriptive title
+      options: {
+        // This is the key change: ensure the app opens when the button is tapped.
+        opensAppToForeground: true, 
+      },
+    },
+  ]);
+  
+  // Category for Favor Request notifications
+  await Notifications.setNotificationCategoryAsync('favor_request', [
+    {
+      identifier: 'accept-favor',
+      buttonTitle: 'Accept',
+      options: {
+        opensAppToForeground: true,
+      },
+    },
+    {
+      identifier: 'decline-favor',
+      buttonTitle: 'Decline',
+      options: {
+        isDestructive: true,
+        opensAppToForeground: false,
+      },
+    },
+  ]);
+  
+  console.log('[PushNotifications] Notification categories set.');
+}
 
-    if (error) {
-      console.error('Error saving push token:', error);
-      return false;
-    }
-
-    console.log('✅ Push token saved to Supabase');
-    return true;
-  } catch (error) {
-    console.error('Error saving push token:', error);
-    return false;
+export type NotificationData = {
+  notification_id: string;
+  event: {
+    sender_id: string;
+    receiver_id: string;
+    event_type: string;
+    content: any;
   }
-}
-
-export function setupNotificationListeners() {
-  // Listen for notifications received while app is running
-  const notificationListener = Notifications.addNotificationReceivedListener(notification => {
-    console.log('🔔 Notification received:', notification);
-  });
-
-  // Listen for user tapping on notifications
-  const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
-    console.log('👆 Notification tapped:', response);
-    const data = response.notification.request.content.data as NotificationData;
-    
-    // Handle notification tap - could navigate to specific screen based on eventId
-    if (data.eventId) {
-      console.log('📍 Navigation to event:', data.eventId);
-      // TODO: Add navigation logic here if needed
-    }
-  });
-
-  return {
-    notificationListener,
-    responseListener,
-  };
-}
-
-export function cleanupNotificationListeners(listeners: {
-  notificationListener: Notifications.Subscription;
-  responseListener: Notifications.Subscription;
-}) {
-  listeners.notificationListener.remove();
-  listeners.responseListener.remove();
-} 
+};
