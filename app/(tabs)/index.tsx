@@ -275,6 +275,26 @@ export default function HomeScreen() {
         `Your "${favorTitle}" request has been sent for ${points} points.`,
         [{ text: 'OK' }]
       );
+      
+      // Manually invoke the notification function
+      const { data: eventData, error: fetchError } = await supabase
+        .from('events')
+        .select('*')
+        .eq('sender_id', session.user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+        
+      if (fetchError) {
+        console.error('Error fetching the event to send notification:', fetchError);
+      } else {
+        const { error: notificationError } = await supabase.functions.invoke('send-notification', {
+          body: { record: eventData },
+        });
+        if (notificationError) {
+          console.error('Error sending favor notification:', notificationError);
+        }
+      }
     }
   };
 

@@ -1,83 +1,68 @@
-// This file was created by the assistant to display appreciation details.
+// This file was created by the assistant to display favor request details.
 //
 // Changes:
-// - Adapted to use a standardized `payload` object from route params.
-// - Parses the payload to render notification details dynamically.
-// - Centralizes the logic for displaying appreciation notifications.
+// - Created to handle incoming 'favor_request' notifications.
+// - Parses the standardized `payload` object from route params.
+// - Displays favor details and provides action buttons.
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Heart, X, MessageSquare, Shield, Star, Award } from 'lucide-react-native';
+import { X, ThumbsUp, ThumbsDown, Handshake } from 'lucide-react-native';
 import { supabase } from '@/utils/supabase';
 import { useSession } from '@/providers/SessionProvider';
 
-export default function AppreciationDetailScreen() {
+export default function FavorDetailScreen() {
   const { payload } = useLocalSearchParams<{ payload: string }>();
   const router = useRouter();
   const { session } = useSession();
-
   const [loading, setLoading] = useState(false);
-  
+
   if (!payload) {
     return (
       <View style={styles.container}>
-        <Text>No appreciation details found.</Text>
+        <Text>No favor details found.</Text>
       </View>
     );
   }
 
-  const {
-    event,
-    alreadyThanked,
-    senderName,
-  } = JSON.parse(payload);
-  
-  const {
-    content,
-    sender_id,
-    receiver_id,
-    created_at
-  } = event;
+  const { event, senderName } = JSON.parse(payload);
+  const { id: event_id, content, created_at } = event;
+  const { title, description, points } = content;
 
-  const {
-    title,
-    description,
-    points,
-    icon,
-  } = content;
-
-  const [isThanked, setIsThanked] = useState(alreadyThanked === 'true' || alreadyThanked === true);
-
-  const handleSendThankYou = async () => {
-    if (isThanked) return;
+  const handleAccept = async () => {
+    if (!session) return;
     setLoading(true);
     try {
-      const { error } = await supabase.functions.invoke('send-thank-you', {
-        body: {
-          sender_id: receiver_id,
-          recipient_id: sender_id,
-          original_appreciation_title: title,
-        },
+      const { error } = await supabase.functions.invoke('accept-favor', {
+        body: { event_id, user_id: session.user.id },
       });
       if (error) throw error;
-      setIsThanked(true);
-      Alert.alert('Success', 'A thank you has been sent!');
+      Alert.alert('Favor Accepted', 'You have agreed to help your partner.');
+      router.back();
     } catch (error) {
-      console.error('Error sending thank you:', error);
-      Alert.alert('Error', 'Could not send the thank you message.');
+      console.error('Error accepting favor:', error);
+      Alert.alert('Error', 'Could not accept the favor.');
     } finally {
       setLoading(false);
     }
   };
-
-  const getBadgeIcon = () => {
-    switch (icon) {
-      case 'heart': return <Heart size={32} color="#FF6B9D" />;
-      case 'star': return <Star size={32} color="#FFD700" />;
-      case 'shield': return <Shield size={32} color="#4ECDC4" />;
-      case 'award': return <Award size={32} color="#C4A1FF" />;
-      default: return <Text style={styles.emojiIcon}>{icon}</Text>;
+  
+  const handleDecline = async () => {
+    if (!session) return;
+    setLoading(true);
+    try {
+      const { error } = await supabase.functions.invoke('decline-favor', {
+        body: { event_id, user_id: session.user.id },
+      });
+      if (error) throw error;
+      Alert.alert('Favor Declined', 'You have declined the favor request.');
+      router.back();
+    } catch (error) {
+      console.error('Error declining favor:', error);
+      Alert.alert('Error', 'Could not decline the favor.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -90,9 +75,9 @@ export default function AppreciationDetailScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <View style={styles.iconContainer}>
-            {getBadgeIcon()}
+            <Handshake size={40} color="#3498db" />
           </View>
-          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.title}>{title || 'Favor Request'}</Text>
           <Text style={styles.sender}>From {senderName || 'your partner'}</Text>
           <Text style={styles.date}>
             {new Date(created_at).toLocaleString([], {
@@ -106,30 +91,27 @@ export default function AppreciationDetailScreen() {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.description}>{description}</Text>
-          <View style={styles.pointsContainer}>
-            <Text style={styles.points}>{points}</Text>
-            <Text style={styles.pointsLabel}>Bees</Text>
-          </View>
+          <Text style={styles.description}>{description || 'Your partner has asked for a favor.'}</Text>
+          {points && (
+            <View style={styles.pointsContainer}>
+              <Text style={styles.points}>{points}</Text>
+              <Text style={styles.pointsLabel}>Bees on completion</Text>
+            </View>
+          )}
         </View>
 
-        <TouchableOpacity
-          style={[styles.thankYouButton, isThanked && styles.thankedButton]}
-          onPress={handleSendThankYou}
-          disabled={isThanked || loading}>
-          {loading ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <>
-              <MessageSquare size={22} color={isThanked ? '#888' : 'white'} />
-              <Text style={[styles.thankYouButtonText, isThanked && styles.thankedButtonText]}>
-                {isThanked ? 'Already Thanked' : 'Send Thank You'}
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
+        <View style={styles.actionsContainer}>
+          <TouchableOpacity style={[styles.actionButton, styles.declineButton]} onPress={handleDecline} disabled={loading}>
+            {loading ? <ActivityIndicator color="#c0392b" /> : <ThumbsDown size={22} color="#c0392b" />}
+            <Text style={[styles.actionButtonText, styles.declineButtonText]}>Decline</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.actionButton, styles.acceptButton]} onPress={handleAccept} disabled={loading}>
+            {loading ? <ActivityIndicator color="white" /> : <ThumbsUp size={22} color="white" />}
+            <Text style={styles.actionButtonText}>Accept</Text>
+          </TouchableOpacity>
+        </View>
         <Text style={styles.footerText}>
-          Sending a "Thank You" acknowledges their kindness and closes the loop!
+          Responding to favors helps maintain a healthy give-and-take in your relationship.
         </Text>
       </ScrollView>
     </View>
@@ -139,7 +121,7 @@ export default function AppreciationDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF9F2',
+    backgroundColor: '#F0F5F9',
     paddingTop: 60,
   },
   closeButton: {
@@ -171,10 +153,7 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 5,
     borderWidth: 2,
-    borderColor: '#FFEEDD'
-  },
-  emojiIcon: {
-    fontSize: 40,
+    borderColor: '#D6EAF8'
   },
   title: {
     fontSize: 28,
@@ -217,47 +196,58 @@ const styles = StyleSheet.create({
   pointsContainer: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    padding: 15,
-    backgroundColor: '#FFF9F2',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: '#EBF5FB',
     borderRadius: 15,
   },
   points: {
-    fontSize: 36,
+    fontSize: 24,
     fontFamily: 'Inter-Bold',
-    color: '#FF8C42',
+    color: '#3498db',
     marginRight: 8,
   },
   pointsLabel: {
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: 'Inter-SemiBold',
-    color: '#FF8C42',
-    transform: [{ translateY: -4 }],
+    color: '#3498db',
   },
-  thankYouButton: {
-    backgroundColor: '#FF8C42',
+  actionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  actionButton: {
+    flex: 1,
     paddingVertical: 18,
     borderRadius: 30,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#FF8C42',
     shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 8,
   },
-  thankedButton: {
-    backgroundColor: '#F0F0F0',
+  acceptButton: {
+    backgroundColor: '#3498db',
+    marginLeft: 10,
+    shadowColor: '#3498db',
+  },
+  declineButton: {
+    backgroundColor: 'white',
+    borderWidth: 2,
+    borderColor: '#E6E6E6',
+    marginRight: 10,
     shadowColor: '#BDBDBD',
   },
-  thankYouButtonText: {
+  actionButtonText: {
     color: 'white',
     fontSize: 18,
     fontFamily: 'Inter-Bold',
     marginLeft: 12,
   },
-  thankedButtonText: {
-    color: '#888',
+  declineButtonText: {
+    color: '#c0392b',
   },
   footerText: {
     marginTop: 20,

@@ -85,10 +85,25 @@ Deno.serve(async (req) => {
         body = `${content.title || 'They need your help with something.'}`;
         categoryIdentifier = 'favor_request';
         break;
+      case 'FAVOR_ACCEPTED':
+        title = `Favor Accepted! ✅`;
+        body = content.description || 'Your partner accepted your favor request.';
+        categoryIdentifier = 'favor_response';
+        break;
+      case 'FAVOR_DECLINED':
+        title = `Favor Declined ❌`;
+        body = content.description || 'Your partner declined your favor request.';
+        categoryIdentifier = 'favor_response';
+        break;
+      case 'FAVOR_COMPLETED':
+        title = `Favor Completed! ✨`;
+        body = `Your partner marked "${content.title}" as complete. You earned ${content.points} points!`;
+        categoryIdentifier = 'favor_response';
+        break;
       case 'PING_SENT':
         title = `You've got a Ping from ${sender.display_name}! 👋`;
         body = content.description || 'Just saying hi!';
-        categoryIdentifier = 'ping';
+        categoryIdentifier = 'ping_sent';
         break;
       case 'DONT_PANIC':
         title = `A "Don't Panic" signal from ${sender.display_name}! 🐋`;
@@ -138,10 +153,11 @@ Deno.serve(async (req) => {
       sound: 'default',
       title: title,
       body: body,
-      data: { 
+      data: {
         notification_id: notification.id,
         event: event,
-       },
+        senderName: sender.display_name, // Add senderName to the payload
+      },
       categoryId: categoryIdentifier,
     };
 

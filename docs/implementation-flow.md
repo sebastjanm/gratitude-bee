@@ -590,3 +590,31 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
         *   **Richer User Experience:** The appreciation modal now provides a complete picture of the interaction, significantly improving the user experience by making the appreciation more personal and tangible.
 
 *   **Next Step:** Final cleanup of temporary debugging logs and prepare for production release. 
+---
+
+### **Step 25: Favor Lifecycle Implementation & Debugging**
+*   **Timestamp:** `2025-07-12T23:00:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   **END-TO-END FEATURE IMPLEMENTATION:** Built and debugged the complete, multi-step lifecycle for favor requests, enabling users to accept, decline, and confirm the completion of favors.
+    
+    *   **Backend Functionality:**
+        *   Created three new Supabase Edge Functions to orchestrate the flow: `accept-favor`, `decline-favor`, and `complete-favor`.
+        *   Each function updates the `events` table status and triggers a corresponding notification back to the original requester.
+
+    *   **Database Logic:**
+        *   Created a new, robust SQL database function, `transfer_favor_points`, to handle the atomic transfer of points between users upon favor completion.
+
+    *   **Critical Bug Resolution:**
+        *   Resolved a persistent `FunctionsHttpError: Edge Function returned a non-2xx status code` error.
+        *   The root cause was a series of cascading mistakes in the backend functions:
+            1.  **Incorrect RPC Call:** The Edge Functions were trying to call a non-existent SQL function (`transfer_points`).
+            2.  **Incorrect Table:** The SQL function was initially written to update a non-existent `favor_points` column on the `users` table instead of the correct `wallets` table.
+            3.  **Incorrect Parameters:** The RPC call from the Edge Function used parameter names that did not match the SQL function's signature.
+        *   **Solution:** Corrected the SQL function to target the `wallets` table and fixed the RPC call in the `complete-favor` function to use the correct function name and parameter names, finally resolving the error.
+
+    *   **UI/UX Enhancements:**
+        *   Updated the `TimelineScreen` to display clear, visual status badges (Pending, Accepted, Declined, Completed) for all favor-related events.
+        *   The timeline now correctly shows action buttons ("Accept", "Decline", "Mark as Complete") based on the favor's status and the user's role in the interaction.
+
+*   **Next Step:** Monitor application stability and plan for the next feature implementation cycle. 

@@ -85,6 +85,22 @@ INSERT INTO public.favor_templates (id, category_id, title, description, points,
 ('ice-cream', 'treats', 'Bring Me Ice Cream', 'I need something sweet and cold', 6, '🍦'),
 ('surprise-treat', 'treats', 'Surprise Me with a Treat', 'Something special to brighten my day', 12, '🎁');
 
+-- Seed data for favor_templates
+INSERT INTO "public"."favor_templates" ("id", "category_id", "title", "description", "points", "icon", "is_active", "points_icon", "notification_text") VALUES
+('bring-coffee', 'food', 'Can you make a coffee?', 'A perfect cup of coffee, maybe some milk', '5', '☕', 'true', '🌟', 'is asking if you could make them a coffee.'),
+('cook-dinner', 'food', 'Cook Dinner Tonight', 'A delicious, home-cooked meal', '15', '🍳', 'true', '🌟', 'would love it if you could cook dinner tonight.'),
+('walk-dog', 'chores', 'Walk the Dog', 'A nice long walk for our furry friend', '10', '🐕', 'true', '🌟', 'is asking for a hand with walking the dog.'),
+('back-rub', 'affection', 'Quick Back Rub', 'A 5-minute back rub to de-stress', '5', '💆', 'true', '🌟', 'would really appreciate a quick back rub.')
+ON CONFLICT (id) DO UPDATE SET
+  category_id = EXCLUDED.category_id,
+  title = EXCLUDED.title,
+  description = EXCLUDED.description,
+  points = EXCLUDED.points,
+  icon = EXCLUDED.icon,
+  is_active = EXCLUDED.is_active,
+  points_icon = EXCLUDED.points_icon,
+  notification_text = EXCLUDED.notification_text;
+
 
 -- =================================================================
 -- 3. HORNET TEMPLATES

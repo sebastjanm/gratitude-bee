@@ -1,6 +1,9 @@
 // This file was created by the assistant to centralize notification logic.
 //
 // Changes:
+// - Refactored to act as a central notification router.
+// - Uses a category-to-route map for extensible navigation.
+// - Standardizes payload passing to modal screens.
 // - Encapsulates all state and logic for handling push notifications.
 // - Provides a context to control the AppreciationDetailModal from anywhere.
 // - Sets up listeners robustly, tied to the user's session.
@@ -10,24 +13,28 @@ import * as Notifications from 'expo-notifications';
 import { supabase } from '@/utils/supabase';
 import { Alert } from 'react-native';
 import { useSession } from './SessionProvider';
-import { useRouter } from 'expo-router'; // Import useRouter
+import { useRouter } from 'expo-router';
 
-// This context is now much simpler. It just sets up listeners.
 const NotificationContext = createContext<object | undefined>(undefined);
+
+const categoryRouteMapping: Record<string, string> = {
+  appreciation: '/(modals)/appreciation',
+  favor_request: '/(modals)/favor',
+  ping_sent: '/(modals)/ping',
+  hornet: '/(modals)/hornet-strike',
+  wisdom: '/(modals)/relationship-wisdom',
+  dont_panic: '/(modals)/dont-panic',
+};
 
 export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const { session } = useSession();
-  const router = useRouter(); // Use the router hook
+  const router = useRouter();
   const processedNotificationIds = useRef(new Set());
   const launchNotificationResponse = useRef<Notifications.NotificationResponse | null>(null);
 
   const handleNotificationResponse = async (response: Notifications.NotificationResponse) => {
     const notification = response.notification;
     const notificationId = notification.request.identifier;
-
-    console.log('[NotificationProvider] Full notification response:', JSON.stringify(response, null, 2));
-    console.log('[NotificationProvider] Category identifier:', notification.request.content.categoryIdentifier);
-    console.log('[NotificationProvider] Notification data:', JSON.stringify(notification.request.content.data, null, 2));
     
     if (processedNotificationIds.current.has(notificationId)) {
       return; // Already processed
@@ -46,63 +53,42 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       else console.log(`Notification ${notificationDbId} marked as read.`);
     }
 
-    const { actionIdentifier } = response;
-    const { categoryIdentifier, title: notificationTitle } = notification.request.content; // Use the main notification title for the sender's name
+    const { actionIdentifier, categoryIdentifier } = notification.request.content;
+    const payload = notification.request.content.data as any;
 
-    const { event, alreadyThanked } = notification.request.content.data as any;
-    const sender_id = event?.sender_id;
-    const recipient_id = event?.receiver_id;
-    const title = event?.content?.title; // This is the badge title
-    const body = event?.content?.description;
-    const points = event?.content?.points;
-    const icon = event?.content?.icon;
-    const created_at = event?.created_at;
-    
-    // Extract sender's name from the notification title string
-    let senderName = 'Your partner';
-    if (typeof notificationTitle === 'string') {
-        const match = notificationTitle.match(/from (.*?) !/);
-        if (match && match[1]) {
-            senderName = match[1];
-        }
-    }
+    if (actionIdentifier === 'thank-you-action') {
+      console.log('[NotificationProvider] Handling THANK_YOU action');
+      const { event } = payload;
+      const sender_id = event?.receiver_id; // The one who received the original is now the sender
+      const recipient_id = event?.sender_id; // The one who sent the original is now the recipient
+      const original_appreciation_title = event?.content?.title;
 
-    console.log('[NotificationProvider] Checking category:', categoryIdentifier);
-    if (categoryIdentifier?.toLowerCase().startsWith('appreciation')) {
-      console.log('[NotificationProvider] Category check passed. Action:', actionIdentifier);
-      // If user presses the "Thank You" button directly from the notification
-      if (actionIdentifier === 'thank-you-action') {
-        console.log('[NotificationProvider] Handling THANK_YOU action');
-        try {
-          const { error } = await supabase.functions.invoke('send-thank-you', {
-            body: { sender_id: recipient_id, recipient_id: sender_id, original_appreciation_title: title },
-          });
-          if (error) throw error;
-          Alert.alert("Success", "Thank you sent!");
-        } catch (error) {
-          console.error("Error sending thank you from action:", error);
-          Alert.alert("Error", "Could not send thank you.");
-        }
-      } else {
-        // When the notification itself is tapped, open the modal screen
-        console.log('[NotificationProvider] Navigating to appreciation modal screen');
-        router.push({
-          pathname: '/(modals)/appreciation',
-          params: {
-            title,
-            body,
-            sender_id,
-            recipient_id,
-            alreadyThanked: (alreadyThanked === 'true' || alreadyThanked === true).toString(),
-            points: points?.toString(),
-            icon,
-            created_at,
-            senderName,
-          },
+      try {
+        const { error } = await supabase.functions.invoke('send-thank-you', {
+          body: { sender_id, recipient_id, original_appreciation_title },
         });
+        if (error) throw error;
+        Alert.alert("Success", "Thank you sent!");
+      } catch (error) {
+        console.error("Error sending thank you from action:", error);
+        Alert.alert("Error", "Could not send thank you.");
       }
+      return; // Stop further processing for this action
+    }
+    
+    const category = categoryIdentifier?.split('.')[0];
+    const route = category ? categoryRouteMapping[category] : undefined;
+
+    if (route && payload) {
+      console.log(`[NotificationProvider] Navigating to ${route} for category ${category}`);
+      router.push({
+        pathname: route,
+        params: {
+          payload: JSON.stringify(payload),
+        },
+      });
     } else {
-      console.log('[NotificationProvider] Category check failed - no action taken');
+      console.log(`[NotificationProvider] No route found for category: ${category}`);
     }
   };
   

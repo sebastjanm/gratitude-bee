@@ -39,19 +39,29 @@ This section details how each user action affects the wallet balances.
 *   **Data Stored in Event:** `category_id`, `badge_id`, `title`, `beeCount`.
 
 ### 3.2. Favor Events
-Favors have a multi-step lifecycle.
+Favors have a multi-step lifecycle to ensure fairness and clarity for both partners.
 
-*   **Action 1: Request**
-    *   User A requests a favor from User B, specifying a point value.
+*   **Action 1: Request (by User A)**
+    *   User A requests a favor from User B. The app checks if User A has enough points to "afford" the favor.
     *   **Notification:** User B receives a push notification: *"[User A's Name] has requested a favor: 'Bring Me Coffee'."*
-    *   **Point Logic:** User A's **Favor Points** balance is checked. If they have enough points to cover the request, the event is created with a `pending` status. The points are "escrowed" (deducted from their spendable balance) but not yet awarded.
-*   **Action 2: Acceptance & Completion**
-    *   User B accepts and marks the favor as complete.
-    *   **Trigger:** User B's action.
+    *   **Point Logic:** No points are transferred yet. An event is created with a `PENDING` status. The points are effectively held in escrow until the favor is completed.
+
+*   **Action 2: Response (by User B)**
+    *   User B can either `ACCEPT` or `DECLINE` the favor request.
+    *   **Notification:** User A receives a push notification informing them of the decision: *"Your favor request 'Bring Me Coffee' was accepted!"* or *"...was declined."*
+    *   **Point Logic:** 
+        *   If accepted, the event status is updated to `ACCEPTED`.
+        *   If declined, the event status is updated to `DECLINED`.
+        *   No points are transferred at this stage.
+
+*   **Action 3: Confirmation (by User A)**
+    *   After User B has performed the favor, User A (the original requester) must confirm that it was done.
+    *   **Trigger:** User A clicks the "Mark as Complete" button.
+    *   **Notification:** User B receives a final confirmation: *"Your favor 'Bring Me Coffee' was marked complete. You earned 5 points!"*
     *   **Point Logic:**
-        *   The event status is updated to `completed`.
-        *   The specified points are added to User B's **Favor Points** wallet.
-*   **Data Stored in Event:** `favor_id`, `title`, `description`, `points`, `status` (`pending`, `completed`, `declined`).
+        *   The event status is updated to `COMPLETED`.
+        *   The specified points are now officially transferred from User A's balance to User B's balance in the `wallets` table.
+*   **Data Stored in Event:** `category_id`, `favor_id`, `title`, `description`, `points`, `icon`, `points_icon`, `notification_text`, `status` (`PENDING`, `ACCEPTED`, `DECLINED`, `COMPLETED`).
 
 ### 3.3. Hornet Events
 *   **Action:** User A sends a Hornet to User B.

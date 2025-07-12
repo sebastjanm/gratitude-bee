@@ -14,7 +14,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Heart, Star, Smile, Compass, MessageCircle, Filter, Calendar, Bug, X, CircleCheck as CheckCircle, Crown, Home as HomeIcon, Clock, HelpCircle } from 'lucide-react-native';
+import { Heart, Star, Smile, Compass, MessageCircle, Filter, Calendar, Bug, X, CircleCheck as CheckCircle, Crown, Home as HomeIcon, Clock, HelpCircle, ThumbsUp, ThumbsDown } from 'lucide-react-native';
 import { useSession } from '@/providers/SessionProvider';
 import { supabase } from '@/utils/supabase';
 import { router } from 'expo-router';
@@ -184,30 +184,40 @@ export default function TimelineScreen() {
   };
   
   const handleFavorResponse = async (eventId: string, newStatus: 'ACCEPTED' | 'DECLINED') => {
-    const { error } = await supabase
-      .from('events')
-      .update({ status: newStatus, event_type: 'FAVOR_RESPONSE' })
-      .eq('id', eventId);
-    
-    if (error) {
-      Alert.alert('Error', 'Could not update the favor status.');
-    } else {
+    if (!session) return;
+    const functionName = newStatus === 'ACCEPTED' ? 'accept-favor' : 'decline-favor';
+
+    try {
+      const { error } = await supabase.functions.invoke(functionName, {
+        body: { event_id: eventId, user_id: session.user.id },
+      });
+
+      if (error) throw error;
+
       Alert.alert('Response Sent', `You have ${newStatus.toLowerCase()} the favor request.`);
       fetchEvents(true);
+
+    } catch (error) {
+      console.error(`Error ${newStatus.toLowerCase()}ing favor:`, error);
+      Alert.alert('Error', `Could not ${newStatus.toLowerCase()} the favor. Please try again.`);
     }
   };
 
   const handleFavorCompletion = async (eventId: string) => {
-    const { error } = await supabase
-      .from('events')
-      .update({ status: 'COMPLETED', event_type: 'FAVOR_COMPLETED' })
-      .eq('id', eventId);
+    if (!session) return;
+    try {
+      const { error } = await supabase.functions.invoke('complete-favor', {
+        body: { event_id: eventId, user_id: session.user.id },
+      });
 
-    if (error) {
-      Alert.alert('Error', 'Could not complete the favor.');
-    } else {
+      if (error) throw error;
+
       Alert.alert('Favor Completed!', 'You have marked the favor as complete. Points have been awarded!');
       fetchEvents(true);
+
+    } catch (error) {
+      console.error('Error completing favor:', error);
+      Alert.alert('Error', 'Could not complete the favor.');
     }
   };
 
@@ -277,6 +287,50 @@ export default function TimelineScreen() {
     </View>
   );
 
+  const renderStatusBadge = (status: TimelineEvent['status']) => {
+    if (!status) return null;
+
+    let Icon = HelpCircle;
+    let text = 'Unknown';
+    let color = '#888';
+    let backgroundColor = '#F0F0F0';
+
+    switch(status) {
+      case 'ACCEPTED':
+        Icon = ThumbsUp;
+        text = 'Accepted';
+        color = '#2E7D32';
+        backgroundColor = '#E8F5E9';
+        break;
+      case 'DECLINED':
+        Icon = ThumbsDown;
+        text = 'Declined';
+        color = '#C62828';
+        backgroundColor = '#FFEBEE';
+        break;
+      case 'COMPLETED':
+        Icon = CheckCircle;
+        text = 'Completed';
+        color = '#1565C0';
+        backgroundColor = '#E3F2FD';
+        break;
+      case 'PENDING':
+        Icon = Clock;
+        text = 'Pending';
+        color = '#F57C00';
+        backgroundColor = '#FFF3E0';
+        break;
+    }
+
+    return (
+      <View style={[styles.statusBadge, { backgroundColor }]}>
+        <Icon color={color} size={14} />
+        <Text style={[styles.statusBadgeText, { color }]}>{text}</Text>
+      </View>
+    );
+  };
+
+
   const renderTimelineEvent = (event: TimelineEvent, index: number) => {
     const IconComponent = event.icon;
     const isLast = index === filteredEvents.length - 1;
@@ -336,33 +390,41 @@ export default function TimelineScreen() {
               </View>
             )}
 
+            {/* Status Indicator for Favors */}
+            {event.category.includes('favor') && (
+              <View style={styles.favorStatusContainer}>
+                {renderStatusBadge(event.status)}
+              </View>
+            )}
+
             {/* Action Buttons for Favors */}
-            {event.category === 'favor' && event.type === 'received' && (
+            {event.category.includes('favor') && event.status === 'PENDING' && event.type === 'received' && (
               <View style={styles.actionsContainer}>
-                {event.status === 'PENDING' && (
                   <>
                     <TouchableOpacity 
                       style={[styles.actionButton, styles.acceptButton]}
                       onPress={() => handleFavorResponse(event.id, 'ACCEPTED')}>
-                      <CheckCircle color="white" size={16} />
+                      <ThumbsUp color="white" size={16} />
                       <Text style={styles.actionButtonText}>Accept</Text>
                     </TouchableOpacity>
                     <TouchableOpacity 
                       style={[styles.actionButton, styles.declineButton]}
                       onPress={() => handleFavorResponse(event.id, 'DECLINED')}>
-                      <X color="white" size={16} />
+                      <ThumbsDown color="white" size={16} />
                       <Text style={styles.actionButtonText}>Decline</Text>
                     </TouchableOpacity>
                   </>
-                )}
-                {event.status === 'ACCEPTED' && (
+              </View>
+            )}
+            
+            {event.category.includes('favor') && event.status === 'ACCEPTED' && event.type === 'sent' && (
+              <View style={styles.actionsContainer}>
                   <TouchableOpacity 
                     style={[styles.actionButton, styles.completeButton]}
                     onPress={() => handleFavorCompletion(event.id)}>
                     <CheckCircle color="white" size={16} />
                     <Text style={styles.actionButtonText}>Mark as Complete</Text>
                   </TouchableOpacity>
-                )}
               </View>
             )}
             
@@ -595,6 +657,22 @@ const styles = StyleSheet.create({
     color: '#333',
     lineHeight: 20,
     fontStyle: 'italic',
+  },
+  favorStatusContainer: {
+    marginTop: 12,
+    flexDirection: 'row',
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+  },
+  statusBadgeText: {
+    marginLeft: 6,
+    fontSize: 12,
+    fontFamily: 'Inter-SemiBold',
   },
   actionsContainer: {
     flexDirection: 'row',

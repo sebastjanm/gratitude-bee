@@ -129,7 +129,7 @@ export default function AppreciationModal({
         selectedBadge.points,
         selectedBadge.points_icon,
         selectedBadge.description,
-        selectedBadge.notification_text
+        selectedBadge.notification_text || ''
       );
       handleClose();
     }
