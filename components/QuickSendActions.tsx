@@ -1,9 +1,19 @@
-// This file was created by the assistant.
-// It contains the "Quick Send" actions component for the home screen.
-
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions, Image } from 'react-native';
-import { Heart, HandHeart, Crown, TriangleAlert as AlertTriangle } from 'lucide-react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Animated,
+  Dimensions,
+  Image,
+} from 'react-native';
+import {
+  Heart,
+  HandHeart,
+  Crown,
+  TriangleAlert as AlertTriangle,
+} from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -32,8 +42,13 @@ export default function QuickSendActions({
       onPress={onShowRelationshipWisdomModal}
       activeOpacity={0.8}>
       <View style={styles.relationshipWisdomButtonContent}>
-        <Image source={require('../assets/images/owl.png')} style={styles.wisdomImage} />
-        <Text style={styles.relationshipWisdomButtonText}>Relationship Wisdom</Text>
+        <Image
+          source={require('../assets/images/owl.png')}
+          style={styles.wisdomImage}
+        />
+        <Text style={styles.relationshipWisdomButtonText}>
+          Relationship Wisdom
+        </Text>
       </View>
       <Text style={styles.relationshipWisdomButtonSubtext}>
         "Whatever you say", "Yes dear", "I'm sorry"
@@ -41,15 +56,16 @@ export default function QuickSendActions({
     </TouchableOpacity>
   );
 
-
-
   const renderDontPanicButton = () => (
     <TouchableOpacity
       style={styles.dontPanicButton}
       onPress={onShowDontPanicModal}
       activeOpacity={0.8}>
       <View style={styles.dontPanicButtonContent}>
-        <Image source={require('../assets/images/dont-panic.png')} style={styles.dontPanicImage} />
+        <Image
+          source={require('../assets/images/dont-panic.png')}
+          style={styles.dontPanicImage}
+        />
         <Text style={styles.dontPanicButtonText}>Don't Panic</Text>
       </View>
       <Text style={styles.dontPanicButtonSubtext}>
@@ -64,7 +80,10 @@ export default function QuickSendActions({
       onPress={onShowNegativeModal}
       activeOpacity={0.8}>
       <View style={styles.negativeButtonContent}>
-        <Image source={require('../assets/images/hornet.png')} style={styles.hornetImage} />
+        <Image
+          source={require('../assets/images/hornet.png')}
+          style={styles.hornetImage}
+        />
         <Text style={styles.negativeButtonText}>Send Hornet</Text>
         <AlertTriangle color="#FF4444" size={16} />
       </View>
@@ -74,20 +93,22 @@ export default function QuickSendActions({
     </TouchableOpacity>
   );
 
-const renderSendPingButton = () => (
-  <TouchableOpacity
-    style={styles.pingButton}
-    onPress={onShowPingModal}
-    activeOpacity={0.8}>
-    <View style={styles.pingButtonContent}>
-      <Image source={require('../assets/images/ping.png')} style={styles.pingImage} />
-      <Text style={styles.pingButtonText}>Send a Ping</Text>
-    </View>
-    <Text style={styles.pingButtonSubtext}>
-      Urgent check-in: "I'm worried, text me back"
-    </Text>
-  </TouchableOpacity>
-
+  const renderSendPingButton = () => (
+    <TouchableOpacity
+      style={styles.pingButton}
+      onPress={onShowPingModal}
+      activeOpacity={0.8}>
+      <View style={styles.pingButtonContent}>
+        <Image
+          source={require('../assets/images/ping.png')}
+          style={styles.pingImage}
+        />
+        <Text style={styles.pingButtonText}>Send a Ping</Text>
+      </View>
+      <Text style={styles.pingButtonSubtext}>
+        Urgent check-in: "I'm worried, text me back"
+      </Text>
+    </TouchableOpacity>
   );
 
   return (
@@ -97,8 +118,7 @@ const renderSendPingButton = () => (
         <TouchableOpacity
           style={[styles.levelOneButton, styles.appreciationButton]}
           onPress={onShowAppreciationModal}
-          activeOpacity={0.8}
-        >
+          activeOpacity={0.8}>
           <Animated.View style={[{ transform: [{ scale: heartAnimation }] }]}>
             <Heart color="#FF8C42" size={28} fill="#FF8C42" />
           </Animated.View>
@@ -112,8 +132,7 @@ const renderSendPingButton = () => (
         <TouchableOpacity
           style={[styles.levelOneButton, styles.favorsButton]}
           onPress={onShowFavorsModal}
-          activeOpacity={0.8}
-        >
+          activeOpacity={0.8}>
           <Animated.View style={[{ transform: [{ scale: heartAnimation }] }]}>
             <HandHeart color="#2C3E50" size={28} />
           </Animated.View>
@@ -132,7 +151,7 @@ const renderSendPingButton = () => (
       <View style={styles.levelTwoContainer}>
         {renderRelationshipWisdomButton()}
         {renderDontPanicButton()}
-      
+
         {renderSendPingButton()}
         {renderNegativeBadgeButton()}
       </View>

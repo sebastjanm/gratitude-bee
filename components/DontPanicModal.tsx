@@ -133,7 +133,9 @@ export default function DontPanicModal({
                     key={option.id}
                     style={[
                       styles.optionCard,
-                      selectedOption?.id === option.id && styles.selectedOptionCard,
+                      selectedOption?.id === option.id &&
+                        styles.selectedOptionCard,
+                      { borderLeftColor: option.color },
                     ]}
                     onPress={() => setSelectedOption(option)}
                     activeOpacity={0.7}>
@@ -299,6 +301,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderWidth: 2,
     borderColor: 'transparent',
+    borderLeftWidth: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -307,7 +310,7 @@ const styles = StyleSheet.create({
   },
   selectedOptionCard: {
     borderColor: '#6366F1',
-    backgroundColor: '#6366F1' + '05',
+    backgroundColor: '#6366F1' + '1A',
   },
   optionCardContent: {
     flexDirection: 'row',

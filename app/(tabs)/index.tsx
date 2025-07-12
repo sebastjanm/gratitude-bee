@@ -510,7 +510,6 @@ export default function HomeScreen() {
         onSendPing={handleSendPing}
       />
       
-      <SadCatCard isVisible={shouldShowSadCat()} />
     </View>
   );
 }

@@ -103,6 +103,7 @@ export default function PingModal({
                     style={[
                       styles.pingCard,
                       selectedPing?.id === ping.id && styles.selectedPingCard,
+                      { borderLeftColor: ping.color },
                     ]}
                     onPress={() => setSelectedPing(ping)}
                     activeOpacity={0.7}>
@@ -221,6 +222,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderWidth: 2,
     borderColor: 'transparent',
+    borderLeftWidth: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -229,7 +231,7 @@ const styles = StyleSheet.create({
   },
   selectedPingCard: {
     borderColor: '#3B82F6',
-    backgroundColor: '#3B82F6' + '05',
+    backgroundColor: '#3B82F6' + '1A',
   },
   pingCardContent: {
     flexDirection: 'row',

@@ -108,7 +108,9 @@ export default function RelationshipWisdomModal({
                   key={wisdom.id}
                   style={[
                     styles.wisdomCard,
-                    selectedWisdom?.id === wisdom.id && styles.selectedWisdomCard,
+                    selectedWisdom?.id === wisdom.id &&
+                      styles.selectedWisdomCard,
+                    { borderLeftColor: wisdom.color },
                   ]}
                   onPress={() => setSelectedWisdom(wisdom)}
                   activeOpacity={0.7}>
@@ -227,6 +229,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderWidth: 2,
     borderColor: 'transparent',
+    borderLeftWidth: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -235,7 +238,7 @@ const styles = StyleSheet.create({
   },
   selectedWisdomCard: {
     borderColor: '#8B5CF6',
-    backgroundColor: '#8B5CF6' + '05',
+    backgroundColor: '#8B5CF6' + '1A',
   },
   wisdomCardContent: {
     flexDirection: 'row',
