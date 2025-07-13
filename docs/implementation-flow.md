@@ -644,3 +644,22 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
         *   Integrated the `BraveryBadge` into the "Today's Stats" header, which now appears only after the user has achieved the daily interaction goal (score >= 10).
     *   **Cleanup:** Removed the now-unused `SadCatCard.tsx` component and the old `shouldShowSadCat` logic to complete the refactor.
 *   **Next Step:** Monitor application stability and user feedback on the new engagement system. 
+---
+
+### **Step 28: Home Screen UI/UX and Logic Refinement**
+*   **Timestamp:** `2025-07-14T13:00:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   **UI Layout Refinement:**
+        *   Refactored the home screen to ensure "Today's Stats" are always visible, regardless of the user's engagement level.
+        *   Removed a redundant `statsHeader` component, streamlining the layout and reducing duplicate styling.
+        *   Relocated the `TodayTip` component into the main scrollable area to prevent it from consuming fixed screen space.
+        *   Resolved an iOS-specific layout bug that caused extra spacing above the bottom tab bar by removing redundant safe area padding.
+    *   **Engagement System Enhancement:**
+        *   Expanded the `EngagementCard` to include more nuanced stages: `sad`, `spark`, `love`, `boring`, and `demanding`, creating a richer feedback loop.
+        *   Updated the `calculateEngagementStage` logic with more sophisticated scoring thresholds to make the engagement feedback more dynamic and consistently visible.
+    *   **Critical Bug & Linter Fixes:**
+        *   Corrected prop names for the `QuickSendActions` component, resolving a runtime error.
+        *   Fixed a `lottie-react-native` linter error by removing a deprecated Android-specific prop.
+        *   Resolved a React Native warning (`Text strings must be rendered within a <Text> component`) caused by stray whitespace in the JSX.
+*   **Next Step:** Finalize home screen layout and remove temporary test components. 

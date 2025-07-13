@@ -31,13 +31,14 @@ interface StatCard {
 }
 
 interface WeeklyData {
-  week: string;
+  label: string;
   positive: number;
   negative: number;
   total: number;
 }
 
 const periodFilters = [
+  { id: 'today', name: 'Today' },
   { id: 'week', name: 'This Week' },
   { id: 'month', name: 'This Month' },
   { id: 'all', name: 'All Time' },
@@ -50,7 +51,8 @@ export default function AnalyticsScreen() {
   
   // State for all dynamic data
   const [mainStats, setMainStats] = useState<StatCard[]>([]);
-  const [weeklyData, setWeeklyData] = useState<WeeklyData[]>([]);
+  const [breakdownTitle, setBreakdownTitle] = useState('');
+  const [breakdownData, setBreakdownData] = useState<WeeklyData[]>([]);
   const [categoryStats, setCategoryStats] = useState<any[]>([]);
   const [insights, setInsights] = useState<any>({});
 
@@ -68,7 +70,10 @@ export default function AnalyticsScreen() {
       return;
     }
 
-    const { data, error } = await supabase.rpc('get_user_analytics', { p_user_id: user.id });
+    const { data, error } = await supabase.rpc('get_user_analytics', {
+      p_user_id: user.id,
+      p_period: selectedPeriod,
+    });
 
     if (error) {
       console.error("Error fetching analytics:", error);
@@ -77,7 +82,7 @@ export default function AnalyticsScreen() {
     }
 
     if (data) {
-      const { main_stats, weekly_data, category_stats, insights } = data;
+      const { main_stats, breakdown_title, breakdown_data, category_stats, insights } = data;
       
       setMainStats([
         { title: 'Total Sent', value: main_stats.total_sent || 0, icon: Heart, color: '#FF8C42' },
@@ -86,7 +91,8 @@ export default function AnalyticsScreen() {
         { title: 'Daily Average', value: main_stats.daily_average || 0, icon: TrendingUp, color: '#6BCF7F' },
       ]);
       
-      setWeeklyData(weekly_data || []);
+      setBreakdownTitle(breakdown_title || '');
+      setBreakdownData(breakdown_data || []);
       setCategoryStats(category_stats || []);
       setInsights(insights || {});
     }
@@ -151,13 +157,25 @@ export default function AnalyticsScreen() {
     </View>
   );
 
-  const renderWeeklyBreakdown = () => {
-    // Limit to last 7 weeks to prevent overflow
-    const displayData = weeklyData.slice(-7);
+  const renderBreakdownChart = () => {
+    // Prevent rendering if data is empty
+    if (!breakdownData || breakdownData.length === 0) {
+      return (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{breakdownTitle}</Text>
+          <View style={styles.weeklyChart}>
+            <Text style={styles.noDataText}>No activity in this period.</Text>
+          </View>
+        </View>
+      );
+    }
+    
+    // Find max total for scaling bars
+    const maxTotal = Math.max(...breakdownData.map(d => d.total), 1);
     
     return (
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Weekly Breakdown</Text>
+        <Text style={styles.sectionTitle}>{breakdownTitle}</Text>
         <View style={styles.weeklyChart}>
           <ScrollView 
             horizontal 
@@ -165,26 +183,26 @@ export default function AnalyticsScreen() {
             contentContainerStyle={styles.weeklyChartContent}
             style={styles.weeklyChartScroll}
           >
-            {displayData.map((week, index) => (
+            {breakdownData.map((item, index) => (
               <View key={index} style={styles.weeklyBar}>
                 <View style={styles.barContainer}>
                   <View 
                     style={[
                       styles.bar, 
                       styles.positiveBar,
-                      { height: Math.max((week.positive / 25) * 80, 8) }
+                      { height: (item.positive / maxTotal) * 80 }
                     ]} 
                   />
                   <View 
                     style={[
                       styles.bar, 
                       styles.negativeBar,
-                      { height: Math.max((week.negative / 25) * 80, 4) }
+                      { height: (item.negative / maxTotal) * 80 }
                     ]} 
                   />
                 </View>
-                <Text style={styles.weekLabel}>{week.week}</Text>
-                <Text style={styles.weekTotal}>{week.total}</Text>
+                <Text style={styles.weekLabel}>{item.label}</Text>
+                <Text style={styles.weekTotal}>{item.total}</Text>
               </View>
             ))}
           </ScrollView>
@@ -242,57 +260,121 @@ export default function AnalyticsScreen() {
     </View>
   );
 
-  const renderInsights = () => (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Insights & Patterns</Text>
-      
-      <View style={styles.insightsList}>
-        <View style={styles.insightCard}>
-          <View style={styles.insightIcon}>
-            <Calendar color="#8B5CF6" size={20} />
-          </View>
-          <View style={styles.insightContent}>
-            <Text style={styles.insightTitle}>Most Active Day</Text>
-            <Text style={styles.insightValue}>{insights.mostActiveDay}</Text>
-            <Text style={styles.insightDescription}>You send the most badges on Tuesdays</Text>
+  const renderInsights = () => {
+    if (!insights) return null;
+    // Context-aware insights rendering
+    if (selectedPeriod === 'today') {
+      return (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Insights & Patterns</Text>
+          <View style={styles.insightsList}>
+            <View style={styles.insightCard}>
+              <View style={styles.insightIcon}>
+                <Zap color="#FFD93D" size={20} />
+              </View>
+              <View style={styles.insightContent}>
+                <Text style={styles.insightTitle}>Streak Status</Text>
+                <Text style={styles.insightValue}>{insights.streak_status || '-'}</Text>
+                <Text style={styles.insightDescription}>Your appreciation streak for today</Text>
+              </View>
+            </View>
+            <View style={styles.insightCard}>
+              <View style={styles.insightIcon}>
+                <Clock color="#8B5CF6" size={20} />
+              </View>
+              <View style={styles.insightContent}>
+                <Text style={styles.insightTitle}>First Event Time</Text>
+                <Text style={styles.insightValue}>{insights.first_event_time || '-'}</Text>
+                <Text style={styles.insightDescription}>First badge sent today</Text>
+              </View>
+            </View>
+            <View style={styles.insightCard}>
+              <View style={styles.insightIcon}>
+                <Clock color="#4ECDC4" size={20} />
+              </View>
+              <View style={styles.insightContent}>
+                <Text style={styles.insightTitle}>Last Event Time</Text>
+                <Text style={styles.insightValue}>{insights.last_event_time || '-'}</Text>
+                <Text style={styles.insightDescription}>Last badge sent today</Text>
+              </View>
+            </View>
+            <View style={styles.insightCard}>
+              <View style={styles.insightIcon}>
+                <Calendar color="#FF8C42" size={20} />
+              </View>
+              <View style={styles.insightContent}>
+                <Text style={styles.insightTitle}>Most Active Hour</Text>
+                <Text style={styles.insightValue}>{insights.most_active_hour || '-'}</Text>
+                <Text style={styles.insightDescription}>Hour with most activity today</Text>
+              </View>
+            </View>
+            {Array.isArray(insights.category_breakdown) && insights.category_breakdown.length > 0 && (
+              <View style={styles.insightCard}>
+                <View style={styles.insightIcon}>
+                  <Heart color="#FF6B9D" size={20} />
+                </View>
+                <View style={styles.insightContent}>
+                  <Text style={styles.insightTitle}>Category Breakdown</Text>
+                  {insights.category_breakdown.map((cat: any, idx: number) => (
+                    <Text key={idx} style={styles.insightValue}>{cat.category}: {cat.count}</Text>
+                  ))}
+                  <Text style={styles.insightDescription}>Badges sent by category today</Text>
+                </View>
+              </View>
+            )}
           </View>
         </View>
-
-        <View style={styles.insightCard}>
-          <View style={styles.insightIcon}>
-            <Heart color="#FF6B9D" size={20} />
+      );
+    }
+    // Default: week, month, all
+    return (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Insights & Patterns</Text>
+        <View style={styles.insightsList}>
+          <View style={styles.insightCard}>
+            <View style={styles.insightIcon}>
+              <Calendar color="#8B5CF6" size={20} />
+            </View>
+            <View style={styles.insightContent}>
+              <Text style={styles.insightTitle}>Most Active Day</Text>
+              <Text style={styles.insightValue}>{insights.most_active_day || '-'}</Text>
+              <Text style={styles.insightDescription}>You send the most badges on this day</Text>
+            </View>
           </View>
-          <View style={styles.insightContent}>
-            <Text style={styles.insightTitle}>Your Favorite</Text>
-            <Text style={styles.insightValue}>{insights.favoriteCategory}</Text>
-            <Text style={styles.insightDescription}>Your most sent category</Text>
+          <View style={styles.insightCard}>
+            <View style={styles.insightIcon}>
+              <Heart color="#FF6B9D" size={20} />
+            </View>
+            <View style={styles.insightContent}>
+              <Text style={styles.insightTitle}>Your Favorite</Text>
+              <Text style={styles.insightValue}>{insights.favorite_category || '-'}</Text>
+              <Text style={styles.insightDescription}>Your most sent category</Text>
+            </View>
           </View>
-        </View>
-
-        <View style={styles.insightCard}>
-          <View style={styles.insightIcon}>
-            <Users color="#4ECDC4" size={20} />
+          <View style={styles.insightCard}>
+            <View style={styles.insightIcon}>
+              <Users color="#4ECDC4" size={20} />
+            </View>
+            <View style={styles.insightContent}>
+              <Text style={styles.insightTitle}>Partner's Favorite</Text>
+              <Text style={styles.insightValue}>{insights.partner_favorite_category || '-'}</Text>
+              <Text style={styles.insightDescription}>What they appreciate most</Text>
+            </View>
           </View>
-          <View style={styles.insightContent}>
-            <Text style={styles.insightTitle}>Partner's Favorite</Text>
-            <Text style={styles.insightValue}>{insights.partnerFavoriteCategory}</Text>
-            <Text style={styles.insightDescription}>What they appreciate most</Text>
-          </View>
-        </View>
-
-        <View style={styles.insightCard}>
-          <View style={styles.insightIcon}>
-            <Target color="#6BCF7F" size={20} />
-          </View>
-          <View style={styles.insightContent}>
-            <Text style={styles.insightTitle}>Balance Score</Text>
-            <Text style={styles.insightValue}>{insights.balanceScore}</Text>
-            <Text style={styles.insightDescription}>Great give-and-take balance</Text>
+          <View style={styles.insightCard}>
+            <View style={styles.insightIcon}>
+              <Target color="#6BCF7F" size={20} />
+            </View>
+            <View style={styles.insightContent}>
+              <Text style={styles.insightTitle}>Balance Score</Text>
+              <Text style={styles.insightValue}>{insights.balance_score || '-'}</Text>
+              <Text style={styles.insightDescription}>Great give-and-take balance</Text>
+            </View>
           </View>
         </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <View style={[styles.container, {
@@ -323,7 +405,7 @@ export default function AnalyticsScreen() {
         ) : (
           <>
             {renderMainStats()}
-            {renderWeeklyBreakdown()}
+            {renderBreakdownChart()}
             {renderCategoryBreakdown()}
             {renderInsights()}
           </>
@@ -502,6 +584,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
+  },
+  noDataText: {
+    flex: 1,
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: '#999',
   },
   weeklyChartScroll: {
     flex: 1,
