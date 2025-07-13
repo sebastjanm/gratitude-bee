@@ -18,10 +18,13 @@ Each user has a "wallet" that tracks their various point balances. These balance
 
 The primary balances are:
 
-*   **Appreciation Points:** A collection of points earned from receiving positive badges. These are tracked *per category*.
-    *   Example Balance: `{ "kindness": 4, "support": 5, "humor": 7, ... }`
-*   **Favor Points:** A single balance of points earned by completing favors for their partner. These points can then be "spent" to request new favors.
-*   **Hornet Stings:** A running total of negative points received from Hornets. This is purely for tracking and accountability.
+*   **Appreciation Points (Level 1):** A collection of points earned from receiving positive badges. These are tracked *per category* within a `jsonb` field.
+    *   Example Balance: `{ "kindness": 4, "support": 5, "humor": 7 }`
+*   **Favor Points (Level 1):** A single balance of points earned by completing favors for a partner. These points can then be "spent" to request new favors.
+*   **Wisdom Points (Level 2):** Points earned by receiving "Wisdom" messages.
+*   **Ping Points (Level 2):** Points earned by promptly responding to a "Ping."
+*   **Don't Panic Points (Level 2):** Points earned from receiving a "Don't Panic" message.
+*   **Hornet Stings (Level 3):** A running total of negative points received from Hornets. This is purely for tracking and accountability.
 
 ---
 
@@ -83,12 +86,20 @@ Pings are conditional and only award points upon a specific response.
     *   User B responds by clicking one of the predefined replies (e.g., "I'm OK").
     *   **Trigger:** User B's response.
     *   **Point Logic:**
-        *   A small, predefined number of points (e.g., 1 point) is awarded to User B's **Appreciation Points** wallet under a special "ping_response" category. This rewards their promptness.
+        *   A small, predefined number of points (e.g., 1 point) is awarded to User B's **Ping Points** wallet. This rewards their promptness.
         *   The event status is updated to `responded`.
 *   **Data Stored in Event:** `ping_id`, `title`, `status` (`pending_response`, `responded`).
 
-### 3.5. Message-Only Events
-*   **Actions:** "Relationship Wisdom" and "Don't Panic" events.
-*   **Notification:** User B receives a push notification with the message content: *"[User A's Name] sent you a message: 'Everything will be okay ❤️...'"*
-*   **Point Logic:** These events carry **zero points**. They are recorded in the ledger for timeline purposes but do not affect any user wallets.
-*   **Data Stored in Event:** `message_id`, `title`, `message_text`. 
+### 3.5. Message-Only & Wisdom Events
+
+#### Relationship Wisdom
+*   **Action:** User A sends a "Wisdom" message to User B.
+*   **Notification:** User B receives a push notification with the message content.
+*   **Point Logic:** The points defined in the chosen `wisdom_template` are added to User B's **Wisdom Points** balance.
+*   **Data Stored in Event:** `template_id`, `title`, `description`, `points`.
+
+#### Don't Panic
+*   **Action:** User A sends a "Don't Panic" message to User B.
+*   **Notification:** User B receives a push notification with the message content.
+*   **Point Logic:** A fixed number of points (currently 1) is added to User B's **Don't Panic Points** balance. (This will be updated to use a template system in the future).
+*   **Data Stored in Event:** `message_id`, `title`. 

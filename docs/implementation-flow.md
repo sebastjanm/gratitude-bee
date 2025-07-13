@@ -716,4 +716,16 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
 *   **Next Step:** Full regression testing of all notification-based user flows.
 ---
 
+### **Step 32: Point System Architectural Refactor**
+*   **Timestamp:** `2025-07-18T16:00:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   **ARCHITECTURAL REFACTOR:** Overhauled the points economy to correctly segregate different types of points, creating a more robust and scalable system based on user-defined levels of interaction.
+    *   **Schema Change:** The `wallets` table was updated with new, dedicated columns for each Level 2 point category: `wisdom_points`, `ping_points`, and `dont_panic_points`. This replaces the incorrect approach of storing them inside the `appreciation_points` JSONB object.
+    *   **Database Logic:** The core `handle_event_points` function was completely rewritten to route points to these new columns. It now correctly handles all event types (`APPRECIATION`, `WISDOM`, `DONT_PANIC`, `PING_RESPONSE`, `HORNET`) and directs points to the appropriate balance.
+    *   **Template & Seeding:** The `wisdom_templates` table was expanded to include a full points system, with values for `points`, `points_icon`, and `point_unit` seeded for each template.
+    *   **Documentation:** Updated `docs/PointsEconomy.md` to reflect the new, more granular point categories and their logic.
+*   **Next Step:** Begin development on template creation for Ping and Don't Panic events.
+---
+
  
