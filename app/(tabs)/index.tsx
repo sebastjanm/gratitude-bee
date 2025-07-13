@@ -26,7 +26,8 @@ import FavorsModal from '@/components/FavorsModal';
 import QuickSendActions from '@/components/QuickSendActions';
 import TodayTip from '@/components/TodayTip';
 import PingModal from '@/components/PingModal';
-import SadCatCard from '@/components/SadCatCard';
+import EngagementCard from '@/components/EngagementCard';
+import BraveryBadge from '@/components/BraveryBadge';
 import { supabase } from '@/utils/supabase';
 import { useSession } from '@/providers/SessionProvider';
 import { router } from 'expo-router';
@@ -66,14 +67,9 @@ export default function HomeScreen() {
   const [showPingModal, setShowPingModal] = useState(false);
   const [favorPoints, setFavorPoints] = useState(45);
   const [heartAnimation] = useState(new Animated.Value(1));
-  const [stats, setStats] = useState({
-    sent_today: 0,
-    received_today: 0,
-    favor_points: 0,
-    appreciation_points: 0,
-  });
-  const [loadingStats, setLoadingStats] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const [stats, setStats] = useState({ sent_today: 0, received_today: 0, favor_points: 0, appreciation_points: 0 });
+  const [engagementStage, setEngagementStage] = useState<'boring' | 'demanding' | 'sad' | 'spark' | 'love' | 'none'>('boring');
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const { session } = useSession();
   const insets = useSafeAreaInsets();
 
@@ -89,9 +85,9 @@ export default function HomeScreen() {
     if (!session?.user) return;
     
     if (isRefresh) {
-      setRefreshing(true);
+      setIsRefreshing(true);
     } else {
-      setLoadingStats(true);
+      // setLoadingStats(true); // This state variable is no longer used
     }
     
     const { data, error } = await supabase.rpc('get_daily_stats', {
@@ -101,28 +97,23 @@ export default function HomeScreen() {
     if (error) {
       console.error('Error fetching daily stats:', error);
       Alert.alert('Error', 'Could not fetch your daily stats.');
-    } else if (data) {
-      setStats({
-        sent_today: data[0].sent_today,
-        received_today: data[0].received_today,
-        favor_points: data[0].favor_points,
-        appreciation_points: data[0].appreciation_points,
-      });
+    } else if (data && data.length > 0) {
+      const newStats = { ...data[0] };
+      setStats(newStats);
+      calculateEngagementStage(newStats.sent_today, newStats.received_today);
     }
     
     if (isRefresh) {
-      setRefreshing(false);
+      setIsRefreshing(false);
     } else {
-      setLoadingStats(false);
+      // setLoadingStats(false); // This state variable is no longer used
     }
   };
 
   const onRefresh = () => {
-    fetchStats(true);
+    fetchStats();
   };
 
-  // This helper function provides a consistent "random" value for a given day
-  // to prevent the UI from changing on every render.
   const getDailyDeterministicRandom = () => {
     const seed = new Date().toDateString();
     const hash = seed.split('').reduce((a, b) => {
@@ -132,27 +123,23 @@ export default function HomeScreen() {
     return Math.abs(hash % 100) / 100;
   };
 
-  const shouldShowSadCat = () => {
-    const { sent_today, received_today } = stats;
+  const calculateEngagementStage = (sent: number, received: number) => {
+    // Favors and Hornets have a higher weight in the interaction score
+    const interactionScore = sent * 1 + received * 1.5;
 
-    // The core goal is to encourage sending, so if none are sent, always show the cat.
-    if (sent_today === 0) {
-      return true;
+    if (interactionScore > 20) {
+      setEngagementStage('none'); // Goal achieved, no card needed
+    } else if (interactionScore > 15) {
+      setEngagementStage('love');
+    } else if (interactionScore > 10) {
+      setEngagementStage('spark');
+    } else if (interactionScore > 5) {
+      setEngagementStage('sad');
+    } else if (interactionScore > 0) {
+      setEngagementStage('demanding');
+    } else {
+      setEngagementStage('boring');
     }
-
-    // Don't show if the user has been very active.
-    if (sent_today >= 10) {
-      return false;
-    }
-    
-    // Calculate a simple "vibe" score. Sending is more proactive, so we weigh it higher.
-    const interactionScore = (sent_today * 1.5) + (received_today * 0.5);
-
-    // As the interaction score increases, the chance of seeing the cat decreases linearly.
-    // A score of 10 or more reduces the chance to 0.
-    const chance = Math.max(0, 1 - (interactionScore / 10));
-    
-    return getDailyDeterministicRandom() < chance;
   };
 
   React.useEffect(() => {
@@ -435,29 +422,21 @@ export default function HomeScreen() {
   };
 
   const renderStats = () => {
-    // Show sad cat card randomly until 10 sent messages
-    if (shouldShowSadCat()) {
-      return <SadCatCard sentToday={stats.sent_today} />;
-    }
-
     return (
-      <View style={styles.statsContainer}>
-        <Text style={styles.statsTitle}>Today's Stats <Text style={styles.statsSubtitle}>(restarts every 24 hours)</Text></Text>
-        <View style={styles.statsGrid}>
-          {statsConfig.map((stat) => {
-            const Icon = stat.icon;
-            const value = stats[stat.key as keyof typeof stats] ?? 0;
-            return (
-              <View key={stat.key} style={styles.statItem}>
-                <View style={[styles.statIcon, { backgroundColor: stat.color + '20' }]}>
-                  <Icon color={stat.color} size={22} />
-                </View>
-                <Text style={styles.statNumber}>{value}</Text>
-                <Text style={styles.statLabel}>{stat.name}</Text>
+      <View style={styles.statsGrid}>
+        {statsConfig.map((stat) => {
+          const Icon = stat.icon;
+          const value = stats[stat.key as keyof typeof stats] ?? 0;
+          return (
+            <View key={stat.key} style={styles.statItem}>
+              <View style={[styles.statIcon, { backgroundColor: stat.color + '20' }]}>
+                <Icon color={stat.color} size={22} />
               </View>
-            );
-          })}
-        </View>
+              <Text style={styles.statNumber}>{value}</Text>
+              <Text style={styles.statLabel}>{stat.name}</Text>
+            </View>
+          );
+        })}
       </View>
     );
   };
@@ -465,7 +444,7 @@ export default function HomeScreen() {
   return (
     <View style={[styles.container, {
       paddingTop: insets.top,
-      paddingBottom: insets.bottom,
+      // paddingBottom: insets.bottom, // This is likely causing the extra space on iOS
       paddingLeft: insets.left,
       paddingRight: insets.right,
     }]}>
@@ -496,7 +475,7 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
+            refreshing={isRefreshing}
             onRefresh={onRefresh}
             colors={['#FF8C42']}
             tintColor="#FF8C42"
@@ -505,58 +484,74 @@ export default function HomeScreen() {
           />
         }
       >
-        {loadingStats ? <ActivityIndicator color="#FF8C42" size="large" /> : renderStats()}
+        <View style={{ height: 32 }} />
+
+
+        {engagementStage !== 'none' && (
+          <EngagementCard stage={engagementStage} />
+        )}
+
+
+
+        <View style={styles.statsContainer}>
+          {renderStats()}
+        </View>
+
+        <View style={{ height: 32 }} />
 
         <QuickSendActions
           onShowAppreciationModal={() => setShowAppreciationModal(true)}
           onShowFavorsModal={() => setShowFavorsModal(true)}
-          onShowRelationshipWisdomModal={() => setShowRelationshipWisdomModal(true)}
+          onShowPingModal={() => setShowPingModal(true)}
           onShowDontPanicModal={() => setShowDontPanicModal(true)}
           onShowNegativeModal={() => setShowNegativeModal(true)}
-          onShowPingModal={() => setShowPingModal(true)}
+          onShowRelationshipWisdomModal={() => setShowRelationshipWisdomModal(true)}
           heartAnimation={heartAnimation}
         />
-
+        
         <TodayTip />
-      </ScrollView>
-      
-      <NegativeBadgeModal
-        visible={showNegativeModal}
-        onClose={() => setShowNegativeModal(false)}
-        onSend={handleSendHornet}
-      />
-      
-      <DontPanicModal
-        visible={showDontPanicModal}
-        onClose={() => setShowDontPanicModal(false)}
-        onSend={handleSendDontPanic}
-      />
-      
-      <AppreciationModal
-        visible={showAppreciationModal}
-        onClose={() => setShowAppreciationModal(false)}
-        onSendBadge={handleSendBadge}
-      />
-      
-      <RelationshipWisdomModal
-        visible={showRelationshipWisdomModal}
-        onClose={() => setShowRelationshipWisdomModal(false)}
-        onSendWisdom={handleSendWisdom}
-      />
-      
-      <FavorsModal
-        visible={showFavorsModal}
-        onClose={() => setShowFavorsModal(false)}
-        onSendFavor={handleSendFavor}
-        currentFavorPoints={favorPoints}
-      />
 
-      <PingModal
-        visible={showPingModal}
-        onClose={() => setShowPingModal(false)}
-        onSendPing={handleSendPing}
-      />
-      
+        <View style={{ height: 32 }} />
+
+        <View style={styles.specialActions}>
+          <NegativeBadgeModal
+            visible={showNegativeModal}
+            onClose={() => setShowNegativeModal(false)}
+            onSend={handleSendHornet}
+          />
+          
+          <DontPanicModal
+            visible={showDontPanicModal}
+            onClose={() => setShowDontPanicModal(false)}
+            onSend={handleSendDontPanic}
+          />
+          
+          <AppreciationModal
+            visible={showAppreciationModal}
+            onClose={() => setShowAppreciationModal(false)}
+            onSendBadge={handleSendBadge}
+          />
+          
+          <RelationshipWisdomModal
+            visible={showRelationshipWisdomModal}
+            onClose={() => setShowRelationshipWisdomModal(false)}
+            onSendWisdom={handleSendWisdom}
+          />
+          
+          <FavorsModal
+            visible={showFavorsModal}
+            onClose={() => setShowFavorsModal(false)}
+            onSendFavor={handleSendFavor}
+            currentFavorPoints={favorPoints}
+          />
+
+          <PingModal
+            visible={showPingModal}
+            onClose={() => setShowPingModal(false)}
+            onSendPing={handleSendPing}
+          />
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -577,7 +572,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingTop: 20,
     paddingBottom: 12,
   },
   headerContent: {
@@ -831,32 +826,26 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: '#999',
   },
+  statsHeader: {
+    backgroundColor: 'white',
+    marginHorizontal: 20,
+    borderRadius: 20,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    marginTop: 20,
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  specialActions: {
+    marginTop: 20,
+    marginBottom: 24,
+  },
 });
 
-/*
-Added SadCatCard component that appears randomly until 10 sent messages.
-Added pull-down refresh functionality to update stats.
-
-DROP FUNCTION IF EXISTS public.get_daily_stats(p_user_id uuid);
-
-CREATE OR REPLACE FUNCTION get_daily_stats(p_user_id uuid)
-RETURNS TABLE(sent_today bigint, received_today bigint, favor_points integer, appreciation_points integer) AS $$
-BEGIN
-    RETURN QUERY
-    WITH daily_events AS (
-        SELECT * FROM events
-        WHERE created_at >= date_trunc('day', now()) AND created_at < date_trunc('day', now()) + interval '1 day'
-    )
-    SELECT
-        (SELECT count(*) FROM daily_events WHERE sender_id = p_user_id) AS sent_today,
-        (SELECT count(*) FROM daily_events WHERE receiver_id = p_user_id) AS received_today,
-        (SELECT w.favor_points FROM wallets w WHERE w.user_id = p_user_id) AS favor_points,
-        (
-             SELECT COALESCE(SUM(value::int), 0)::integer -- Cast the final sum to integer
-             FROM wallets w,
-                  jsonb_each_text(w.appreciation_points)
-             WHERE w.user_id = p_user_id
-        ) AS appreciation_points;
-END;
-$$ LANGUAGE plpgsql;
-*/

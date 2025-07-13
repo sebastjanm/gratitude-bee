@@ -618,3 +618,29 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
         *   The timeline now correctly shows action buttons ("Accept", "Decline", "Mark as Complete") based on the favor's status and the user's role in the interaction.
 
 *   **Next Step:** Monitor application stability and plan for the next feature implementation cycle. 
+---
+
+### **Step 26: Homepage Engagement Card UI**
+*   **Timestamp:** `2025-07-14T12:00:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   **UI/UX ENHANCEMENT:** Replaced the static "Sad Cat" card with a dynamic, multi-stage engagement system to provide more nuanced user encouragement.
+    *   **Asset Creation:**
+        *   Created placeholder Lottie animation files (`stage1.json`, `stage2.json`, `stage3.json`) in a new `assets/lottie/` directory. These will be replaced by designers with actual animations.
+    *   **Component Creation:**
+        *   Built a reusable `EngagementCard.tsx` component that dynamically displays a Lottie animation and text based on the user's current engagement stage (low, medium, high).
+        *   Built a reusable `BraveryBadge.tsx` component to display a small "bravery" icon when the user achieves their daily interaction goal.
+    *   **Rationale:** This new system moves beyond a simple binary reminder to a more sophisticated feedback loop that adapts to the user's interaction level, in line with the app's goal of fostering positive communication.
+*   **Next Step:** Implement the core logic for the engagement score and integrate the new components into the home screen.
+---
+
+### **Step 27: Dynamic Engagement Logic & UI Integration**
+*   **Timestamp:** `2025-07-14T12:15:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   **Core Logic:** Implemented a new `calculateEngagementStage` function on the home screen (`index.tsx`). This function calculates an `interactionScore` based on sent and received events, with received events weighted more heavily to encourage reciprocity.
+    *   **UI Integration:**
+        *   Replaced the old `SadCatCard` with the new `EngagementCard`. The home screen now displays one of three engagement stages (low, medium, high) based on the daily score.
+        *   Integrated the `BraveryBadge` into the "Today's Stats" header, which now appears only after the user has achieved the daily interaction goal (score >= 10).
+    *   **Cleanup:** Removed the now-unused `SadCatCard.tsx` component and the old `shouldShowSadCat` logic to complete the refactor.
+*   **Next Step:** Monitor application stability and user feedback on the new engagement system. 
