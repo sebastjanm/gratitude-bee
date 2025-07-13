@@ -777,4 +777,51 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
 
 ---
 
+### **Step 34: Notification System Fixes**
+*   **Timestamp:** `2025-07-18T18:00:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   Resolved a regression in the push notification system caused by recent refactoring.
+    *   Added support for `HORNET` notifications in the `send-notification` Edge Function, ensuring they are delivered correctly.
+    *   Standardized the `PING` notification category identifier for better consistency with event naming conventions.
+    *   Made the "thank you" notification (`PING_RESPONSE`) text more generic, so it correctly refers to a "message" instead of an "appreciation," making it suitable for all interaction types (Wisdom, Pings, etc.).
+*   **Next Step:** Full regression testing of all notification paths.
+
+---
+
+### **Step 35: Notification Trigger Refactor for Favors**
+*   **Timestamp:** `2025-07-19T00:00:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   **ARCHITECTURAL REFACTOR:** Resolved a critical bug where accepting or declining a favor sent a generic notification instead of a specific one.
+    *   **Root Cause:** The database trigger responsible for sending notifications was only configured to fire on `INSERT` operations, not `UPDATE`. Favor responses only updated existing events, so the trigger was never activated for them.
+    *   **Solution:**
+        1.  Created a new migration (`20250719000000_update_notification_trigger_on_update.sql`) to modify the `trigger_send_push_notification` to fire on both `INSERT OR UPDATE`, unifying the notification logic.
+        2.  Removed the redundant manual calls to the `send-notification` function from within the `accept-favor` and `decline-favor` Edge Functions, as the trigger now handles this automatically.
+        3.  Modified the `accept-favor` and `decline-favor` functions to update the `event_type` to `FAVOR_ACCEPTED` or `FAVOR_DECLINED`. This ensures the trigger processes the correct event type and sends the correct, specific notification to the user.
+*   **Next Step:** Verify the end-to-end favor lifecycle. 
+
+---
+
+### **Step 36: Fix Favor Completion Notification**
+*   **Timestamp:** `2025-07-19T01:00:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   Resolved a bug where marking a favor as complete was failing and not sending the correct notification.
+    *   The `complete-favor` Edge Function was only updating the event's `status` but not its `event_type`.
+    *   This caused the `send-notification` function (fired by the `UPDATE` trigger) to process the old `FAVOR_REQUEST` type, leading to incorrect behavior.
+    *   **Solution:** Modified the `complete-favor` function to update both the `status` to `COMPLETED` and the `event_type` to `FAVOR_COMPLETED`. This ensures the correct notification is sent, and the point transfer logic works as expected.
+*   **Next Step:** Final end-to-end testing of the favor system. 
+
+---
+
+### **Step 37: Fix Ping Notification Event Type**
+*   **Timestamp:** `2025-07-19T02:00:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   Resolved a regression where sending a "Ping" resulted in a generic notification instead of the specific "Ping" message.
+    *   **Root Cause:** The client-side code in `app/(tabs)/index.tsx` was creating an event with `event_type: 'PING_SENT'`, while the `send-notification` function expected `event_type: 'PING'`.
+    *   **Solution:** Corrected the `event_type` in the `handleSendPing` function to `'PING'`, aligning it with the backend handler and restoring the correct notification content. This also fixed a regression of a previously documented issue.
+*   **Next Step:** Full regression testing of the Ping feature. 
+
  

@@ -471,7 +471,6 @@ export default function HomeScreen() {
       receiver_id: userData.partner_id,
       event_type: 'PING',
       content: {
-        template_id: template.id,
         title: template.title,
         description: template.description,
         points: template.points,

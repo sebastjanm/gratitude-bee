@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
     // Another trigger will handle the notification.
     const { error: updateError } = await supabaseAdmin
       .from('events')
-      .update({ status: 'COMPLETED' })
+      .update({ status: 'COMPLETED', event_type: 'FAVOR_COMPLETED' })
       .eq('id', event_id);
 
     if (updateError) throw updateError;

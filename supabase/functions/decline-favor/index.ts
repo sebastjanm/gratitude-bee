@@ -39,28 +39,10 @@ Deno.serve(async (req) => {
     // 2. Update the original event's status to DECLINED
     const { error: updateError } = await supabaseAdmin
       .from("events")
-      .update({ status: "DECLINED" })
+      .update({ status: "DECLINED", event_type: "FAVOR_DECLINED" })
       .eq("id", event_id);
 
     if (updateError) throw updateError;
-
-    // 4. Send notification back to the original requester
-    const notificationPayload = {
-      ...originalEvent, // Copy original event for context
-      sender_id: user_id, // The user declining is the SENDER of this notification
-      receiver_id: originalEvent.sender_id, // The original requester is the RECEIVER
-      event_type: 'FAVOR_DECLINED',
-      status: 'DECLINED',
-    };
-
-    const { error: invokeError } = await supabaseAdmin.functions.invoke('send-notification', {
-      body: { record: notificationPayload },
-    });
-
-    if (invokeError) {
-      console.error('Error invoking send-notification function:', invokeError);
-      throw invokeError;
-    }
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

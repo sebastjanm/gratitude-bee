@@ -103,7 +103,7 @@ Deno.serve(async (req) => {
       case 'PING':
         title = `Ping from ${sender.display_name}! 👋`;
         body = content.description || 'Just saying hi!';
-        categoryIdentifier = 'ping_sent';
+        categoryIdentifier = 'ping';
         break;
       case 'DONT_PANIC':
         title = `A "Don't Panic" signal from ${sender.display_name}! 🐋`;
@@ -113,9 +113,9 @@ Deno.serve(async (req) => {
       case 'PING_RESPONSE':
         title = `${sender.display_name} says thank you! ❤️`;
         if (content.original_appreciation_title) {
-          body = `For your appreciation: "${content.original_appreciation_title}"`;
+          body = `For your message: "${content.original_appreciation_title}"`;
         } else {
-          body = `For the appreciation you sent.`;
+          body = `For the message you sent.`;
         }
         categoryIdentifier = 'default';
         break;
@@ -123,6 +123,14 @@ Deno.serve(async (req) => {
         title = `Wisdom from ${sender.display_name}! 🦉`;
         body = content.description || 'A piece of wisdom has been shared.';
         categoryIdentifier = 'wisdom';
+        break;
+      case 'HORNET':
+        title = `A Hornet from ${sender.display_name}!  Hornet`;
+        body = `${content.title || "You've received a hornet."}`;
+        if (content.points) {
+            body += ` (-${content.points} points)`;
+        }
+        categoryIdentifier = 'hornet';
         break;
     }
 
