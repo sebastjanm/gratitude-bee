@@ -663,3 +663,32 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
         *   Fixed a `lottie-react-native` linter error by removing a deprecated Android-specific prop.
         *   Resolved a React Native warning (`Text strings must be rendered within a <Text> component`) caused by stray whitespace in the JSX.
 *   **Next Step:** Finalize home screen layout and remove temporary test components. 
+
+---
+
+### **Step 29: Analytics Breakdown & Insights Overhaul**
+*   **Timestamp:** `2025-07-18T00:00:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   **Monthly Breakdown Week Alignment Fix:**
+        *   Identified and resolved a bug where the monthly analytics breakdown (weekly bars) was empty or incorrect due to misaligned week buckets.
+        *   The root cause was the `generate_series` in the `get_user_analytics` SQL function starting at the 1st of the month, which did not always align with the actual week start (Monday). This caused events to be grouped incorrectly or missed entirely.
+        *   Implemented a new migration (`20250718000000_fix_monthly_week_bucket.sql`) to ensure week buckets for the 'month' period always start at the correct week start (Monday) using `date_trunc('week', start_date)`. This guarantees all events are counted in the correct week, matching user expectations and standard analytics practices.
+    *   **Context-Aware Insights Refactor:**
+        *   Refactored the `get_user_analytics` SQL function to provide context-aware insights based on the selected period.
+        *   For the 'today' period, removed misleading KPIs (e.g., "Most Active Day" and "Favorite Category") and replaced them with relevant metrics: streak status, first/last event time, most active hour, and category breakdown.
+        *   For 'week', 'month', and 'all' periods, retained the original insights: most active day, favorite category, partner's favorite, and balance score.
+        *   Implemented this logic in a new migration (`20250718010000_context_aware_insights.sql`).
+    *   **UI Update:**
+        *   Updated the `app/(tabs)/analytics.tsx` screen to render insights contextually, only showing cards relevant to the selected period.
+        *   Ensured the UI logic matches the backend, so users never see nonsensical or trivial KPIs for single-day views.
+    *   **Rationale:**
+        *   These changes were driven by real-world usage and feedback, ensuring analytics are always meaningful and actionable.
+        *   The week bucket fix aligns the analytics with standard calendar logic, while the insights refactor prevents user confusion and improves the perceived intelligence of the app.
+    *   **Next Step:**
+        *   Monitor analytics usage and user feedback for further refinement.
+        *   Consider adding new KPIs/OKRs (e.g., engagement days, diversity, response time) based on evolving product goals. 
+
+---
+
+ 

@@ -14,7 +14,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Heart, Star, Smile, Compass, MessageCircle, Filter, Calendar, Bug, X, CircleCheck as CheckCircle, Crown, Home as HomeIcon, Clock, HelpCircle, ThumbsUp, ThumbsDown } from 'lucide-react-native';
+import { Heart, Star, Smile, Compass, MessageCircle, Filter, Calendar, Bug, X, CircleCheck as CheckCircle, Crown, Home as HomeIcon, Clock, HelpCircle, ThumbsUp, ThumbsDown, ArrowDownLeft, ArrowUpRight } from 'lucide-react-native';
 import { useSession } from '@/providers/SessionProvider';
 import { supabase } from '@/utils/supabase';
 import { router } from 'expo-router';
@@ -26,7 +26,9 @@ interface TimelineEvent {
   type: 'sent' | 'received';
   badgeName: string;
   category: string;
+  eventType: string;
   message?: string;
+  description?: string;
   timestamp: string;
   partnerName: string;
   icon: any;
@@ -36,6 +38,7 @@ interface TimelineEvent {
   status?: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'COMPLETED';
   content?: {
     title: string;
+    description?: string;
     category_id: string;
     message?: string;
     points?: number;
@@ -44,9 +47,9 @@ interface TimelineEvent {
 }
 
 const filterOptions = [
-  { id: 'received', name: 'Received' },
-  { id: 'sent', name: 'Sent' },
   { id: 'all', name: 'All Events' },
+  { id: 'received', name: 'I Received' },
+  { id: 'sent', name: 'I Sent' },
 ];
 
 const categoryDetails: { [key: string]: { icon: any; color: string } } = {
@@ -88,6 +91,7 @@ const transformEvent = (e: any, currentUserId: string, usersMap: Map<string, str
     type: (e.sender_id === currentUserId ? 'sent' : 'received') as 'sent' | 'received',
     badgeName: e.content.title,
     category: e.content.category_id || e.event_type.toLowerCase(),
+    eventType: e.event_type,
     message: e.content.message,
     timestamp: e.created_at,
     partnerName: usersMap.get(partnerId) || 'Partner',
@@ -96,13 +100,14 @@ const transformEvent = (e: any, currentUserId: string, usersMap: Map<string, str
     isNegative: e.event_type === 'HORNET',
     status: e.status,
     content: e.content,
+    description: e.content.description,
   }
 };
 
 
 export default function TimelineScreen() {
   const { session } = useSession();
-  const [filter, setFilter] = useState<'all' | 'sent' | 'received'>('received');
+  const [filter, setFilter] = useState<'all' | 'sent' | 'received'>('all');
   const insets = useSafeAreaInsets();
   const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -111,6 +116,15 @@ export default function TimelineScreen() {
   const [hasMore, setHasMore] = useState(true);
   const PAGE_SIZE = 10;
   const [refreshing, setRefreshing] = useState(false);
+
+  const formatEventType = (type: string) => {
+    if (!type) return '';
+    const lower = type.toLowerCase();
+    if (lower.includes('favor')) return 'Favor';
+    if (lower === 'dont_panic') return "Don't Panic";
+    
+    return lower.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  }
 
   useFocusEffect(
     React.useCallback(() => {
@@ -310,7 +324,7 @@ export default function TimelineScreen() {
         break;
       case 'COMPLETED':
         Icon = CheckCircle;
-        text = 'Completed';
+        text = 'Favor completed';
         color = '#1565C0';
         backgroundColor = '#E3F2FD';
         break;
@@ -353,80 +367,99 @@ export default function TimelineScreen() {
             styles.eventCard,
             event.isNegative && styles.negativeEventCard
           ]}>
-            <View style={styles.eventHeader}>
-              <Text style={styles.eventTitle}>
-                {event.badgeName}
-              </Text>
-              {event.content?.points && (
-                <View style={styles.pointsContainer}>
-                  <Text style={styles.pointsText}>{event.content.points} {event.content.points_icon}</Text>
+            <View style={styles.cardContent}>
+              <Text style={styles.eventTypeTag}>{formatEventType(event.eventType)}</Text>
+
+              <View style={styles.cardHeader}>
+                <Text style={styles.eventTitle} numberOfLines={2}>
+                  {event.badgeName}
+                </Text>
+              </View>
+
+              {event.description && (
+                <Text style={styles.eventDescription}>{event.description}</Text>
+              )}
+              
+              {event.isNegative && event.cancelledBadges && (
+                <View style={styles.cancelledBadgesInfo}>
+                  <X color="#FF4444" size={14} />
+                  <Text style={styles.cancelledBadgesText}>
+                    Cancelled {event.cancelledBadges.length} positive badge{event.cancelledBadges.length > 1 ? 's' : ''}
+                  </Text>
+                </View>
+              )}
+              
+              {event.message && (
+                <View style={[
+                  styles.messageContainer,
+                  event.isNegative && styles.negativeMessageContainer
+                ]}>
+                  <Text style={styles.messageText}>"{event.message}"</Text>
+                </View>
+              )}
+
+              {/* Status Indicator for Favors */}
+              {event.category.includes('favor') && (
+                <View style={styles.favorStatusContainer}>
+                  {renderStatusBadge(event.status)}
+                </View>
+              )}
+
+              {/* Action Buttons for Favors */}
+              {event.category.includes('favor') && event.status === 'PENDING' && event.type === 'received' && (
+                <View style={styles.actionsContainer}>
+                    <>
+                      <TouchableOpacity 
+                        style={[styles.actionButton, styles.acceptButton]}
+                        onPress={() => handleFavorResponse(event.id, 'ACCEPTED')}>
+                        <ThumbsUp color="white" size={16} />
+                        <Text style={styles.actionButtonText}>Accept</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        style={[styles.actionButton, styles.declineButton]}
+                        onPress={() => handleFavorResponse(event.id, 'DECLINED')}>
+                        <ThumbsDown color="white" size={16} />
+                        <Text style={styles.actionButtonText}>Decline</Text>
+                      </TouchableOpacity>
+                    </>
+                </View>
+              )}
+              
+              {event.category.includes('favor') && event.status === 'ACCEPTED' && event.type === 'sent' && (
+                <View style={styles.actionsContainer}>
+                    <TouchableOpacity 
+                      style={[styles.actionButton, styles.completeButton]}
+                      onPress={() => handleFavorCompletion(event.id)}>
+                      <CheckCircle color="white" size={16} />
+                      <Text style={styles.actionButtonText}>Mark as Complete</Text>
+                    </TouchableOpacity>
                 </View>
               )}
             </View>
             
-            <Text style={styles.eventTime}>
-              {formatTimestamp(event.timestamp)}
-            </Text>
-            
-            <Text style={styles.eventPartner}>
-              {event.type === 'sent' ? `To: ${event.partnerName}` : `From: ${event.partnerName}`}
-            </Text>
-            
-            {event.isNegative && event.cancelledBadges && (
-              <View style={styles.cancelledBadgesInfo}>
-                <X color="#FF4444" size={14} />
-                <Text style={styles.cancelledBadgesText}>
-                  Cancelled {event.cancelledBadges.length} positive badge{event.cancelledBadges.length > 1 ? 's' : ''}
-                </Text>
-              </View>
-            )}
-            
-            {event.message && (
-              <View style={[
-                styles.messageContainer,
-                event.isNegative && styles.negativeMessageContainer
-              ]}>
-                <Text style={styles.messageText}>"{event.message}"</Text>
-              </View>
-            )}
+            <View style={styles.divider} />
 
-            {/* Status Indicator for Favors */}
-            {event.category.includes('favor') && (
-              <View style={styles.favorStatusContainer}>
-                {renderStatusBadge(event.status)}
-              </View>
-            )}
+            <View style={styles.cardFooter}>
+               <View style={styles.directionContainer}>
+                  {event.type === 'sent' 
+                    ? <ArrowUpRight color={styles.sentColor.color} size={14} /> 
+                    : <ArrowDownLeft color={styles.receivedColor.color} size={14} />
+                  }
+                  <Text style={[styles.eventPartner, event.type === 'sent' ? styles.sentColor : styles.receivedColor]}>
+                    {event.type === 'sent' ? `${event.partnerName}` : `${event.partnerName}`}
+                  </Text>
+                </View>
 
-            {/* Action Buttons for Favors */}
-            {event.category.includes('favor') && event.status === 'PENDING' && event.type === 'received' && (
-              <View style={styles.actionsContainer}>
-                  <>
-                    <TouchableOpacity 
-                      style={[styles.actionButton, styles.acceptButton]}
-                      onPress={() => handleFavorResponse(event.id, 'ACCEPTED')}>
-                      <ThumbsUp color="white" size={16} />
-                      <Text style={styles.actionButtonText}>Accept</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                      style={[styles.actionButton, styles.declineButton]}
-                      onPress={() => handleFavorResponse(event.id, 'DECLINED')}>
-                      <ThumbsDown color="white" size={16} />
-                      <Text style={styles.actionButtonText}>Decline</Text>
-                    </TouchableOpacity>
-                  </>
-              </View>
-            )}
-            
-            {event.category.includes('favor') && event.status === 'ACCEPTED' && event.type === 'sent' && (
-              <View style={styles.actionsContainer}>
-                  <TouchableOpacity 
-                    style={[styles.actionButton, styles.completeButton]}
-                    onPress={() => handleFavorCompletion(event.id)}>
-                    <CheckCircle color="white" size={16} />
-                    <Text style={styles.actionButtonText}>Mark as Complete</Text>
-                  </TouchableOpacity>
-              </View>
-            )}
+                <View style={styles.footerRight}>
+                <Text style={styles.eventTime}>{formatTimestamp(event.timestamp)}</Text>
+                  {event.content?.points && (
+                    <View style={styles.pointsContainer}>
+                      <Text style={styles.pointsText}>{event.content.points} {event.content.points_icon}</Text>
+                    </View>
+                  )}
+                  
+                </View>
+            </View>
             
           </View>
         </View>
@@ -608,18 +641,76 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  eventHeader: {
+  cardContent: {
+    padding: 5,
+  },
+  cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 4, // Adjusted
+    alignItems: 'center',
+    marginBottom: 8,
   },
   eventTitle: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: '#333',
     flex: 1,
-    marginRight: 8,
+    marginRight: 4,
+  },
+  eventTypeTag: {
+
+    color: '#555',
+    paddingHorizontal: 0,
+    paddingVertical: 10,
+    borderRadius: 12,
+    fontSize: 10,
+    fontFamily: 'Inter-Regular',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    overflow: 'hidden',
+    alignSelf: 'flex-start',
+  },
+  eventDescription: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: '#666',
+    lineHeight: 20,
+    marginBottom: 12,
+  },
+  messageContainer: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    padding: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: '#FF8C42',
+    marginBottom: 12,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#F0F0F0',
+    marginHorizontal: 5,
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingVertical: 10,
+  },
+  directionContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 1,
+  },
+  eventPartner: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    marginLeft: 6,
+    flexShrink: 1,
+  },
+  footerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   pointsContainer: {
     backgroundColor: '#FFF3E0',
@@ -636,20 +727,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Inter-Regular',
     color: '#999',
-    marginBottom: 8, // Moved from eventHeader
   },
-  eventPartner: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#666',
-    marginBottom: 8,
-  },
-  messageContainer: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 12,
-    padding: 12,
-    borderLeftWidth: 3,
-    borderLeftColor: '#FF8C42',
+  eventSubHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   messageText: {
     fontSize: 14,
@@ -742,6 +825,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: '#FF8C42',
+  },
+  sentColor: {
+    color: '#3498db',
+  },
+  receivedColor: {
+    color: '#2ecc71',
   },
   negativeTimelineIcon: {
     borderWidth: 2,
