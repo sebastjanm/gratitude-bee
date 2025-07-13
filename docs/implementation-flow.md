@@ -750,4 +750,31 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
 *   **Next Step:** Full regression testing of all notification-based user flows.
 ---
 
+### **Step 20: Database Point Calculation Fix**
+*   **Timestamp:** `2025-07-13T22:00:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   **Bug Fix:** Resolved a critical bug in the `handle_event_points` trigger where adding points to a `NULL` wallet column resulted in `NULL`, causing points to be lost.
+    *   **Solution:** Updated the `20250713193320_update_event_points_for_wisdom.sql` migration to use `COALESCE(column, 0)` for all point accumulation operations (`wisdom_points`, `dont_panic_points`, `hornet_stings`, `ping_points`, `favor_points`).
+    *   **Impact:** This change ensures that point calculations are always accurate and reliable, preventing data loss when new event types are recorded for wallets with uninitialized (NULL) point columns.
+*   **Next Step:** Continued application monitoring and stability improvements. 
+
+---
+
+### **Step 21: Ping Logic & Schema Correction**
+*   **Timestamp:** `2025-07-13T23:00:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   **Bug Fix (Logic):** Corrected the `handle_event_points` trigger to award `ping_points` to the `sender_id` (the responder) instead of the `receiver_id`, ensuring the correct user receives points.
+    *   **Bug Fix (Schema):** Resolved a schema inconsistency by standardizing the `PING_SENT` event type to `PING`. This required a manual SQL migration to update the `event_type` enum and all related code.
+    *   **Files Affected:**
+        *   `supabase/migrations/20240706143000_initial_schema.sql` (Enum definition)
+        *   `supabase/migrations/20250713193320_update_event_points_for_wisdom.sql` (Trigger logic)
+        *   `app/(tabs)/index.tsx` (Frontend event creation)
+        *   `supabase/functions/send-notification/index.ts` (Notification handler)
+    *   **Impact:** These changes ensure that ping-related points are awarded correctly and the event schema is consistent and standardized.
+*   **Next Step:** Continued application monitoring and stability improvements. 
+
+---
+
  

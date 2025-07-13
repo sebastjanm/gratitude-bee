@@ -44,12 +44,13 @@ DROP TYPE IF EXISTS public.event_status;
 CREATE TYPE public.event_type AS ENUM (
     'APPRECIATION',
     'FAVOR_REQUEST',
-    'FAVOR_RESPONSE', -- For accepting/declining
+    'FAVOR_ACCEPTED',
+    'FAVOR_DECLINED',
     'FAVOR_COMPLETED',
     'HORNET',
-    'PING_SENT',
-    'PING_RESPONSE',
     'WISDOM',
+    'PING',
+    'PING_RESPONSE',
     'DONT_PANIC'
 );
 

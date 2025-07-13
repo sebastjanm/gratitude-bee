@@ -469,7 +469,7 @@ export default function HomeScreen() {
     const eventPayload = {
       sender_id: session.user.id,
       receiver_id: userData.partner_id,
-      event_type: 'PING_SENT',
+      event_type: 'PING',
       content: {
         template_id: template.id,
         title: template.title,

@@ -6,6 +6,13 @@
 -- from the wisdom_templates table using the template_id from the event content,
 -- instead of incorrectly expecting points to be in the content itself.
 --
+-- FIX: Point accumulation logic now correctly handles NULL values in wallet columns
+-- by coalescing them to 0 before adding new points. This prevents point updates
+-- from being lost when a wallet column is NULL.
+--
+-- FIX: The logic for PING_RESPONSE events has been corrected to award points
+-- to the sender of the response (the user who responded), not the receiver.
+--
 -- REFACTOR: The logic for all event types (APPRECIATION, HORNET, FAVOR_REQUEST, DONT_PANIC, PING_RESPONSE)
 -- has been refactored to look up point values from their respective template tables on the server.
 -- This ensures consistency and security, making the database the single source of truth
@@ -48,7 +55,7 @@ BEGIN
 
             IF points_to_add IS NOT NULL THEN
                 UPDATE public.wallets
-                SET wisdom_points = wisdom_points + points_to_add, updated_at = now()
+                SET wisdom_points = COALESCE(wisdom_points, 0) + points_to_add, updated_at = now()
                 WHERE user_id = NEW.receiver_id;
             END IF;
 
@@ -59,7 +66,7 @@ BEGIN
 
             IF points_to_add IS NOT NULL THEN
                 UPDATE public.wallets
-                SET dont_panic_points = dont_panic_points + points_to_add, updated_at = now()
+                SET dont_panic_points = COALESCE(dont_panic_points, 0) + points_to_add, updated_at = now()
                 WHERE user_id = NEW.receiver_id;
             END IF;
 
@@ -71,7 +78,7 @@ BEGIN
 
             IF points_to_add IS NOT NULL THEN
                 UPDATE public.wallets
-                SET hornet_stings = hornet_stings + points_to_add, updated_at = now()
+                SET hornet_stings = COALESCE(hornet_stings, 0) + points_to_add, updated_at = now()
                 WHERE user_id = NEW.receiver_id;
             END IF;
 
@@ -82,8 +89,8 @@ BEGIN
             
             IF points_to_add IS NOT NULL THEN
                 UPDATE public.wallets
-                SET ping_points = ping_points + points_to_add, updated_at = now()
-                WHERE user_id = NEW.receiver_id; -- The person who responded
+                SET ping_points = COALESCE(ping_points, 0) + points_to_add, updated_at = now()
+                WHERE user_id = NEW.sender_id; -- Award points to the sender, who is the one responding.
             END IF;
         END IF;
 
@@ -97,7 +104,7 @@ BEGIN
             
             IF points_to_add IS NOT NULL THEN
                 UPDATE public.wallets
-                SET favor_points = favor_points + points_to_add, updated_at = now()
+                SET favor_points = COALESCE(favor_points, 0) + points_to_add, updated_at = now()
                 WHERE user_id = NEW.receiver_id;
             END IF;
         END IF;
