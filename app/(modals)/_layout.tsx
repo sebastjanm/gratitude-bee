@@ -6,6 +6,9 @@ export default function ModalsLayout() {
       <Stack.Screen name="appreciation" />
       <Stack.Screen name="favor" />
       <Stack.Screen name="wisdom" />
+      <Stack.Screen name="ping" />
+      <Stack.Screen name="dont-panic" />
+      <Stack.Screen name="hornet" />
     </Stack>
   );
 } 

@@ -21,7 +21,7 @@ const categoryRouteMapping: Record<string, string> = {
   appreciation: '/(modals)/appreciation',
   favor_request: '/(modals)/favor',
   ping_sent: '/(modals)/ping',
-  hornet: '/(modals)/hornet-strike',
+  hornet: '/(modals)/hornet',
   wisdom: '/(modals)/wisdom',
   dont_panic: '/(modals)/dont-panic',
 };
