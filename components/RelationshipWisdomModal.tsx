@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,8 +8,11 @@ import {
   ScrollView,
   Dimensions,
   Image,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
-import { X, Heart, CircleCheck as CheckCircle, Chrome as Home } from 'lucide-react-native';
+import { X, CheckCircle } from 'lucide-react-native';
+import { supabase } from '@/utils/supabase'; // Assuming supabase client is here
 
 const { width } = Dimensions.get('window');
 
@@ -27,50 +30,39 @@ interface RelationshipWisdomModalProps {
   onSendWisdom: (wisdomId: string, wisdomTitle: string, wisdomDescription: string) => void;
 }
 
-const wisdomOptions: WisdomOption[] = [
-  {
-    id: 'yes-dear',
-    title: 'Yes, dear',
-    description: 'I gracefully accept your perspective and wisdom. I will do as you say.',
-    icon: '👑',
-    color: '#E67E22',
-  },
-  {
-    id: 'happy-wife-happy-life',
-    title: 'Happy wife, happy life',
-    description: 'I understand your priorities and harmony',
-    icon: '🏠',
-    color: '#27AE60',
-  },
-  {
-    id: 'happy-husband-happy-life',
-    title: 'Happy man, happy life',
-    description: 'I understand your priorities and harmony',
-    icon: '👨',
-    color: '#27AE60',
-  },
-  {
-    id: 'im-sorry-lady',
-    title: 'I\'m Sorry - ladies only :)',
-    description: 'Im aplogizing but in no way am I admitting to anything',
-    icon: '💔',
-    color: '#F87171',
-  },
-  {
-    id: 'im-sorry-man',
-    title: 'I\'m Sorry - man only :)',
-    description: 'Sincere apology and commitment to making amends. Im guilty as charged.',
-    icon: '💔',
-    color: '#F87171',
-  },
-];
-
 export default function RelationshipWisdomModal({
   visible,
   onClose,
   onSendWisdom,
 }: RelationshipWisdomModalProps) {
+  const [wisdomOptions, setWisdomOptions] = useState<WisdomOption[]>([]);
+  const [loading, setLoading] = useState(false);
   const [selectedWisdom, setSelectedWisdom] = useState<WisdomOption | null>(null);
+
+  useEffect(() => {
+    const fetchWisdomTemplates = async () => {
+      if (visible) {
+        setLoading(true);
+        try {
+          const { data, error } = await supabase
+            .from('wisdom_templates')
+            .select('*')
+            .eq('is_active', true);
+
+          if (error) throw error;
+          setWisdomOptions(data || []);
+        } catch (error) {
+          console.error("Error fetching wisdom templates:", error);
+          Alert.alert("Error", "Could not load wisdom options. Please try again.");
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchWisdomTemplates();
+  }, [visible]);
+
 
   const handleClose = () => {
     setSelectedWisdom(null);
@@ -82,6 +74,51 @@ export default function RelationshipWisdomModal({
       onSendWisdom(selectedWisdom.id, selectedWisdom.title, selectedWisdom.description);
       handleClose();
     }
+  };
+
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color="#8B5CF6" />
+          <Text style={styles.loadingText}>Loading Wisdom...</Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.wisdomGrid}>
+        {wisdomOptions.map((wisdom) => (
+          <TouchableOpacity
+            key={wisdom.id}
+            style={[
+              styles.wisdomCard,
+              selectedWisdom?.id === wisdom.id &&
+                styles.selectedWisdomCard,
+              { borderLeftColor: wisdom.color },
+            ]}
+            onPress={() => setSelectedWisdom(wisdom)}
+            activeOpacity={0.7}>
+            <View style={styles.wisdomCardContent}>
+              <View style={[styles.wisdomIcon, { backgroundColor: wisdom.color + '20' }]}>
+                <Text style={styles.wisdomEmoji}>{wisdom.icon}</Text>
+              </View>
+              <View style={styles.wisdomTextContainer}>
+                <Text style={styles.wisdomTitle}>{wisdom.title}</Text>
+                <Text style={styles.wisdomDescription}>{wisdom.description}</Text>
+              </View>
+            </View>
+            
+            {selectedWisdom?.id === wisdom.id && (
+              <View style={styles.selectedIndicator}>
+                <CheckCircle color={wisdom.color} size={16} />
+                <Text style={[styles.selectedText, { color: wisdom.color }]}>Selected</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        ))}
+      </View>
+    );
   };
 
   return (
@@ -102,37 +139,7 @@ export default function RelationshipWisdomModal({
           </View>
 
           <View style={styles.wisdomSection}>
-            <View style={styles.wisdomGrid}>
-              {wisdomOptions.map((wisdom) => (
-                <TouchableOpacity
-                  key={wisdom.id}
-                  style={[
-                    styles.wisdomCard,
-                    selectedWisdom?.id === wisdom.id &&
-                      styles.selectedWisdomCard,
-                    { borderLeftColor: wisdom.color },
-                  ]}
-                  onPress={() => setSelectedWisdom(wisdom)}
-                  activeOpacity={0.7}>
-                  <View style={styles.wisdomCardContent}>
-                    <View style={[styles.wisdomIcon, { backgroundColor: wisdom.color + '20' }]}>
-                      <Text style={styles.wisdomEmoji}>{wisdom.icon}</Text>
-                    </View>
-                    <View style={styles.wisdomTextContainer}>
-                      <Text style={styles.wisdomTitle}>{wisdom.title}</Text>
-                      <Text style={styles.wisdomDescription}>{wisdom.description}</Text>
-                    </View>
-                  </View>
-                  
-                  {selectedWisdom?.id === wisdom.id && (
-                    <View style={styles.selectedIndicator}>
-                      <CheckCircle color={wisdom.color} size={16} />
-                      <Text style={[styles.selectedText, { color: wisdom.color }]}>Selected</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              ))}
-            </View>
+            {renderContent()}
           </View>
 
           <View style={styles.tipSection}>
@@ -146,7 +153,7 @@ export default function RelationshipWisdomModal({
 
         </ScrollView>
 
-        {selectedWisdom && (
+        {selectedWisdom && !loading && (
           <View style={styles.fixedSendButtonContainer}>
             <TouchableOpacity
               style={[styles.fixedSendButton, { backgroundColor: selectedWisdom.color }]}
@@ -168,6 +175,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFF8F0',
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#666',
   },
   contentWrapper: {
     flex: 1,
