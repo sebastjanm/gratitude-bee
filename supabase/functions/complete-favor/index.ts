@@ -1,9 +1,10 @@
 // supabase/functions/complete-favor/index.ts
 //
 // This function handles the logic when a user marks a favor as complete.
-// 1. It updates the original favor event's status to 'COMPLETED'.
-// 2. It adjusts the points for both the sender and receiver.
-// 3. It invokes the 'send-notification' function to inform the partner.
+// It performs one critical action: updating the original favor event's status to 'COMPLETED'.
+// The `handle_event_points` trigger will then automatically award the points,
+// and a separate trigger on the events table will handle sending the notification.
+// This keeps the logic clean, centralized, and aligned with the event-sourcing pattern.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
@@ -27,10 +28,10 @@ Deno.serve(async (req) => {
 
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // 1. Fetch the original favor event
+    // 1. Fetch the original favor event to verify ownership
     const { data: event, error: fetchError } = await supabaseAdmin
       .from('events')
-      .select('id, sender_id, receiver_id, content')
+      .select('id, sender_id, receiver_id')
       .eq('id', event_id)
       .single();
 
@@ -42,49 +43,16 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 2. Update the event status to COMPLETED
+    // 2. Update the event status to COMPLETED.
+    // The handle_event_points trigger will automatically handle the point transfer.
+    // Another trigger will handle the notification.
     const { error: updateError } = await supabaseAdmin
       .from('events')
-      .update({ status: 'COMPLETED', event_type: 'FAVOR_COMPLETED' })
+      .update({ status: 'COMPLETED' })
       .eq('id', event_id);
 
     if (updateError) throw updateError;
     
-    // 3. Adjust user points via RPC call
-    const pointsToTransfer = event.content.points || 0;
-    const { error: rpcError } = await supabaseAdmin.rpc('transfer_favor_points', {
-      sender_id_in: event.sender_id,
-      receiver_id_in: event.receiver_id,
-      amount_in: pointsToTransfer
-    });
-
-    if (rpcError) {
-      console.error('Error transferring points:', rpcError);
-      return new Response(JSON.stringify({ error: `Error transferring points: ${rpcError.message}` }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      });
-    }
-
-    // 4. Send notification to the partner who completed the favor
-    const updatedEventPayload = {
-      ...event,
-      event_type: 'FAVOR_COMPLETED',
-      status: 'COMPLETED',
-    };
-
-    const { error: invokeError } = await supabaseAdmin.functions.invoke('send-notification', {
-      body: { record: updatedEventPayload },
-    });
-
-    if (invokeError) {
-      console.error('Error invoking send-notification:', invokeError);
-      return new Response(JSON.stringify({ error: `Favor was marked complete, but failed to send notification: ${invokeError.message}` }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      });
-    }
-
     return new Response(JSON.stringify({ message: 'Favor completed successfully!' }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
