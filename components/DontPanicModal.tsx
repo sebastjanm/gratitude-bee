@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,62 +8,30 @@ import {
   ScrollView,
   Dimensions,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import { X, Phone, MessageSquare, Clock, CircleCheck as CheckCircle, Shell } from 'lucide-react-native';
+import { supabase } from '@/utils/supabase';
 
 const { width } = Dimensions.get('window');
+
+export interface DontPanicTemplate {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  color: string;
+  points?: number;
+  points_icon?: string;
+  point_unit?: string;
+  notification_text?: string;
+}
 
 interface DontPanicModalProps {
   visible: boolean;
   onClose: () => void;
-  onSend: (message: string, quickResponse?: string) => void;
+  onSend: (template: DontPanicTemplate) => void;
 }
-
-interface CalmOption {
-  id: string;
-  title: string;
-  message: string;
-  icon: string;
-  color: string;
-}
-
-const calmOptions: CalmOption[] = [
-  {
-    id: 'everything-okay',
-    title: 'Everything will be okay',
-    message: 'No worries, take a deep breath. You are alive ❤️, rest can wait.',
-    icon: '🫂',
-    color: '#6366F1',
-  },
-  {
-    id: 'here-for-you',
-    title: 'I\'m here for you',
-    message: 'I\'m here for you, always. You\'re not alone in this ❤️',
-    icon: '🤗',
-    color: '#8B5CF6',
-  },
-  {
-    id: 'youre-safe',
-    title: 'You\'re safe and loved',
-    message: 'You\'re safe now, I love you. This feeling will pass ❤️',
-    icon: '🛡️',
-    color: '#10B981',
-  },
-  {
-    id: 'talk-when-ready',
-    title: 'Let\'s talk when you\'re ready',
-    message: 'No pressure, just love 💕',
-    icon: '💬',
-    color: '#F59E0B',
-  },
-  {
-    id: 'calm-energy',
-    title: 'Sending Yoda might force',
-    message: 'May the force be with you and stay calm.🕊️✨',
-    icon: '🕊️',
-    color: '#84CC16',
-  },
-];
 
 const panicTriggers = [
   { icon: Phone, text: "Stressful call", color: "#EF4444" },
@@ -76,7 +44,36 @@ export default function DontPanicModal({
   onClose,
   onSend,
 }: DontPanicModalProps) {
-  const [selectedOption, setSelectedOption] = useState<CalmOption | null>(null);
+  const [selectedOption, setSelectedOption] = useState<DontPanicTemplate | null>(null);
+  const [templates, setTemplates] = useState<DontPanicTemplate[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      if (visible) {
+        try {
+          setLoading(true);
+          const { data, error } = await supabase
+            .from('dont_panic_templates')
+            .select('*')
+            .eq('is_active', true);
+
+          if (error) {
+            throw error;
+          }
+          setTemplates(data || []);
+        } catch (err: any) {
+          setError(err.message);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchTemplates();
+  }, [visible]);
+
 
   const handleClose = () => {
     setSelectedOption(null);
@@ -85,7 +82,7 @@ export default function DontPanicModal({
 
   const handleSendOption = () => {
     if (selectedOption) {
-      onSend(selectedOption.message, selectedOption.title);
+      onSend(selectedOption);
       handleClose();
     }
   };
@@ -127,37 +124,42 @@ export default function DontPanicModal({
             <View style={styles.optionsSection}>
               <Text style={styles.sectionTitle}>Choose Your Message</Text>
               
-              <View style={styles.optionsGrid}>
-                {calmOptions.map((option) => (
-                  <TouchableOpacity
-                    key={option.id}
-                    style={[
-                      styles.optionCard,
-                      selectedOption?.id === option.id &&
-                        styles.selectedOptionCard,
-                      { borderLeftColor: option.color },
-                    ]}
-                    onPress={() => setSelectedOption(option)}
-                    activeOpacity={0.7}>
-                    <View style={styles.optionCardContent}>
-                      <View style={[styles.optionIcon, { backgroundColor: option.color + '20' }]}>
-                        <Text style={styles.optionEmoji}>{option.icon}</Text>
+              {loading && <ActivityIndicator color="#6366F1" style={{ marginVertical: 20 }} />}
+              {error && <Text style={styles.errorText}>Error fetching messages: {error}</Text>}
+
+              {!loading && !error && (
+                <View style={styles.optionsGrid}>
+                  {templates.map((option) => (
+                    <TouchableOpacity
+                      key={option.id}
+                      style={[
+                        styles.optionCard,
+                        selectedOption?.id === option.id &&
+                          styles.selectedOptionCard,
+                        { borderLeftColor: option.color },
+                      ]}
+                      onPress={() => setSelectedOption(option)}
+                      activeOpacity={0.7}>
+                      <View style={styles.optionCardContent}>
+                        <View style={[styles.optionIcon, { backgroundColor: option.color + '20' }]}>
+                          <Text style={styles.optionEmoji}>{option.icon}</Text>
+                        </View>
+                        <View style={styles.optionTextContainer}>
+                          <Text style={styles.optionTitle}>{option.title}</Text>
+                          <Text style={styles.optionMessage}>"{option.description}"</Text>
+                        </View>
                       </View>
-                      <View style={styles.optionTextContainer}>
-                        <Text style={styles.optionTitle}>{option.title}</Text>
-                        <Text style={styles.optionMessage}>"{option.message}"</Text>
-                      </View>
-                    </View>
-                    
-                    {selectedOption?.id === option.id && (
-                      <View style={styles.selectedIndicator}>
-                        <CheckCircle color={option.color} size={16} />
-                        <Text style={[styles.selectedText, { color: option.color }]}>Selected</Text>
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </View>
+                      
+                      {selectedOption?.id === option.id && (
+                        <View style={styles.selectedIndicator}>
+                          <CheckCircle color={option.color} size={16} />
+                          <Text style={[styles.selectedText, { color: option.color }]}>Selected</Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
             </View>
 
             <View style={styles.tipSection}>
@@ -238,6 +240,12 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
     lineHeight: 22,
+  },
+  errorText: {
+    textAlign: 'center',
+    color: 'red',
+    marginVertical: 20,
+    fontFamily: 'Inter-Regular',
   },
   content: {
     paddingHorizontal: 20,

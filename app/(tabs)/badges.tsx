@@ -29,6 +29,7 @@ interface Badge {
   color: string;
   isNegative?: boolean;
   cancelledBadges?: string[];
+  isEmojiIcon?: boolean;
 }
 
 const categories = [
@@ -39,8 +40,8 @@ const categories = [
   { id: 'adventure', name: 'Adventure', icon: Compass },
   { id: 'words', name: 'Love Notes', icon: MessageCircle },
   { id: 'hornet', name: 'Hornets', icon: Bug },
-  { id: 'dont-panic', name: 'Don\'t Panic', icon: Heart },
-  { id: 'im-sorry', name: 'I\'m Sorry', icon: Heart },
+  { id: 'dont-panic', name: "Don't Panic", icon: Heart },
+  { id: 'ping', name: 'Pings', icon: Bell },
   { id: 'relationship-wisdom', name: 'Relationship Wisdom', icon: Crown },
 ];
 
@@ -48,7 +49,8 @@ const statsConfig = [
   { key: 'appreciations', name: 'Praises', icon: Award, color: '#4ECDC4' },
   { key: 'favors', name: 'Favors', icon: Gift, color: '#FFD93D' },
   { key: 'wisdom', name: 'Wisdom', icon: Crown, color: '#9B59B6' },
-  { key: 'pings', name: 'Pings', icon: Bell, color: '#6366F1' },
+  { key: 'pings', name: 'Pings', icon: Bell, color: '#3B82F6' },
+  { key: 'dont_panic', name: "Don't Panic", icon: Heart, color: '#6366F1' },
   { key: 'hornets', name: 'Hornets', icon: Bug, color: '#FF4444' },
 ];
 
@@ -63,6 +65,7 @@ export default function BadgesScreen() {
     favors: 0,
     wisdom: 0,
     pings: 0,
+    dont_panic: 0,
     hornets: 0,
   });
 
@@ -92,7 +95,8 @@ export default function BadgesScreen() {
         appreciations: events.filter(e => e.event_type === 'APPRECIATION').length,
         favors: events.filter(e => e.event_type === 'FAVOR_REQUEST').length,
         wisdom: events.filter(e => e.event_type === 'WISDOM').length,
-        pings: 0, // Pings are not yet implemented as events
+        pings: events.filter(e => e.event_type === 'PING').length,
+        dont_panic: events.filter(e => e.event_type === 'DONT_PANIC').length,
         hornets: events.filter(e => e.event_type === 'HORNET').length,
       };
       setStats(newStats);
@@ -128,20 +132,37 @@ export default function BadgesScreen() {
 
 
     return events
-      .filter(event => ['APPRECIATION', 'HORNET', 'WISDOM', 'DONT_PANIC'].includes(event.event_type))
+      .filter(event => ['APPRECIATION', 'HORNET', 'WISDOM', 'DONT_PANIC', 'PING'].includes(event.event_type))
       .map(event => {
         const content = event.content || {};
-        let categoryId = event.event_type.toLowerCase();
+        let categoryId = event.event_type.toLowerCase().replace('_', '-');
+        
+        // --- CORRECTED DYNAMIC DATA LOGIC ---
         let name = content.title;
         let description = content.description || content.message;
-        
-        if (event.event_type === 'APPRECIATION') {
-            categoryId = content.category_id;
-        } else if (event.event_type === 'WISDOM') {
-            categoryId = 'relationship-wisdom';
+        let icon = content.icon;
+        let color = content.color;
+        let isEmojiIcon = !!icon; // Assume any dynamic icon is an emoji for now
+
+        if (typeof name !== 'string' || !name) {
+          name = event.event_type.toLowerCase().replace(/_/g, ' '); // Fallback
         }
 
-        const meta = categoryMeta[categoryId] || { name: 'Badge', icon: Award }; // Use Award icon as fallback
+        if (typeof description !== 'string') {
+          description = ''; // Fallback to empty string
+        }
+        
+        if (event.event_type === 'APPRECIATION' && content.category_id) {
+          categoryId = content.category_id;
+          const meta = categoryMeta[categoryId] || {};
+          icon = meta.icon; // Use icon from category meta for appreciations
+          isEmojiIcon = false;
+        } else if (event.event_type === 'WISDOM') {
+          categoryId = 'relationship-wisdom';
+        }
+        // --- END OF FIX ---
+
+        const meta = categoryMeta[categoryId] || { name: 'Badge', icon: Award };
         const colorMap: { [key: string]: string } = {
           support: '#4ECDC4',
           kindness: '#FF6B9D',
@@ -151,18 +172,20 @@ export default function BadgesScreen() {
           hornet: '#FF4444',
           'relationship-wisdom': '#9B59B6',
           'dont-panic': '#6366F1',
+          ping: '#3B82F6',
         };
 
         return {
           id: event.id.toString(),
           name: name,
           category: categoryId,
-          tier: 'bronze', // Tier is not in the DB, providing default
+          tier: 'bronze',
           earnedDate: event.created_at,
           description: description,
-          icon: meta.icon,
-          color: colorMap[categoryId] || '#6B7280',
+          icon: icon || meta.icon,
+          color: color || colorMap[categoryId] || '#6B7280',
           isNegative: event.event_type === 'HORNET',
+          isEmojiIcon: isEmojiIcon,
         };
       });
   };
@@ -253,34 +276,41 @@ export default function BadgesScreen() {
     </View>
   );
 
-  const renderBadge = (badge: Badge) => {
-    const IconComponent = badge.icon;
+  const renderBadge = (item: Badge) => {
+    console.log('--- Rendering Badge ---');
+    console.log('Badge data:', JSON.stringify(item, null, 2));
+    const BadgeIcon = item.icon;
+    const isEmoji = typeof item.icon === 'string';
     return (
-      <View key={badge.id} style={[
+      <View key={item.id} style={[
         styles.badgeCard,
-        badge.isNegative && styles.negativeBadgeCard
+        item.isNegative && styles.negativeBadgeCard
       ]}>
         <View style={styles.badgeContent}>
           <View style={[
             styles.badgeIcon, 
-            { backgroundColor: badge.color },
-            badge.isNegative && styles.negativeBadgeIcon
+            { backgroundColor: item.color },
+            item.isNegative && styles.negativeBadgeIcon
           ]}>
-            <IconComponent color="white" size={24} />
+            {isEmoji ? (
+              <Text style={styles.emojiIcon}>{item.icon}</Text>
+            ) : (
+              <BadgeIcon color="white" size={24} />
+            )}
           </View>
           <View style={styles.badgeTextContent}>
-            <Text style={styles.badgeName}>{badge.name}</Text>
-            <Text style={styles.badgeDescription}>{badge.description}</Text>
-            {badge.isNegative && badge.cancelledBadges && (
+            <Text style={styles.badgeName}>{item.name}</Text>
+            <Text style={styles.badgeDescription}>{item.description}</Text>
+            {item.isNegative && item.cancelledBadges && (
               <View style={styles.cancelledInfo}>
                 <X color="#FF4444" size={12} />
                 <Text style={styles.cancelledText}>
-                  Cancelled {badge.cancelledBadges.length} badge{badge.cancelledBadges.length > 1 ? 's' : ''}
+                  Cancelled {item.cancelledBadges.length} badge{item.cancelledBadges.length > 1 ? 's' : ''}
                 </Text>
               </View>
             )}
             <Text style={styles.badgeDate}>
-              {badge.isNegative ? 'Sent' : 'Earned'} on {new Date(badge.earnedDate).toLocaleDateString()}
+              {item.isNegative ? 'Sent' : 'Earned'} on {new Date(item.earnedDate).toLocaleDateString()}
             </Text>
           </View>
         </View>
@@ -608,5 +638,8 @@ const styles = StyleSheet.create({
   },
   negativeStatNumber: {
     color: '#FF4444',
+  },
+  emojiIcon: {
+    fontSize: 20,
   },
 });

@@ -364,7 +364,7 @@ export default function HomeScreen() {
     }
   };
 
-  const handleSendDontPanic = async (message: string, quickResponse?: string) => {
+  const handleSendDontPanic = async (template: DontPanicTemplate) => {
     if (!session?.user?.id) return;
 
     const { data: userData, error: userError } = await supabase
@@ -383,28 +383,32 @@ export default function HomeScreen() {
       receiver_id: userData.partner_id,
       event_type: 'DONT_PANIC',
       content: {
-        title: "Don't Panic",
-        description: quickResponse || message,
+        template_id: template.id,
+        title: template.title,
+        description: template.description,
+        points: template.points,
+        icon: template.icon,
+        color: template.color,
       },
     };
 
     const { data: eventData, error } = await supabase.from('events').insert(eventPayload).select().single();
 
     if (error) {
-      Alert.alert('Error', "Could not send the Don't Panic message. Please try again.");
-      console.error("Error inserting event for Don't Panic:", error);
+      Alert.alert('Error', 'Could not send the message. Please try again.');
+      console.error(`Error sending "Don't Panic" message:`, error);
     } else {
-      Alert.alert('Message Sent', "Your Don't Panic signal has been sent.");
+      Alert.alert('Message Sent', 'Your partner has been notified.');
       const { error: notificationError } = await supabase.functions.invoke('send-notification', {
         body: { record: eventData },
       });
       if (notificationError) {
-        console.error("Error sending Don't Panic notification:", notificationError);
+        console.error(`Error sending "Don't Panic" notification:`, notificationError);
       }
     }
   };
 
-  const handleSendWisdom = async (wisdomId: string, wisdomTitle: string, wisdomDescription: string) => {
+  const handleSendWisdom = async (wisdom: any) => {
     if (!session?.user?.id) return;
 
     const { data: userData, error: userError } = await supabase
@@ -423,9 +427,9 @@ export default function HomeScreen() {
       receiver_id: userData.partner_id,
       event_type: 'WISDOM',
       content: {
-        template_id: wisdomId,
-        title: wisdomTitle,
-        description: wisdomDescription,
+        template_id: wisdom.id,
+        title: wisdom.title,
+        description: wisdom.description,
       },
     };
     
@@ -448,7 +452,7 @@ export default function HomeScreen() {
     }
   };
 
-  const handleSendPing = async (pingId: string, pingTitle: string, description: string) => {
+  const handleSendPing = async (template: PingTemplate) => {
     if (!session?.user?.id) return;
 
     const { data: userData, error: userError } = await supabase
@@ -467,9 +471,12 @@ export default function HomeScreen() {
       receiver_id: userData.partner_id,
       event_type: 'PING_SENT',
       content: {
-        template_id: pingId,
-        title: pingTitle,
-        description: description,
+        template_id: template.id,
+        title: template.title,
+        description: template.description,
+        points: template.points,
+        icon: template.icon,
+        color: template.color,
       },
     };
 

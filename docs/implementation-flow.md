@@ -728,4 +728,26 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
 *   **Next Step:** Begin development on template creation for Ping and Don't Panic events.
 ---
 
+### **Step 33: Refactor Ping & Don't Panic Modals to be DB-Driven**
+*   **Timestamp:** `2025-07-18T17:00:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   **Database Migration:** Created a new migration to define and seed the `ping_templates` and `dont_panic_templates` tables. This centralizes all templated content in the database.
+    *   **Component Refactor:** The `PingModal` and `DontPanicModal` components were refactored to fetch their options dynamically from the new Supabase tables, removing all hardcoded content.
+    *   **Dynamic UI:** Added loading and error states to both modals to handle asynchronous data fetching gracefully.
+*   **Next Step:** Apply the new migration and test the Ping and Don't Panic features.
+---
+
+### **Step 31: Implement Hornet, Ping, and Don't Panic Modals**
+*   **Timestamp:** `2025-07-18T14:00:00Z`
+*   **Commit:** `b9f3a1c`
+*   **Description:**
+    *   **New Modals:** Created three new modal screens (`ping.tsx`, `dont-panic.tsx`, `hornet.tsx`) to handle incoming notifications for these event types, preventing the app from crashing.
+    *   **Interaction Logic:**
+        *   The Ping and Don't Panic modals reuse the `send-thank-you` function to send an acknowledgement.
+        *   The Hornet modal includes a simple "Close" button.
+    *   **Routing & Navigation:** All new modals were added to the `app/(modals)/_layout.tsx` navigation stack, and the `NotificationProvider` was updated to ensure all notification types route to the correct screen.
+*   **Next Step:** Full regression testing of all notification-based user flows.
+---
+
  

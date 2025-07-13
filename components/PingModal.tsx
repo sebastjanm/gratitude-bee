@@ -1,7 +1,7 @@
 // This file was created by the assistant.
 // It contains the "Send a Ping" modal component.
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,60 +10,64 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import { X, AlertTriangle, CircleCheck as CheckCircle } from 'lucide-react-native';
+import { supabase } from '@/utils/supabase';
 
-interface PingOption {
+export interface PingTemplate {
   id: string;
   title: string;
   description: string;
   icon: string;
   color: string;
+  points?: number;
+  points_icon?: string;
+  point_unit?: string;
+  notification_text?: string;
 }
 
 interface PingModalProps {
   visible: boolean;
   onClose: () => void;
-  onSendPing: (pingId: string, pingTitle: string, description: string) => void;
+  onSendPing: (template: PingTemplate) => void;
 }
-
-const pingOptions: PingOption[] = [
-  {
-    id: 'checking-in',
-    title: 'Just checking in',
-    description: 'A gentle nudge to see how you are.',
-    icon: '👋',
-    color: '#3B82F6',
-  },
-  {
-    id: 'worried',
-    title: 'I\'m a bit worried',
-    description: 'Alles gut? Please text back when you get a chance.',
-    icon: '😟',
-    color: '#F59E0B',
-  },
-  {
-    id: 'urgent',
-    title: 'URGENT: Are you safe and okay?',
-    description: 'Please let me know you are okay as soon as possible.',
-    icon: '🚨',
-    color: '#EF4444',
-  },
-  {
-    id: 'hornet-alert',
-    title: 'Hornet Alert',
-    description: 'This is the final warning. Call or text me back asap.',
-    icon: '☣️',
-    color: '#DC2626',
-  },
-];
 
 export default function PingModal({
   visible,
   onClose,
   onSendPing,
 }: PingModalProps) {
-  const [selectedPing, setSelectedPing] = useState<PingOption | null>(null);
+  const [selectedPing, setSelectedPing] = useState<PingTemplate | null>(null);
+  const [templates, setTemplates] = useState<PingTemplate[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      if (visible) {
+        try {
+          setLoading(true);
+          const { data, error } = await supabase
+            .from('ping_templates')
+            .select('*')
+            .eq('is_active', true);
+
+          if (error) {
+            throw error;
+          }
+          setTemplates(data || []);
+        } catch (err: any) {
+          setError(err.message);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchTemplates();
+  }, [visible]);
+
 
   const handleClose = () => {
     setSelectedPing(null);
@@ -72,7 +76,7 @@ export default function PingModal({
 
   const handleSend = () => {
     if (selectedPing) {
-      onSendPing(selectedPing.id, selectedPing.title, selectedPing.description);
+      onSendPing(selectedPing);
       handleClose();
     }
   };
@@ -96,8 +100,11 @@ export default function PingModal({
 
           <View style={styles.content}>
             <View style={styles.pingSection}>
+              {loading && <ActivityIndicator color="#3B82F6" style={{ marginVertical: 20 }} />}
+              {error && <Text style={styles.errorText}>Error fetching pings: {error}</Text>}
+              {!loading && !error && (
               <View style={styles.pingGrid}>
-                {pingOptions.map((ping) => (
+                {templates.map((ping) => (
                   <TouchableOpacity
                     key={ping.id}
                     style={[
@@ -126,6 +133,7 @@ export default function PingModal({
                   </TouchableOpacity>
                 ))}
               </View>
+              )}
             </View>
 
             <View style={styles.tipSection}>
@@ -205,6 +213,12 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
     lineHeight: 22,
+  },
+  errorText: {
+    textAlign: 'center',
+    color: 'red',
+    marginVertical: 20,
+    fontFamily: 'Inter-Regular',
   },
   content: {
     paddingHorizontal: 20,

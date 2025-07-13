@@ -32,9 +32,9 @@ BEGIN
             WHERE user_id = NEW.receiver_id;
 
         ELSIF NEW.event_type = 'DONT_PANIC' THEN
-            -- Placeholder: Add 1 point. This will be updated when the template table is created.
+            points_to_add := (NEW.content->>'points')::int;
             UPDATE public.wallets
-            SET dont_panic_points = dont_panic_points + 1, updated_at = now()
+            SET dont_panic_points = dont_panic_points + points_to_add, updated_at = now()
             WHERE user_id = NEW.receiver_id;
 
         ELSIF NEW.event_type = 'HORNET' THEN

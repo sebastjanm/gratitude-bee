@@ -33,6 +33,13 @@ export default function ProfileScreen() {
   const [inviteCode, setInviteCode] = useState('');
   const [partnerName, setPartnerName] = useState('');
   const [isQrModalVisible, setIsQrModalVisible] = useState(false);
+  const [loadingStats, setLoadingStats] = useState(true);
+  const [stats, setStats] = useState({
+    badges_sent: 0,
+    badges_received: 0,
+    day_streak: 0,
+    days_active: 0,
+  });
 
   useEffect(() => {
     if (session) {
@@ -61,7 +68,21 @@ export default function ProfileScreen() {
           }
         }
       };
+
+      const fetchStats = async () => {
+        setLoadingStats(true);
+        const { data, error } = await supabase.rpc('get_user_profile_stats', { p_user_id: session.user.id });
+        if (error) {
+          Alert.alert('Error', 'Could not fetch your stats.');
+          console.error(error);
+        } else {
+          setStats(data);
+        }
+        setLoadingStats(false);
+      };
+
       fetchProfile();
+      fetchStats();
     }
   }, [session]);
 
@@ -127,24 +148,30 @@ export default function ProfileScreen() {
   const renderStats = () => (
     <View style={styles.statsContainer}>
       <Text style={styles.statsTitle}>Your Impact</Text>
-      <View style={styles.statsGrid}>
-        <View style={styles.statCard}>
-          <Text style={styles.statNumber}>61</Text>
-          <Text style={styles.statLabel}>Badges Sent</Text>
+      {loadingStats ? (
+        <View style={styles.statsGrid}>
+          <Text>Loading stats...</Text>
         </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statNumber}>58</Text>
-          <Text style={styles.statLabel}>Badges Received</Text>
+      ) : (
+        <View style={styles.statsGrid}>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>{stats.badges_sent}</Text>
+            <Text style={styles.statLabel}>Badges Sent</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>{stats.badges_received}</Text>
+            <Text style={styles.statLabel}>Badges Received</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>{stats.day_streak}</Text>
+            <Text style={styles.statLabel}>Day Streak</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>{stats.days_active}</Text>
+            <Text style={styles.statLabel}>Days Active</Text>
+          </View>
         </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statNumber}>12</Text>
-          <Text style={styles.statLabel}>Day Streak</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statNumber}>86</Text>
-          <Text style={styles.statLabel}>Days Active</Text>
-        </View>
-      </View>
+      )}
     </View>
   );
 

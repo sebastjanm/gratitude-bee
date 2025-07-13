@@ -43,6 +43,8 @@ interface TimelineEvent {
     message?: string;
     points?: number;
     points_icon?: string;
+    icon?: string; // Added for dynamic icons
+    color?: string; // Added for dynamic colors
   };
 }
 
@@ -53,54 +55,73 @@ const filterOptions = [
 ];
 
 const categoryDetails: { [key: string]: { icon: any; color: string } } = {
+  // Appreciation categories are still used as fallbacks for older events
   kindness: { icon: Heart, color: '#FF6B9D' },
   support: { icon: Star, color: '#4ECDC4' },
   humor: { icon: Smile, color: '#FFD93D' },
   adventure: { icon: Compass, color: '#6BCF7F' },
   words: { icon: MessageCircle, color: '#A8E6CF' },
-  'whatever-you-say': { icon: CheckCircle, color: '#9B59B6' },
-  'yes-dear': { icon: Crown, color: '#E67E22' },
-  'happy-wife': { icon: HomeIcon, color: '#27AE60' },
-  'dont-panic': { icon: Heart, color: '#6366F1' },
-  'im-sorry': { icon: Heart, color: '#F87171' },
+  // Event type fallbacks for events without dynamic content
   hornet: { icon: Bug, color: '#FF4444' },
-  favor: { icon: Heart, color: '#8B4513' }, // Placeholder, can be improved
+  favor: { icon: Heart, color: '#8B4513' },
+  wisdom: { icon: HelpCircle, color: '#8B5CF6' },
+  ping: { icon: MessageCircle, color: '#3B82F6' },
+  dont_panic: { icon: Heart, color: '#6366F1' },
   default: { icon: Heart, color: '#ccc' },
 };
 
 const getEventVisuals = (event: any) => {
-  if (event.event_type === 'APPRECIATION' && event.content?.icon) {
-    const category = categoryDetails[event.content.category_id] || categoryDetails.default;
-    return { 
-      IconComponent: () => <Text style={{fontSize: 16}}>{event.content.icon}</Text>, 
-      color: category.color 
-    };
+  const content = event.content || {};
+  if (content.icon && content.color) {
+    return { icon: content.icon, color: content.color, isEmojiIcon: true };
   }
 
-  const category = event.content?.category_id || event.event_type.toLowerCase();
+  // Fallback logic for older events or events without dynamic visuals (like favors).
+  const category = content?.category_id || event.event_type.toLowerCase();
   const details = categoryDetails[category] || categoryDetails.default;
-  return { IconComponent: details.icon, color: details.color };
+  return { icon: details.icon, color: details.color, isEmojiIcon: false };
 };
 
-const transformEvent = (e: any, currentUserId: string, usersMap: Map<string, string>) => {
-  const { IconComponent, color } = getEventVisuals(e);
-  const partnerId = e.sender_id === currentUserId ? e.receiver_id : e.sender_id;
+const transformEvent = (event: any, currentUserId: string, usersMap: Map<string, string>) => {
+  const content = event.content || {};
+  let { icon, color, isEmojiIcon } = getEventVisuals(event);
+
+  let badgeName = content.title;
+  if (typeof badgeName !== 'string') {
+    badgeName = event.event_type.toLowerCase().replace(/_/g, ' ');
+  }
+
+  let description = content.description || content.message;
+  if (typeof description !== 'string') {
+    description = '';
+  }
+
+  const isSender = event.sender_id === currentUserId;
+  const partnerId = isSender ? event.receiver_id : event.sender_id;
   
+  if (event.event_type === 'APPRECIATION') {
+      const category = content.category_id || 'default';
+      const details = categoryDetails[category] || categoryDetails.default;
+      icon = details.icon;
+      isEmojiIcon = false;
+  }
+
   return {
-    id: e.id,
-    type: (e.sender_id === currentUserId ? 'sent' : 'received') as 'sent' | 'received',
-    badgeName: e.content.title,
-    category: e.content.category_id || e.event_type.toLowerCase(),
-    eventType: e.event_type,
-    message: e.content.message,
-    timestamp: e.created_at,
+    id: event.id,
+    type: (isSender ? 'sent' : 'received') as 'sent' | 'received',
+    badgeName: badgeName,
+    category: content.category_id || event.event_type.toLowerCase(),
+    eventType: event.event_type,
+    message: content.message,
+    timestamp: event.created_at,
     partnerName: usersMap.get(partnerId) || 'Partner',
-    icon: IconComponent,
+    icon: icon,
     color: color,
-    isNegative: e.event_type === 'HORNET',
-    status: e.status,
-    content: e.content,
-    description: e.content.description,
+    isNegative: event.event_type === 'HORNET',
+    status: event.status,
+    content: content,
+    description: description,
+    isEmojiIcon: isEmojiIcon,
   }
 };
 
@@ -346,18 +367,22 @@ export default function TimelineScreen() {
 
 
   const renderTimelineEvent = (event: TimelineEvent, index: number) => {
-    const IconComponent = event.icon;
-    const isLast = index === filteredEvents.length - 1;
+    const { partnerName, badgeName, description, timestamp, icon: Icon, color, type, status, eventType, isEmojiIcon } = event;
+    const isLast = index === events.length - 1;
 
     return (
       <View key={event.id} style={styles.timelineItem}>
         <View style={styles.timelineMarker}>
           <View style={[
             styles.timelineIcon, 
-            { backgroundColor: event.color },
+            { backgroundColor: color },
             event.isNegative && styles.negativeTimelineIcon
           ]}>
-            <IconComponent color="white" size={16} />
+            {isEmojiIcon ? (
+              <Text style={styles.emojiIcon}>{Icon}</Text>
+            ) : (
+              <Icon color="white" size={20} />
+            )}
           </View>
           {!isLast && <View style={styles.timelineLine} />}
         </View>
@@ -500,7 +525,116 @@ export default function TimelineScreen() {
         {loading ? (
           <ActivityIndicator size="large" color="#FF8C42" style={{ marginTop: 50 }} />
         ) : filteredEvents.length > 0 ? (
-          filteredEvents.map(renderTimelineEvent)
+          filteredEvents.map((event, index) => {
+            const { partnerName, badgeName, description, timestamp, icon: Icon, color, type, status, eventType, isEmojiIcon } = event;
+            const isLast = index === filteredEvents.length - 1;
+        
+            return (
+              <View key={event.id} style={styles.timelineItem}>
+                <View style={styles.timelineMarker}>
+                  <View style={[
+                    styles.timelineIcon,
+                    { backgroundColor: color },
+                    event.isNegative && styles.negativeTimelineIcon
+                  ]}>
+                    {isEmojiIcon ? (
+                      <Text style={styles.emojiIcon}>{Icon}</Text>
+                    ) : (
+                      <Icon color="white" size={20} />
+                    )}
+                  </View>
+                  {!isLast && <View style={styles.timelineLine} />}
+                </View>
+                <View style={styles.timelineContent}>
+                  <View style={[
+                    styles.eventCard,
+                    event.isNegative && styles.negativeEventCard
+                  ]}>
+                    <View style={styles.cardContent}>
+                      <Text style={styles.eventTypeTag}>{formatEventType(event.eventType)}</Text>
+                      <View style={styles.cardHeader}>
+                        <Text style={styles.eventTitle} numberOfLines={2}>
+                          {event.badgeName}
+                        </Text>
+                      </View>
+                      {event.description && (
+                        <Text style={styles.eventDescription}>{event.description}</Text>
+                      )}
+                      {event.isNegative && event.cancelledBadges && (
+                        <View style={styles.cancelledBadgesInfo}>
+                          <X color="#FF4444" size={14} />
+                          <Text style={styles.cancelledBadgesText}>
+                            Cancelled {event.cancelledBadges.length} positive badge{event.cancelledBadges.length > 1 ? 's' : ''}
+                          </Text>
+                        </View>
+                      )}
+                      {event.message && (
+                        <View style={[
+                          styles.messageContainer,
+                          event.isNegative && styles.negativeMessageContainer
+                        ]}>
+                          <Text style={styles.messageText}>"{event.message}"</Text>
+                        </View>
+                      )}
+                      {event.category.includes('favor') && (
+                        <View style={styles.favorStatusContainer}>
+                          {renderStatusBadge(event.status)}
+                        </View>
+                      )}
+                      {event.category.includes('favor') && event.status === 'PENDING' && event.type === 'received' && (
+                        <View style={styles.actionsContainer}>
+                          <>
+                            <TouchableOpacity
+                              style={[styles.actionButton, styles.acceptButton]}
+                              onPress={() => handleFavorResponse(event.id, 'ACCEPTED')}>
+                              <ThumbsUp color="white" size={16} />
+                              <Text style={styles.actionButtonText}>Accept</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={[styles.actionButton, styles.declineButton]}
+                              onPress={() => handleFavorResponse(event.id, 'DECLINED')}>
+                              <ThumbsDown color="white" size={16} />
+                              <Text style={styles.actionButtonText}>Decline</Text>
+                            </TouchableOpacity>
+                          </>
+                        </View>
+                      )}
+                      {event.category.includes('favor') && event.status === 'ACCEPTED' && event.type === 'sent' && (
+                        <View style={styles.actionsContainer}>
+                          <TouchableOpacity
+                            style={[styles.actionButton, styles.completeButton]}
+                            onPress={() => handleFavorCompletion(event.id)}>
+                            <CheckCircle color="white" size={16} />
+                            <Text style={styles.actionButtonText}>Mark as Complete</Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                    </View>
+                    <View style={styles.divider} />
+                    <View style={styles.cardFooter}>
+                      <View style={styles.directionContainer}>
+                        {event.type === 'sent'
+                          ? <ArrowUpRight color={styles.sentColor.color} size={14} />
+                          : <ArrowDownLeft color={styles.receivedColor.color} size={14} />
+                        }
+                        <Text style={[styles.eventPartner, event.type === 'sent' ? styles.sentColor : styles.receivedColor]}>
+                          {event.type === 'sent' ? `${event.partnerName}` : `${event.partnerName}`}
+                        </Text>
+                      </View>
+                      <View style={styles.footerRight}>
+                        <Text style={styles.eventTime}>{formatTimestamp(event.timestamp)}</Text>
+                        {event.content?.points && (
+                          <View style={styles.pointsContainer}>
+                            <Text style={styles.pointsText}>{event.content.points} {event.content.points_icon}</Text>
+                          </View>
+                        )}
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            );
+          })
         ) : (
           <View style={styles.emptyState}>
             <Calendar color="#ccc" size={48} />
@@ -827,7 +961,7 @@ const styles = StyleSheet.create({
     color: '#FF8C42',
   },
   sentColor: {
-    color: '#3498db',
+    color: '#34D399',
   },
   receivedColor: {
     color: '#2ecc71',
@@ -864,5 +998,9 @@ const styles = StyleSheet.create({
   },
   negativeStatNumber: {
     color: '#FF4444',
+  },
+  emojiIcon: {
+    fontSize: 20,
+    color: 'white',
   },
 });
