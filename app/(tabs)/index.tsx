@@ -323,10 +323,7 @@ export default function HomeScreen() {
   };
 
   const handleSendHornet = async (message: string, selectedOption: any) => {
-    if (!session) {
-      Alert.alert('Not authenticated', 'You must be logged in to send a hornet.');
-      return;
-    }
+    if (!session?.user?.id || !selectedOption) return;
 
     const { data: userData, error: userError } = await supabase
       .from('users')
@@ -334,90 +331,161 @@ export default function HomeScreen() {
       .eq('id', session.user.id)
       .single();
 
-    if (userError || !userData || !userData.partner_id) {
-      Alert.alert('Not Connected', 'You must be connected to a partner to send a hornet.');
+    if (userError || !userData?.partner_id) {
+      Alert.alert('Error', 'Could not find your partner to send a hornet.');
       return;
     }
 
-    const { error } = await supabase.from('events').insert([
-      {
-        sender_id: session.user.id,
-        receiver_id: userData.partner_id,
-        event_type: 'HORNET',
-        content: {
-          hornet_id: selectedOption.id,
-          title: selectedOption.title,
-          points: selectedOption.count,
-          message: message,
-          severity: selectedOption.severity,
-        },
+    const eventPayload = {
+      sender_id: session.user.id,
+      receiver_id: userData.partner_id,
+      event_type: 'HORNET',
+      content: {
+        template_id: selectedOption.id,
+        title: selectedOption.name,
+        description: message,
+        points: selectedOption.points,
       },
-    ]);
+    };
+
+    const { data: eventData, error } = await supabase.from('events').insert(eventPayload).select().single();
 
     if (error) {
       Alert.alert('Error', 'Could not send the hornet. Please try again.');
+      console.error('Error sending hornet:', error);
     } else {
-      Alert.alert(
-        'Hornet Sent',
-        `Your accountability hornet has been sent.`,
-        [{ text: 'OK' }]
-      );
+      Alert.alert('Hornet Sent', 'Your message has been delivered.');
+      const { error: notificationError } = await supabase.functions.invoke('send-notification', {
+        body: { record: eventData },
+      });
+      if (notificationError) {
+        console.error('Error sending hornet notification:', notificationError);
+      }
     }
   };
 
   const handleSendDontPanic = async (message: string, quickResponse?: string) => {
-    if (!session) return;
-    const { data: partnerData } = await supabase.from('users').select('partner_id').eq('id', session.user.id).single();
-    if (!partnerData?.partner_id) return;
+    if (!session?.user?.id) return;
 
-    const { error } = await supabase.from('events').insert([
-      {
-        sender_id: session.user.id,
-        receiver_id: partnerData.partner_id,
-        event_type: 'DONT_PANIC',
-        content: { title: quickResponse, message, description: message },
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('partner_id')
+      .eq('id', session.user.id)
+      .single();
+
+    if (userError || !userData?.partner_id) {
+      Alert.alert('Error', 'Could not find your partner to send this message.');
+      return;
+    }
+
+    const eventPayload = {
+      sender_id: session.user.id,
+      receiver_id: userData.partner_id,
+      event_type: 'DONT_PANIC',
+      content: {
+        title: "Don't Panic",
+        description: quickResponse || message,
       },
-    ]);
+    };
 
-    if (error) Alert.alert('Error', 'Could not send the message.');
-    else Alert.alert('Message Sent', 'Your calming message has been sent.');
+    const { data: eventData, error } = await supabase.from('events').insert(eventPayload).select().single();
+
+    if (error) {
+      Alert.alert('Error', "Could not send the Don't Panic message. Please try again.");
+      console.error("Error inserting event for Don't Panic:", error);
+    } else {
+      Alert.alert('Message Sent', "Your Don't Panic signal has been sent.");
+      const { error: notificationError } = await supabase.functions.invoke('send-notification', {
+        body: { record: eventData },
+      });
+      if (notificationError) {
+        console.error("Error sending Don't Panic notification:", notificationError);
+      }
+    }
   };
 
   const handleSendWisdom = async (wisdomId: string, wisdomTitle: string, wisdomDescription: string) => {
-    if (!session) return;
-    const { data: partnerData } = await supabase.from('users').select('partner_id').eq('id', session.user.id).single();
-    if (!partnerData?.partner_id) return;
+    if (!session?.user?.id) return;
 
-    const { error } = await supabase.from('events').insert([
-      {
-        sender_id: session.user.id,
-        receiver_id: partnerData.partner_id,
-        event_type: 'WISDOM',
-        content: { wisdom_id: wisdomId, title: wisdomTitle, description: wisdomDescription },
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('partner_id')
+      .eq('id', session.user.id)
+      .single();
+    
+    if (userError || !userData?.partner_id) {
+      Alert.alert('Error', 'Could not find your partner to send wisdom.');
+      return;
+    }
+
+    const eventPayload = {
+      sender_id: session.user.id,
+      receiver_id: userData.partner_id,
+      event_type: 'WISDOM',
+      content: {
+        template_id: wisdomId,
+        title: wisdomTitle,
+        description: wisdomDescription,
       },
-    ]);
-    if (error) Alert.alert('Error', 'Could not send the wisdom.');
-    else Alert.alert('Wisdom Sent', 'Your wise words have been shared.');
+    };
+    
+    const { data: eventData, error } = await supabase.from('events').insert(eventPayload).select().single();
+
+    if (error) {
+      Alert.alert('Error', 'Could not send wisdom. Please try again.');
+      console.error('Error sending wisdom:', error);
+    } else {
+      Alert.alert('Wisdom Sent!', 'Your partner has received your wise words.');
+      
+      // FIX: Manually invoke the notification function
+      const { error: notificationError } = await supabase.functions.invoke('send-notification', {
+        body: { record: eventData },
+      });
+
+      if (notificationError) {
+        console.error('Error sending wisdom notification:', notificationError);
+      }
+    }
   };
 
   const handleSendPing = async (pingId: string, pingTitle: string, description: string) => {
-    if (!session) return;
-    const { data: partnerData } = await supabase.from('users').select('partner_id').eq('id', session.user.id).single();
-    if (!partnerData?.partner_id) return;
+    if (!session?.user?.id) return;
 
-    const { error } = await supabase.from('events').insert([
-      {
-        sender_id: session.user.id,
-        receiver_id: partnerData.partner_id,
-        event_type: 'PING_SENT',
-        content: { ping_id: pingId, title: pingTitle, description: description },
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('partner_id')
+      .eq('id', session.user.id)
+      .single();
+
+    if (userError || !userData?.partner_id) {
+      Alert.alert('Error', 'Could not find your partner to send a ping.');
+      return;
+    }
+
+    const eventPayload = {
+      sender_id: session.user.id,
+      receiver_id: userData.partner_id,
+      event_type: 'PING_SENT',
+      content: {
+        template_id: pingId,
+        title: pingTitle,
+        description: description,
       },
-    ]);
+    };
+
+    const { data: eventData, error } = await supabase.from('events').insert(eventPayload).select().single();
 
     if (error) {
-      Alert.alert('Error', 'Could not send the ping.');
+      Alert.alert('Error', 'Could not send the ping. Please try again.');
+      console.error('Error sending ping:', error);
     } else {
-      Alert.alert('Ping Sent!', `Your "${pingTitle}" ping has been sent.`);
+      Alert.alert('Ping Sent!', 'Your partner has been notified.');
+      const { error: notificationError } = await supabase.functions.invoke('send-notification', {
+        body: { record: eventData },
+      });
+      if (notificationError) {
+        console.error('Error sending ping notification:', notificationError);
+      }
     }
   };
 
