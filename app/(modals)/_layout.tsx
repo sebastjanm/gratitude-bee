@@ -4,6 +4,8 @@ export default function ModalsLayout() {
   return (
     <Stack screenOptions={{ presentation: 'modal', headerShown: false }}>
       <Stack.Screen name="appreciation" />
+      <Stack.Screen name="favor" />
+      <Stack.Screen name="wisdom" />
     </Stack>
   );
 } 

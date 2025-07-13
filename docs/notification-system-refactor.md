@@ -108,4 +108,22 @@ This section documents the successful extension of the notification system to ha
 3.  **Verify and Fix Client Sending Logic**:
     *   The `handleSendFavor` function in `app/(tabs)/index.tsx` was inspected.
     *   It was discovered that, unlike appreciations, it was not manually invoking the `send-notification` function after creating the event.
-    *   This was corrected by adding the `supabase.functions.invoke('send-notification', ...)` call to ensure a push notification is sent when a favor is requested. 
+    *   This was corrected by adding the `supabase.functions.invoke('send-notification', ...)` call to ensure a push notification is sent when a favor is requested.
+
+---
+
+## Phase 3: Extending for Wisdom (Implementation)
+
+This section documents the extension of the notification system to handle "Wisdom" messages.
+
+1.  **Create Wisdom Modal Screen**:
+    *   A new file was created at `app/(modals)/wisdom.tsx`.
+    *   This screen is responsible for displaying the details of a wisdom notification.
+    *   It uses `useLocalSearchParams` to parse the standardized `payload` object.
+    *   It includes a "Thanks for the Wisdom" button which reuses the generic `send-thank-you` Supabase function.
+
+2.  **Update Notification Provider**:
+    *   The `categoryRouteMapping` in `providers/NotificationProvider.tsx` was updated to correctly route `wisdom` notifications to `/(modals)/wisdom`.
+
+3.  **Client Sending Logic Verification**:
+    *   The `handleSendWisdom` function in the `QuickSendActions.tsx` component was already correctly creating a `WISDOM` event, which triggers the `send-notification` function via a database trigger. No changes were needed on the client-side sending logic. 
