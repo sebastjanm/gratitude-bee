@@ -355,12 +355,6 @@ export default function HomeScreen() {
       console.error('Error sending hornet:', error);
     } else {
       Alert.alert('Hornet Sent', 'Your message has been delivered.');
-      const { error: notificationError } = await supabase.functions.invoke('send-notification', {
-        body: { record: eventData },
-      });
-      if (notificationError) {
-        console.error('Error sending hornet notification:', notificationError);
-      }
     }
   };
 

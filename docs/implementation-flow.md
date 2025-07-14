@@ -824,4 +824,17 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
     *   **Solution:** Corrected the `event_type` in the `handleSendPing` function to `'PING'`, aligning it with the backend handler and restoring the correct notification content. This also fixed a regression of a previously documented issue.
 *   **Next Step:** Full regression testing of the Ping feature. 
 
+---
+
+### **Step 38: Unify Hornet Notification Logic**
+*   **Timestamp:** `2025-07-19T03:00:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   Resolved a bug causing duplicate and generic notifications when sending a "Hornet."
+    *   **Root Cause:** The `handleSendHornet` function was manually invoking the `send-notification` function, which conflicted with the `AFTER INSERT` database trigger that *also* invokes the same function.
+    *   **Solution:** Removed the redundant manual `invoke` call from `handleSendHornet` in `app/(tabs)/index.tsx`. All Hornet notifications are now handled exclusively by the database trigger, ensuring a single, correct notification is sent and unifying the notification architecture across all event types.
+*   **Next Step:** Commit all pending notification fixes and begin final regression testing. 
+
+
+
  
