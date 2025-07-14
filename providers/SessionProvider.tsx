@@ -14,6 +14,8 @@ import {
   cleanupNotificationListeners
 } from '@/utils/pushNotifications';
 
+console.log('SessionProvider: initializing');
+
 const SessionContext = createContext<{ session: Session | null; loading: boolean }>({
   session: null,
   loading: true,
@@ -32,12 +34,14 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
       const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
       setLoading(false);
+      console.log('SessionProvider: session set', session, 'loading', false);
     };
 
     getSession();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
+      console.log('SessionProvider: auth state changed', session);
     });
 
     return () => {
@@ -51,7 +55,7 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
 
     const setupPushNotifications = async () => {
       if (session?.user) {
-        console.log('🔔 Setting up push notifications for user:', session.user.id);
+        console.log('SessionProvider: Setting up push notifications for user:', session.user.id);
         
         // Register for push notifications and get token
         const token = await registerForPushNotificationsAsync();

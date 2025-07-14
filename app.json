@@ -17,6 +17,8 @@
       "bundleIdentifier": "com.sebastjanm.gratitudebee",
       "associatedDomains": [
         "applinks:gratitudebee.app",
+        "applinks:gratitudebee.app",
+        "applinks:gratitudebee.app",
         "applinks:gratitudebee.app"
       ],
       "infoPlist": {
@@ -42,6 +44,21 @@
         "backgroundColor": "#FFF8F0"
       },
       "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "gratitudebee.app",
+              "pathPrefix": "/invite"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        },
         {
           "action": "VIEW",
           "autoVerify": true,
@@ -82,6 +99,10 @@
       "eas": {
         "projectId": "ebb8ed4b-00ff-41bc-8e1d-3dbeeeadfe0a"
       }
+    },
+    "runtimeVersion": "1.0.0",
+    "updates": {
+      "url": "https://u.expo.dev/ebb8ed4b-00ff-41bc-8e1d-3dbeeeadfe0a"
     }
   }
 }

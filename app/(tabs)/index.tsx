@@ -59,6 +59,7 @@ const statsConfig = [
 ];
 
 export default function HomeScreen() {
+  console.log('HomeScreen: mounting');
   const [showNegativeModal, setShowNegativeModal] = useState(false);
   const [showDontPanicModal, setShowDontPanicModal] = useState(false);
   const [showAppreciationModal, setShowAppreciationModal] = useState(false);
@@ -71,6 +72,7 @@ export default function HomeScreen() {
   const [engagementStage, setEngagementStage] = useState<'boring' | 'demanding' | 'sad' | 'spark' | 'love' | 'none'>('boring');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { session } = useSession();
+  console.log('HomeScreen: session', session);
   const insets = useSafeAreaInsets();
 
   const userName = session?.user?.user_metadata?.display_name || 'Breda';
@@ -95,12 +97,13 @@ export default function HomeScreen() {
     });
 
     if (error) {
-      console.error('Error fetching daily stats:', error);
+      console.error('HomeScreen: Error fetching daily stats:', error);
       Alert.alert('Error', 'Could not fetch your daily stats.');
     } else if (data && data.length > 0) {
       const newStats = { ...data[0] };
       setStats(newStats);
       calculateEngagementStage(newStats.sent_today, newStats.received_today);
+      console.log('HomeScreen: fetched stats', newStats);
     }
     
     if (isRefresh) {

@@ -27,6 +27,8 @@ function GlobalLogic() {
   const segments = useSegments();
   const { session, loading } = useSession();
 
+  console.log('GlobalLogic: session', session, 'loading', loading);
+
   // Handles session-based navigation
   useEffect(() => {
     if (loading) return;
@@ -74,6 +76,8 @@ export default function RootLayout() {
     'Inter-SemiBold': Inter_600SemiBold,
     'Inter-Bold': Inter_700Bold,
   });
+
+  console.log('RootLayout: fontsLoaded', fontsLoaded, 'fontError', fontError);
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
