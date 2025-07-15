@@ -8,57 +8,82 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
-import { Platform } from 'react-native';
+import { Platform, Alert } from 'react-native';
 import { supabase } from './supabase';
 
 
 export async function registerForPushNotificationsAsync(): Promise<string | null> {
+  console.log('[PushNotifications] Starting registration...');
   let token = null;
 
   if (Platform.OS === 'android') {
-    await Notifications.setNotificationChannelAsync('default', {
-      name: 'default',
-      importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#FF231F7C',
-    });
+    try {
+      await Notifications.setNotificationChannelAsync('default', {
+        name: 'default',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#FF231F7C',
+      });
+      console.log('[PushNotifications] Android notification channel set.');
+    } catch (e) {
+      console.error('[PushNotifications] Failed to set notification channel:', e);
+      Alert.alert('Notification Setup Failed', 'Could not set notification channel.');
+    }
   }
 
   if (Device.isDevice) {
+    console.log('[PushNotifications] Device is a physical device.');
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
+    console.log(`[PushNotifications] Existing permission status: ${existingStatus}`);
 
     if (existingStatus !== 'granted') {
+      console.log('[PushNotifications] Requesting new permissions...');
       const { status } = await Notifications.requestPermissionsAsync();
       finalStatus = status;
+      console.log(`[PushNotifications] New permission status: ${finalStatus}`);
     }
     
     if (finalStatus !== 'granted') {
-      console.log('Failed to get push token for push notification!');
+      console.log('[PushNotifications] Permission not granted. Aborting.');
+      Alert.alert('Permissions Required', 'You need to grant notification permissions to receive updates.');
       return null;
     }
     
     try {
       const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
+      console.log(`[PushNotifications] Using EAS Project ID: ${projectId}`);
       if (!projectId) {
+        Alert.alert('Configuration Error', 'EAS Project ID is missing. Cannot get push token.');
         throw new Error('Project ID not found in eas.json. Please run "eas build:configure"');
       }
       
+      console.log('[PushNotifications] Getting Expo push token...');
       token = (await Notifications.getExpoPushTokenAsync({
         projectId,
       })).data;
       
       console.log('📱 Push token obtained:', token);
+      Alert.alert('Push Token', `Obtained token: ${token ? 'Yes' : 'No'}`);
       
       // Save the token to Supabase
       const { data: { user } } = await supabase.auth.getUser();
       if (user && token) {
-        await supabase.from('users').update({ expo_push_token: token }).eq('id', user.id);
-        console.log('✅ Push token saved to Supabase');
+        console.log(`[PushNotifications] Saving token for user ${user.id}...`);
+        const { error } = await supabase.from('users').update({ expo_push_token: token }).eq('id', user.id);
+        if (error) {
+          console.error('[PushNotifications] Failed to save token to Supabase:', error);
+          Alert.alert('Sync Error', 'Could not save notification token to your profile.');
+        } else {
+          console.log('✅ Push token saved to Supabase');
+        }
+      } else {
+        console.log('[PushNotifications] No user session or token, skipping save.');
       }
 
     } catch (e) {
       console.error('Error getting push token:', e);
+      Alert.alert('Token Error', `Failed to get push token: ${e.message}`);
       return null;
     }
   } else {

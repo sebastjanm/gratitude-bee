@@ -16,3 +16,7 @@ expo-env.d.ts
 # macOS system files
 .DS_Store
 **/.DS_Store
+
+# Expo managed workflow: ignore native folders
+/android
+/ios
