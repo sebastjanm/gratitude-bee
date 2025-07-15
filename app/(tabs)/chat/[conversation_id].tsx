@@ -87,7 +87,7 @@ const CustomHeader = ({ participant }: { participant: Participant }) => {
         source={participant.avatar_url ? { uri: participant.avatar_url } : require('@/assets/images/icon.png')}
         style={styles.headerAvatar}
       />
-      <View>
+      <View style={styles.headerTextContainer}>
         <Text style={styles.headerName}>{participant.display_name}</Text>
         <Text style={styles.headerLastSeen}>{lastSeenText}</Text>
       </View>
@@ -245,11 +245,12 @@ export default function ChatScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen 
-        options={{ 
+      <Stack.Screen
+        options={{
           headerShown: true,
+          headerTitleAlign: 'left',
           headerTitle: () => <CustomHeader participant={participant} />,
-        }} 
+        }}
       />
         <KeyboardAvoidingView
             style={styles.container}
@@ -319,15 +320,13 @@ const styles = StyleSheet.create({
     maxWidth: '75%',
   },
   myMessageBubble: {
-    backgroundColor: '#FFCBA4',
+    backgroundColor: '#FFEADD',
   },
   theirMessageBubble: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
+    backgroundColor: '#E5E5EA',
   },
   myMessageText: {
-    color: '#333333',
+    color: '#000000',
     fontSize: 16,
   },
   theirMessageText: {
@@ -380,20 +379,24 @@ const styles = StyleSheet.create({
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: -15, // Adjust for default screen padding
   },
   headerAvatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    marginRight: 10,
+    marginRight: 12,
+  },
+  headerTextContainer: {
+    flexDirection: 'column',
+    justifyContent: 'center',
   },
   headerName: {
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   headerLastSeen: {
-    fontSize: 13,
-    color: 'gray',
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
   },
 });
