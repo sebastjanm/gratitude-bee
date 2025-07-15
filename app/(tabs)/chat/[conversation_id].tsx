@@ -279,19 +279,24 @@ export default function ChatScreen() {
         }}
       />
       <ChatHeader participant={participant} onBack={handleBack} />
-        <KeyboardAwareFlatList
-            data={processedMessages}
-            renderItem={renderItem}
-            keyExtractor={(item, index) => item.type === 'date' ? item.date : item.data.id.toString()}
-            style={styles.messageList}
-            inverted
-            onEndReached={() => {
-                const nextPage = Math.ceil(messages.length / PAGE_SIZE);
-                fetchMessages(nextPage);
-            }}
-            onEndReachedThreshold={0.5}
-            ListFooterComponent={loadingMore ? <ActivityIndicator style={{ marginVertical: 20 }} /> : null}
-        />
+      <FlatList
+          data={processedMessages}
+          renderItem={renderItem}
+          keyExtractor={(item, index) => item.type === 'date' ? item.date : item.data.id.toString()}
+          style={styles.messageList}
+          inverted
+          onEndReached={() => {
+              const nextPage = Math.ceil(messages.length / PAGE_SIZE);
+              fetchMessages(nextPage);
+          }}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={loadingMore ? <ActivityIndicator style={{ marginVertical: 20 }} /> : null}
+          extraData={messages}
+      />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={0}
+      >
         <View style={styles.inputToolbar}>
             <TextInput
                 style={styles.textInput}
@@ -304,6 +309,7 @@ export default function ChatScreen() {
                 <Send color="#FFFFFF" size={24} />
             </TouchableOpacity>
         </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

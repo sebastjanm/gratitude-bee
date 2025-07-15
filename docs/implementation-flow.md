@@ -837,38 +837,7 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
 
 ---
 
-### **Step 39: Chat Module Implementation**
-
-- **Date:** 2024-07-22
-- **Description:** Implemented a full-featured, real-time chat module.
-- **Details:**
-  - **Backend:** Created a new database schema in Supabase with `conversations`, `messages`, and `conversation_participants` tables. Implemented Postgres functions, triggers, and Row Level Security policies for a durable and secure backend.
-  - **Frontend:** Added a "Messages" tab to the main navigator. Created a conversation list screen that updates in real-time and a full chat interface using `react-native-gifted-chat`.
-  - **Real-time:** Leveraged Supabase's Postgres Changes for message persistence and real-time delivery, and the Presence feature for online status.
-- **Reference:** For the detailed technical plan, see [Real-time Chat Plan](./realtime-chat.md). 
-
----
-
-### **Step 20: Real-time Chat Implementation**
-*   **Timestamp:** `2025-07-23T12:00:00Z`
-*   **Commit:** `33c5b90`
-*   **Description:**
-    *   Implemented a complete, secure, 1-on-1 real-time chat module. For a detailed breakdown, see the [Real-time Chat Architecture](./realtime-chat.md) documentation.
-    *   **Backend:**
-        *   Created new tables (`conversations`, `messages`, `conversation_participants`) and added `avatar_url` and `last_seen` columns to the `users` table.
-        *   Secured all data access with comprehensive Row Level Security (RLS) policies.
-        *   Used database triggers and functions to automate updates to conversation metadata.
-    *   **Frontend:**
-        *   Integrated `react-native-gifted-chat` to provide a rich messaging UI.
-        *   Built a custom header to display the partner's name, avatar, and live "last seen" status (e.g., "Active 5m ago").
-        *   Implemented real-time message updates using Supabase subscriptions.
-    *   **Presence:**
-        *   The `SessionProvider` now tracks app state to update the user's `last_seen` timestamp, providing presence indicators to their partner.
-*   **Next Step:** Final review of all UI components for consistency. 
-
----
-
-### **Step 40: Advanced Real-time Chat Module**
+### **Step 39: Advanced Real-time Chat Module**
 *   **Timestamp:** `2025-07-25T12:00:00Z`
 *   **Commit:** `[pending_commit]`
 *   **Description:**
@@ -880,8 +849,9 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
     *   **Frontend UI/UX:**
         *   Added a "Messages" tab to the main navigator, serving as the entry point to the chat system.
         *   Implemented a smart conversation list on `messages.tsx`. It redirects directly to the chat if only one conversation exists, or shows an empty state with a Lottie animation if there are no conversations.
-        *   The chat screen (`chat/[conversation_id].tsx`) was built using a highly customized `FlatList` to provide a modern, performant messaging UI, complete with date separators.
-        *   Implemented pull-to-refresh functionality on both the conversation list and the chat screen for manual data synchronization.
+        *   The chat screen (`chat/[conversation_id].tsx`) was built using a highly customized `FlatList` (later enhanced with `react-native-keyboard-aware-scroll-view`) to provide a modern, performant messaging UI with date separators.
+        *   Implemented pull-to-refresh on the conversation list. The feature was removed from the chat screen itself to align with standard messaging app UX and avoid confusing interactions on an inverted list.
+        *   Replaced the standard `KeyboardAvoidingView` with the more robust `react-native-keyboard-aware-scroll-view` library to create a smoother, more reliable keyboard experience.
     *   **Real-time Features & Presence:**
         *   The `SessionProvider` was enhanced to track app state (foreground/background) to update the user's `last_seen` timestamp in the database, enabling a live presence system.
         *   Implemented a custom chat header that displays the partner's name, avatar, and live "last seen" status (e.g., "online", "last seen 5m ago").
@@ -892,7 +862,7 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
 
 ---
 
-### **Step 41: User Profile Avatar Uploads**
+### **Step 40: User Profile Avatar Uploads**
 *   **Timestamp:** `2025-07-25T12:30:00Z`
 *   **Commit:** `[pending_commit]`
 *   **Description:**
