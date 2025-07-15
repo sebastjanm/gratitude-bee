@@ -17,9 +17,14 @@ import {
 
 console.log('SessionProvider: initializing');
 
-const SessionContext = createContext<{ session: Session | null; loading: boolean }>({
+const SessionContext = createContext<{ 
+  session: Session | null; 
+  loading: boolean;
+  setSession: React.Dispatch<React.SetStateAction<Session | null>>;
+}>({
   session: null,
   loading: true,
+  setSession: () => {},
 });
 
 export const useSession = () => {
@@ -108,7 +113,7 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
   }, [session?.user?.id]);
 
   return (
-    <SessionContext.Provider value={{ session, loading }}>
+    <SessionContext.Provider value={{ session, loading, setSession }}>
       {children}
     </SessionContext.Provider>
   );

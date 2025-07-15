@@ -20,6 +20,7 @@ import { supabase } from '@/utils/supabase';
 import { useSession } from '@/providers/SessionProvider';
 import { Send, ChevronLeft, HelpCircle as HelpCircleIcon } from 'lucide-react-native';
 import { formatDistanceToNow } from 'date-fns';
+import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
 
 const PAGE_SIZE = 20;
 
@@ -96,12 +97,12 @@ const CustomHeader = ({ participant }: { participant: Participant }) => {
 };
 
 // A new, fully custom header component
-const ChatHeader = ({ participant }: { participant: Participant }) => {
+const ChatHeader = ({ participant, onBack }: { participant: Participant, onBack: () => void }) => {
   return (
     <View style={styles.fixedHeaderContainer}>
         <View style={styles.header}>
             <View style={styles.headerLeft}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.headerBackButton}>
+                <TouchableOpacity onPress={onBack} style={styles.headerBackButton}>
                     <ChevronLeft color="#333" size={30} />
                 </TouchableOpacity>
                 <CustomHeader participant={participant} />
@@ -197,6 +198,14 @@ export default function ChatScreen() {
     }
   }, [conversation_id, loadingMore, allMessagesLoaded]);
 
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/messages');
+    }
+  };
+
   useEffect(() => {
     fetchChatData();
     fetchMessages(0);
@@ -269,38 +278,32 @@ export default function ChatScreen() {
           headerShown: false,
         }}
       />
-      <ChatHeader participant={participant} />
-      <KeyboardAvoidingView
-            style={styles.container}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-        >
-            <FlatList
-                data={processedMessages}
-                renderItem={renderItem}
-                keyExtractor={(item, index) => item.type === 'date' ? item.date : item.data.id.toString()}
-                style={styles.messageList}
-                inverted
-                onEndReached={() => {
-                    const nextPage = Math.ceil(messages.length / PAGE_SIZE);
-                    fetchMessages(nextPage);
-                }}
-                onEndReachedThreshold={0.5}
-                ListFooterComponent={loadingMore ? <ActivityIndicator style={{ marginVertical: 20 }} /> : null}
+      <ChatHeader participant={participant} onBack={handleBack} />
+        <KeyboardAwareFlatList
+            data={processedMessages}
+            renderItem={renderItem}
+            keyExtractor={(item, index) => item.type === 'date' ? item.date : item.data.id.toString()}
+            style={styles.messageList}
+            inverted
+            onEndReached={() => {
+                const nextPage = Math.ceil(messages.length / PAGE_SIZE);
+                fetchMessages(nextPage);
+            }}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={loadingMore ? <ActivityIndicator style={{ marginVertical: 20 }} /> : null}
+        />
+        <View style={styles.inputToolbar}>
+            <TextInput
+                style={styles.textInput}
+                placeholder="Type a message..."
+                value={inputText}
+                onChangeText={setInputText}
+                multiline
             />
-            <View style={styles.inputToolbar}>
-                <TextInput
-                    style={styles.textInput}
-                    placeholder="Type a message..."
-                    value={inputText}
-                    onChangeText={setInputText}
-                    multiline
-                />
-                <TouchableOpacity style={styles.sendButton} onPress={onSend}>
-                    <Send color="#FFFFFF" size={24} />
-                </TouchableOpacity>
-            </View>
-        </KeyboardAvoidingView>
+            <TouchableOpacity style={styles.sendButton} onPress={onSend}>
+                <Send color="#FFFFFF" size={24} />
+            </TouchableOpacity>
+        </View>
     </SafeAreaView>
   );
 }
@@ -408,6 +411,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
   },

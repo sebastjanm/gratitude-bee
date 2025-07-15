@@ -15,16 +15,18 @@ import {
   Switch,
   Alert,
   Share,
+  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { User, HelpCircle, Bell, Heart, Target, Calendar, Share2, CircleHelp as HelpCircleIcon, Smartphone, LogOut, FileText, Shield, Info } from 'lucide-react-native';
+import { User, HelpCircle, Bell, Heart, Target, Calendar, Share2, CircleHelp as HelpCircleIcon, Smartphone, LogOut, FileText, Shield, Info, Camera } from 'lucide-react-native';
 import { useSession } from '@/providers/SessionProvider';
 import { supabase } from '@/utils/supabase';
 import QRCodeModal from '@/components/QRCodeModal';
+import * as ImagePicker from 'expo-image-picker';
 
 export default function ProfileScreen() {
-  const { session } = useSession();
+  const { session, setSession } = useSession();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const insets = useSafeAreaInsets();
   const [nudgesEnabled, setNudgesEnabled] = useState(false);
@@ -34,6 +36,8 @@ export default function ProfileScreen() {
   const [partnerName, setPartnerName] = useState('');
   const [isQrModalVisible, setIsQrModalVisible] = useState(false);
   const [loadingStats, setLoadingStats] = useState(true);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [stats, setStats] = useState({
     badges_sent: 0,
     badges_received: 0,
@@ -46,7 +50,7 @@ export default function ProfileScreen() {
       const fetchProfile = async () => {
         const { data, error } = await supabase
           .from('users')
-          .select('invite_code, partner_id')
+          .select('invite_code, partner_id, avatar_url')
           .eq('id', session.user.id)
           .single();
         if (error) {
@@ -54,6 +58,7 @@ export default function ProfileScreen() {
             console.error(error);
         } else if (data) {
           setInviteCode(data.invite_code);
+          setAvatarUrl(data.avatar_url);
           if (data.partner_id) {
             const { data: partnerData, error: partnerError } = await supabase
               .from('users')
@@ -86,6 +91,83 @@ export default function ProfileScreen() {
     }
   }, [session]);
 
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Sorry, we need camera roll permissions to make this work!');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+    });
+
+    if (!result.canceled) {
+      uploadAvatar(result.assets[0].uri);
+    }
+  };
+
+  const uploadAvatar = async (uri: string) => {
+    if (!session?.user) return;
+    setUploading(true);
+    console.log('[AVATAR UPLOAD] Starting upload for URI:', uri);
+    try {
+      const fileExt = uri.split('.').pop();
+      const filePath = `${session.user.id}/${new Date().getTime()}.${fileExt}`;
+      console.log('[AVATAR UPLOAD] Uploading to path:', filePath);
+
+      const formData = new FormData();
+      formData.append('file', {
+        uri,
+        name: `photo.${fileExt}`,
+        type: `image/${fileExt}`,
+      } as any);
+      
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, formData, {
+            upsert: true,
+        });
+
+      if (uploadError) {
+        console.error('[AVATAR UPLOAD] Supabase storage error:', uploadError);
+        throw uploadError;
+      }
+      console.log('[AVATAR UPLOAD] Upload successful.');
+
+      const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      const publicUrl = data.publicUrl;
+      console.log('[AVATAR UPLOAD] Public URL:', publicUrl);
+
+
+      const { error: updateUserError } = await supabase
+        .from('users')
+        .update({ avatar_url: publicUrl })
+        .eq('id', session.user.id);
+
+      if (updateUserError) {
+        console.error('[AVATAR UPLOAD] Error updating user profile:', updateUserError);
+        throw updateUserError;
+      }
+      console.log('[AVATAR UPLOAD] User profile updated.');
+
+      setAvatarUrl(publicUrl);
+       if(session) {
+         const newSession = {...session};
+         newSession.user.user_metadata.avatar_url = publicUrl;
+         setSession(newSession);
+       }
+      
+    } catch (error) {
+      console.error('[AVATAR UPLOAD] General error:', error);
+      Alert.alert('Error', 'Failed to upload avatar.');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleConnectPartner = async () => {
     if (!inviteCode) {
@@ -128,14 +210,18 @@ export default function ProfileScreen() {
 
   const renderUserInfo = () => (
     <View style={styles.userInfoContainer}>
-      <View style={styles.avatarContainer}>
-        <View style={styles.avatar}>
-          <User color="#FF8C42" size={32} />
-        </View>
+      <TouchableOpacity style={styles.avatarContainer} onPress={pickImage}>
+        {avatarUrl ? (
+          <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
+        ) : (
+          <View style={styles.avatar}>
+            <User color="#FF8C42" size={32} />
+          </View>
+        )}
         <View style={styles.partnerStatus}>
-          <Heart color="#4ECDC4" size={16} />
+          <Camera color="#4ECDC4" size={16} />
         </View>
-      </View>
+      </TouchableOpacity>
       <View style={styles.userDetails}>
         <Text style={styles.userName}>{currentUser?.user_metadata.display_name || 'User'}</Text>
         <Text style={styles.userSubtitle}>
@@ -424,6 +510,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF3E0',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#FF8C42',
+  },
+  avatarImage: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     borderWidth: 2,
     borderColor: '#FF8C42',
   },

@@ -1,6 +1,6 @@
 // This file will list all of the user's ongoing conversations.
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, SafeAreaView, Image, RefreshControl } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { supabase } from '@/utils/supabase';
 import { useSession } from '@/providers/SessionProvider';
@@ -62,6 +62,7 @@ export default function MessagesScreen() {
   const { session } = useSession();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [partner, setPartner] = useState<Partner | null>(null);
   const animationRef = useRef<LottieView>(null);
 
@@ -99,7 +100,10 @@ export default function MessagesScreen() {
 
   const fetchInitialData = useCallback(async () => {
     if (!session?.user?.id) return;
-    setLoading(true);
+    
+    if (!isRefreshing) {
+      setLoading(true);
+    }
 
     try {
         const [partnerRes, conversationsRes] = await Promise.all([
@@ -133,21 +137,39 @@ export default function MessagesScreen() {
         console.error("Failed to fetch initial data", error);
     } finally {
         setLoading(false);
+        if (isRefreshing) {
+            setIsRefreshing(false);
+        }
     }
-  }, [session?.user?.id]);
+  }, [session?.user?.id, isRefreshing]);
+
+  const onRefresh = useCallback(() => {
+    setIsRefreshing(true);
+    fetchInitialData();
+  }, [fetchInitialData]);
 
   useEffect(() => {
     fetchInitialData();
 
-    const channel = supabase
+    const conversationsChannel = supabase
       .channel('public:conversations')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, (payload) => {
+        console.log('Conversations table change detected, refetching.');
+        fetchInitialData();
+      })
+      .subscribe();
+
+    const usersChannel = supabase
+      .channel('public:users')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, (payload) => {
+        console.log('Users table change detected, refetching for new avatar.');
         fetchInitialData();
       })
       .subscribe();
       
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(conversationsChannel);
+      supabase.removeChannel(usersChannel);
     };
   }, [fetchInitialData]);
   
@@ -156,7 +178,13 @@ export default function MessagesScreen() {
       style={styles.gridItem} 
       onPress={() => router.push(`/chat/${item.id}`)}
     >
-      <User size={40} color="#FF8C42" style={styles.gridAvatar}/>
+        {item.participant_avatar_url ? (
+            <Image source={{ uri: item.participant_avatar_url }} style={styles.gridAvatarImage} />
+        ) : (
+            <View style={styles.gridAvatar}>
+                <User size={30} color="#FF8C42" />
+            </View>
+        )}
       <Text style={styles.gridName} numberOfLines={1}>{item.participant_name}</Text>
     </TouchableOpacity>
   );
@@ -235,6 +263,14 @@ export default function MessagesScreen() {
             ListEmptyComponent={ListEmptyComponent}
             style={styles.list}
             contentContainerStyle={styles.gridContainer}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={onRefresh}
+                colors={['#FF8C42']}
+                tintColor={'#FF8C42'}
+              />
+            }
         />
       )}
     </SafeAreaView>
@@ -298,7 +334,17 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     backgroundColor: '#FFF3E0',
-    padding: 10, // Not a standard style, but for illustration
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FFE0B2',
+  },
+  gridAvatarImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#FFE0B2',
   },
   gridName: {
     marginTop: 8,

@@ -866,6 +866,54 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
         *   The `SessionProvider` now tracks app state to update the user's `last_seen` timestamp, providing presence indicators to their partner.
 *   **Next Step:** Final review of all UI components for consistency. 
 
+---
+
+### **Step 40: Advanced Real-time Chat Module**
+*   **Timestamp:** `2025-07-25T12:00:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   **ARCHITECTURAL OVERHAUL:** Implemented a complete, secure, 1-on-1 real-time chat module, replacing a simple event timeline with a dedicated messaging interface. This involved a full-stack effort from the database to the UI.
+    *   **Backend & Database:**
+        *   Created new tables (`conversations`, `messages`, `conversation_participants`) to model chat relationships.
+        *   Secured all data access with comprehensive Row Level Security (RLS) policies to ensure users can only access their own conversations.
+        *   Added `avatar_url` and `last_seen` columns to the `users` table to support rich presence features.
+    *   **Frontend UI/UX:**
+        *   Added a "Messages" tab to the main navigator, serving as the entry point to the chat system.
+        *   Implemented a smart conversation list on `messages.tsx`. It redirects directly to the chat if only one conversation exists, or shows an empty state with a Lottie animation if there are no conversations.
+        *   The chat screen (`chat/[conversation_id].tsx`) was built using a highly customized `FlatList` to provide a modern, performant messaging UI, complete with date separators.
+        *   Implemented pull-to-refresh functionality on both the conversation list and the chat screen for manual data synchronization.
+    *   **Real-time Features & Presence:**
+        *   The `SessionProvider` was enhanced to track app state (foreground/background) to update the user's `last_seen` timestamp in the database, enabling a live presence system.
+        *   Implemented a custom chat header that displays the partner's name, avatar, and live "last seen" status (e.g., "online", "last seen 5m ago").
+        *   Used Supabase Realtime subscriptions to listen for new messages and user profile updates (`avatar_url`), ensuring the UI across all screens updates instantly.
+    *   **Navigation & Bug Fixes:**
+        *   Resolved a critical `GO_BACK` navigation error by implementing a `canGoBack()` check, ensuring the back button behaves correctly when the user is redirected to a chat.
+*   **Next Step:** Implement user-managed profile avatar uploads.
+
+---
+
+### **Step 41: User Profile Avatar Uploads**
+*   **Timestamp:** `2025-07-25T12:30:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   **FEATURE IMPLEMENTATION:** Enabled users to upload and manage their own profile pictures, a critical feature for personalization.
+    *   **Supabase Storage:**
+        *   Configured a new Supabase Storage bucket named `avatars`.
+        *   Secured the bucket with RLS policies, allowing users to only upload and update their own avatar images.
+    *   **Native Module Integration & Build Process:**
+        *   Integrated the `expo-image-picker` library to provide access to the device's photo gallery.
+        *   **CRITICAL:** This required a native development build (`eas build --profile development`) because the library includes native code not present in the standard Expo Go client. The debugging process involved resolving native crashes (`Cannot find native module`) by ensuring the app was rebuilt and reinstalled after adding the library and configuring permissions.
+    *   **Configuration & Permissions:**
+        *   Updated `app.config.js` to include the `expo-image-picker` plugin and the necessary `NSPhotoLibraryUsageDescription` string, a requirement for iOS permissions.
+    *   **Frontend & Upload Logic:**
+        *   Updated the `ProfileScreen` with a UI to select and display the avatar.
+        *   Resolved a `Network request failed` error by correctly using `FormData` to construct the upload request, as React Native's `fetch` cannot handle local file URIs directly.
+    *   **Data Synchronization:**
+        *   Fixed a `setSession is not a function` error by updating the `SessionProvider` to expose the `setSession` function.
+        *   This allows the profile screen to update the local session immediately after a successful upload, providing instant visual feedback to the user.
+        *   The existing real-time subscription for `users` table updates ensures the new avatar is automatically displayed on the messages list and chat headers for both users.
+*   **Next Step:** Final regression testing of all features and preparation for a production release. 
+
 
 
  

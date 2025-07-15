@@ -65,6 +65,12 @@ export default {
           "iosDisplayInForeground": true
         }
       ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you set your profile picture."
+        }
+      ],
       "expo-video"
     ],
     "experiments": {
