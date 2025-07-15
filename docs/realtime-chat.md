@@ -1,112 +1,90 @@
-# Plan: Simple & Maintainable Real-time Chat Module
+# Real-time Chat Architecture
 
-This document outlines the phased implementation plan for adding a real-time chat module to the application. The architecture prioritizes simplicity, maintainability, and durability by leveraging Supabase's **Postgres Changes** for message history and **Presence** for online status, adhering to official best practices.
+This document outlines the architecture of the real-time chat module. The system is built on Supabase, leveraging **Postgres Changes** for message history and **Presence** for online status, adhering to official best practices for a simple, maintainable, and durable implementation.
 
 ## Guiding Principles
 
-- **KISS (Keep It Simple, Stupid):** Avoid over-engineering. Build a lean, manageable system suitable for a solo developer.
-- **DRY (Don't Repeat Yourself):** Use functions and triggers to automate processes.
+- **KISS (Keep It Simple, Stupid):** The architecture avoids over-engineering, resulting in a lean, manageable system.
+- **DRY (Don't Repeat Yourself):** Reusable functions and database triggers automate common processes.
 - **Single Source of Truth:** The Postgres database is the definitive source for all chat history.
-- **Security First:** Implement strict Row Level Security (RLS) from the beginning.
+- **Security First:** Strict Row Level Security (RLS) is implemented on all chat-related tables.
 
 ---
 
-## Phase 1: Backend Foundation (Supabase)
+## Backend Architecture (Supabase)
 
-This phase focuses on creating a minimal, secure, and efficient database schema without modifying existing tables.
+The backend is built with three core tables, server-side logic to simplify client operations, and robust security policies.
 
-### Step 1.1: Create Chat Tables
+### Database Schema
 
-Create three new tables to form the core of the chat system.
+#### `conversations` Table
+Stores metadata for each chat thread.
+- `id` (uuid, pk)
+- `last_message` (text, nullable)
+- `last_message_sent_at` (timestamptz, nullable)
 
--   **`conversations`**: Stores metadata for each chat thread.
-    -   `id` (uuid, pk)
-    -   `last_message` (text, nullable)
-    -   `last_message_sent_at` (timestamptz, nullable)
--   **`messages`**: Stores individual chat messages.
-    -   `id` (uuid, pk)
-    -   `conversation_id` (uuid, fk -> conversations.id)
-    -   `sender_id` (uuid, fk -> users.id)
-    -   `text` (text)
-    -   `created_at` (timestamptz)
--   **`conversation_participants`**: Links users to conversations.
-    -   `id` (uuid, pk)
-    -   `conversation_id` (uuid, fk -> conversations.id)
-    -   `user_id` (uuid, fk -> users.id)
-    -   `UNIQUE` constraint on `(conversation_id, user_id)`
+#### `messages` Table
+Stores individual chat messages.
+- `id` (uuid, pk)
+- `conversation_id` (uuid, fk -> conversations.id)
+- `sender_id` (uuid, fk -> users.id)
+- `text` (text)
+- `created_at` (timestamptz)
 
-### Step 1.2: Implement Server-Side Logic
+#### `conversation_participants` Table
+Links users to conversations, forming a many-to-many relationship.
+- `id` (uuid, pk)
+- `conversation_id` (uuid, fk -> conversations.id)
+- `user_id` (uuid, fk -> users.id)
+- `UNIQUE` constraint on `(conversation_id, user_id)`
 
-Automate database operations to simplify client-side code.
+#### Additions to `users` Table
+To support chat features, two columns were added to the existing `public.users` table:
+- `avatar_url` (text, nullable): Stores a URL to the user's avatar image, displayed in the chat UI.
+- `last_seen` (timestamptz, nullable): Tracks the last time the user was active in the app.
 
--   **Function `get_or_create_conversation(user_one_id uuid, user_two_id uuid)`**: A reusable function to find or create a 1-on-1 conversation.
--   **Trigger `on_new_message`**: An automated trigger on the `messages` table that updates the `last_message` and `last_message_sent_at` fields in the corresponding `conversations` row.
+### Server-Side Logic
 
-### Step 1.3: Configure Realtime & RLS
+- **Function `get_or_create_conversation(user_one_id uuid, user_two_id uuid)`**: A reusable function to find or create a 1-on-1 conversation, preventing duplicate conversation threads between the same two users.
+- **Trigger `on_new_message`**: An automated trigger on the `messages` table that updates the `last_message` and `last_message_sent_at` fields in the corresponding `conversations` row. This keeps the conversation list preview up-to-date without extra client-side logic.
 
-Enable real-time functionality and secure the data.
+### Realtime & Row Level Security (RLS)
 
--   **Enable Replication**: In the Supabase Dashboard (`Database` > `Replication`), enable replication for the `conversations` and `messages` tables. This is required for Postgres Changes to work.
--   **Row Level Security (RLS)**:
-    -   Implement strict RLS policies ensuring users can only read/write data in conversations they are a participant in.
-    -   Thoroughly test policies to prevent data leaks or silent failures.
+- **Postgres Changes**: Replication is enabled on the `conversations` and `messages` tables, allowing the client to subscribe to database changes in real-time.
+- **RLS Policies**: Strict RLS policies are implemented to ensure users can only access data from conversations they are a participant in. This is the cornerstone of the chat module's security.
 
-### Step 1.4: Create Migration File
-
-Consolidate all SQL from the steps above into a single, timestamped migration file in the `supabase/migrations/` directory.
-
----
-
-## Phase 2: Frontend Scaffolding
-
-Set up the necessary UI screens and navigation structure.
-
-### Step 2.1: Add "Messages" Tab
-
-Integrate a new tab into the main tab navigator in `app/(tabs)/_layout.tsx`.
-
-### Step 2.2: Create Conversation List Screen
-
-Create a new file at `app/(tabs)/messages.tsx`. This screen will list all of the user's ongoing conversations.
-
-### Step 2.3: Create Chat Screen
-
-Create a new dynamic route file at `app/chat/[conversation_id].tsx`. This screen will display the chat interface for a selected conversation.
+### Migrations
+All schema changes are consolidated into version-controlled migration files located in `supabase/migrations/`:
+- `20240722120000_create_chat_module.sql`: Defines the core chat tables and logic.
+- `20250720000000_fix_profile_rls.sql`: Corrects and adds RLS policies for user data access.
+- `20250722000000_add_last_seen_to_users.sql`: Adds the `last_seen` column to the `users` table.
 
 ---
 
-## Phase 3: UI & Realtime Logic Implementation
+## Frontend Architecture
 
-Connect the frontend to the backend using official, documented patterns.
+The frontend consists of a conversation list, a chat screen, and a custom header, all integrated into the existing navigation.
 
-### Step 3.1: Install Dependencies
+### Key Dependencies
+- **`react-native-gifted-chat`**: Provides the core chat UI, including message bubbles, input toolbar, and avatars.
+- **`date-fns`**: Used for formatting timestamps, such as the "last seen" status and date separators in the chat view.
 
-Add the `react-native-gifted-chat` library to the project to handle the chat UI.
+### Screens & Components
 
-### Step 3.2: Implement Conversation List Logic
+- **"Messages" Tab**: A dedicated tab in `app/(tabs)/_layout.tsx` for accessing the chat feature.
+- **Conversation List Screen (`app/(tabs)/messages.tsx`)**:
+    - Displays a list of the user's ongoing conversations.
+    - Subscribes to Postgres Changes on the `conversations` table to show a live preview of the last message sent.
+- **Chat Screen (`app/chat/[conversation_id].tsx`)**:
+    - **Custom Header**: Displays the partner's name, avatar, and "last seen" status (e.g., "Active now", "Active 5m ago").
+    - **Realtime Subscription**: Creates a unique Supabase channel for the current conversation (e.g., `chat:[conversation_id]`). It subscribes to `INSERT` events on the `messages` table to append new messages to the UI in real-time.
+    - **UI**: Uses `react-native-gifted-chat`, customized to show user avatars and date separators between messages sent on different days.
+- **Session Provider (`providers/SessionProvider.tsx`)**:
+    - Manages the user's `last_seen` status. It uses React Native's `AppState` to detect when the app becomes active and calls a Supabase Edge Function to update the `last_seen` timestamp in the database.
 
--   Fetch the initial list of conversations for the current user.
--   Subscribe to **Postgres Changes** on the `conversations` table to see live updates to the `last_message` preview.
+### Data Flow
 
-### Step 3.3: Implement Core Chat Experience
-
--   **Realtime Subscription**:
-    -   On mount in the chat screen, create a single channel for the current conversation (e.g., `chat:[conversation_id]`).
-    -   Subscribe to **Postgres Changes** for `INSERT` events on the `messages` table, filtered to the current `conversation_id`.
-    -   On unmount, cleanly unsubscribe from the channel (`supabase.removeChannel(channel)`).
--   **Sending Messages**: Implement a simple function that performs a single `INSERT` into the `messages` table.
--   **UI & Data Loading**:
-    -   Use `react-native-gifted-chat` for the chat interface.
-    -   Fetch an initial batch of the latest messages upon loading the screen.
-
-### Step 3.4: Style the Chat UI
-
-Customize the appearance of `react-native-gifted-chat` to align with the app's existing visual identity.
-
----
-
-## Phase 4: Documentation
-
-### Step 4.1: Update `implementation-flow.md`
-
-Update the existing `docs/implementation-flow.md` file to reflect the addition of the new chat module, linking to this document for the detailed plan. 
+1.  **Loading Conversations**: The `messages.tsx` screen fetches all conversations the current user is a part of.
+2.  **Entering a Chat**: Navigating to `[conversation_id].tsx` fetches the partner's details (name, avatar, `last_seen`) and the most recent batch of messages.
+3.  **Receiving Messages**: The Supabase Realtime subscription listens for new rows in the `messages` table and appends them to the `GiftedChat` component.
+4.  **Sending Messages**: A new message is inserted into the `messages` table. The `on_new_message` trigger automatically updates the parent `conversations` table, which in turn updates the conversation list preview for both users in real-time. 

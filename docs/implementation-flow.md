@@ -849,15 +849,22 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
 
 ---
 
-### **Step 20: Real-time Chat Module**
-*   **Timestamp:** `2025-07-23T10:00:00Z`
-*   **Commit:** `[pending_commit]`
+### **Step 20: Real-time Chat Implementation**
+*   **Timestamp:** `2025-07-23T12:00:00Z`
+*   **Commit:** `33c5b90`
 *   **Description:**
-    *   **Backend:** Established a complete, secure backend for real-time chat. Created `conversations`, `messages`, and `conversation_participants` tables. Implemented a `get_or_create_conversation` PostgreSQL function to simplify creating 1-on-1 chats and an automated trigger to keep conversation metadata updated.
-    *   **Security:** Implemented strict Row Level Security (RLS) policies to ensure users can only access their own conversations and messages. Corrected an initial RLS bug that prevented users from seeing conversation participant details.
-    *   **Frontend:** Built the user-facing chat interface. Added a new "Messages" tab to the main navigation. Created a conversation list screen (`app/(tabs)/messages.tsx`) and the main chat screen (`app/chat/[conversation_id].tsx`).
-    *   **Technology:** Leveraged `react-native-gifted-chat` for a feature-rich UI and subscribed to Supabase **Postgres Changes** to deliver messages in real-time without custom websocket code.
-*   **Next Step:** Continued application monitoring and stability improvements. 
+    *   Implemented a complete, secure, 1-on-1 real-time chat module. For a detailed breakdown, see the [Real-time Chat Architecture](./realtime-chat.md) documentation.
+    *   **Backend:**
+        *   Created new tables (`conversations`, `messages`, `conversation_participants`) and added `avatar_url` and `last_seen` columns to the `users` table.
+        *   Secured all data access with comprehensive Row Level Security (RLS) policies.
+        *   Used database triggers and functions to automate updates to conversation metadata.
+    *   **Frontend:**
+        *   Integrated `react-native-gifted-chat` to provide a rich messaging UI.
+        *   Built a custom header to display the partner's name, avatar, and live "last seen" status (e.g., "Active 5m ago").
+        *   Implemented real-time message updates using Supabase subscriptions.
+    *   **Presence:**
+        *   The `SessionProvider` now tracks app state to update the user's `last_seen` timestamp, providing presence indicators to their partner.
+*   **Next Step:** Final review of all UI components for consistency. 
 
 
 
