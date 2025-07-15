@@ -13,9 +13,16 @@ This document outlines the architecture of the real-time chat module. The system
 
 ## Backend Architecture (Supabase)
 
-The backend is built with three core tables, server-side logic to simplify client operations, and robust security policies.
+The backend is built with three core tables, a separate `profiles` table for public user data, server-side logic to simplify client operations, and robust security policies.
 
 ### Database Schema
+
+#### `profiles` Table
+Crucially, public user data is stored in a `profiles` table, which is linked one-to-one with the private `auth.users` table. This is a Supabase best practice that enhances security.
+- `id` (uuid, fk -> auth.users.id, pk)
+- `full_name` (text, nullable)
+- `avatar_url` (text, nullable): Stores a URL to the user's avatar image.
+- `last_seen` (timestamptz, nullable): Tracks the last time the user was active.
 
 #### `conversations` Table
 Stores metadata for each chat thread.
@@ -27,7 +34,7 @@ Stores metadata for each chat thread.
 Stores individual chat messages.
 - `id` (uuid, pk)
 - `conversation_id` (uuid, fk -> conversations.id)
-- `sender_id` (uuid, fk -> users.id)
+- `sender_id` (uuid, fk -> profiles.id)
 - `text` (text)
 - `created_at` (timestamptz)
 
@@ -35,13 +42,11 @@ Stores individual chat messages.
 Links users to conversations, forming a many-to-many relationship.
 - `id` (uuid, pk)
 - `conversation_id` (uuid, fk -> conversations.id)
-- `user_id` (uuid, fk -> users.id)
+- `user_id` (uuid, fk -> profiles.id)
 - `UNIQUE` constraint on `(conversation_id, user_id)`
 
-#### Additions to `users` Table
-To support chat features, two columns were added to the existing `public.users` table:
-- `avatar_url` (text, nullable): Stores a URL to the user's avatar image, displayed in the chat UI.
-- `last_seen` (timestamptz, nullable): Tracks the last time the user was active in the app.
+#### `storage.objects` for Avatars
+A dedicated storage bucket named `avatars` is used to store user profile pictures. RLS policies ensure that users can only upload their own avatar and that all authenticated users can view avatars.
 
 ### Server-Side Logic
 
@@ -51,40 +56,55 @@ To support chat features, two columns were added to the existing `public.users` 
 ### Realtime & Row Level Security (RLS)
 
 - **Postgres Changes**: Replication is enabled on the `conversations` and `messages` tables, allowing the client to subscribe to database changes in real-time.
-- **RLS Policies**: Strict RLS policies are implemented to ensure users can only access data from conversations they are a participant in. This is the cornerstone of the chat module's security.
+- **RLS Policies**: Strict RLS policies are implemented to ensure users can only access data from conversations they are a participant in. The use of the `profiles` table is key to this security model, as it separates private auth data from public profile data.
 
 ### Migrations
-All schema changes are consolidated into version-controlled migration files located in `supabase/migrations/`:
+All schema changes are version-controlled in `supabase/migrations/`:
 - `20240722120000_create_chat_module.sql`: Defines the core chat tables and logic.
-- `20250720000000_fix_profile_rls.sql`: Corrects and adds RLS policies for user data access.
-- `20250722000000_add_last_seen_to_users.sql`: Adds the `last_seen` column to the `users` table.
+- `20250720000000_fix_profile_rls.sql`: Corrected RLS policies to properly reference the `profiles` table, fixing critical data access issues.
+- `20250722000000_add_last_seen_to_users.sql`: Adds the `last_seen` column to the `profiles` table.
+- `20250724000000_setup_avatar_storage.sql`: Creates the `avatars` storage bucket and sets its RLS policies.
 
 ---
 
 ## Frontend Architecture
 
-The frontend consists of a conversation list, a chat screen, and a custom header, all integrated into the existing navigation.
+The frontend consists of a conversation list, a chat screen, a custom header, and an avatar upload feature.
 
 ### Key Dependencies
 - **`react-native-gifted-chat`**: Provides the core chat UI, including message bubbles, input toolbar, and avatars.
+- **`expo-image-picker`**: Allows users to select images from their device's library for avatar uploads.
 - **`date-fns`**: Used for formatting timestamps, such as the "last seen" status and date separators in the chat view.
+
+### Development Workflow
+Due to the inclusion of native modules like `expo-image-picker`, the standard Expo Go client is no longer sufficient. A custom **Development Client** must be built using EAS Build.
+- Run `eas build --profile development` to create installable `.apk` and `.ipa` files.
+- Install these builds on physical devices or simulators for development and testing.
 
 ### Screens & Components
 
 - **"Messages" Tab**: A dedicated tab in `app/(tabs)/_layout.tsx` for accessing the chat feature.
 - **Conversation List Screen (`app/(tabs)/messages.tsx`)**:
-    - Displays a list of the user's ongoing conversations.
-    - Subscribes to Postgres Changes on the `conversations` table to show a live preview of the last message sent.
+  - Displays a list of the user's ongoing conversations with real-time previews of the last message.
 - **Chat Screen (`app/chat/[conversation_id].tsx`)**:
-    - **Custom Header**: Displays the partner's name, avatar, and "last seen" status (e.g., "Active now", "Active 5m ago").
-    - **Realtime Subscription**: Creates a unique Supabase channel for the current conversation (e.g., `chat:[conversation_id]`). It subscribes to `INSERT` events on the `messages` table to append new messages to the UI in real-time.
-    - **UI**: Uses `react-native-gifted-chat`, customized to show user avatars and date separators between messages sent on different days.
+  - **Custom Header**: Displays the partner's name, avatar, and a real-time "last seen" status.
+  - **Realtime Subscription**: Subscribes to new `INSERT` events on the `messages` table for the current conversation.
+  - **Android Rendering Fix**: The `GiftedChat` component's underlying `FlatList` uses the `extraData` prop to ensure new messages render correctly on Android.
+  - **Keyboard Handling**: Uses a carefully configured `KeyboardAvoidingView` that wraps only the input toolbar to prevent the keyboard from covering the input on both iOS and Android.
+- **Avatar Uploads (`Profile` screen)**:
+  - Users can tap their avatar to launch the image picker.
+  - The selected image is uploaded to the `avatars` Supabase Storage bucket.
+  - The user's `avatar_url` in the `profiles` table is updated with the new public URL.
 - **Session Provider (`providers/SessionProvider.tsx`)**:
-    - Manages the user's `last_seen` status. It uses React Native's `AppState` to detect when the app becomes active and calls a Supabase Edge Function to update the `last_seen` timestamp in the database.
+  - Exposes a `setSession` function, allowing components like the Profile screen to update the global user session instantly after an avatar upload, ensuring the new avatar is displayed immediately across the app.
+  - Manages the user's `last_seen` status using `AppState` to detect when the app is active.
 
 ### Data Flow
 
 1.  **Loading Conversations**: The `messages.tsx` screen fetches all conversations the current user is a part of.
-2.  **Entering a Chat**: Navigating to `[conversation_id].tsx` fetches the partner's details (name, avatar, `last_seen`) and the most recent batch of messages.
+2.  **Entering a Chat**: Navigating to `[conversation_id].tsx` fetches the partner's profile (`full_name`, `avatar_url`, `last_seen`) and the most recent batch of messages.
 3.  **Receiving Messages**: The Supabase Realtime subscription listens for new rows in the `messages` table and appends them to the `GiftedChat` component.
-4.  **Sending Messages**: A new message is inserted into the `messages` table. The `on_new_message` trigger automatically updates the parent `conversations` table, which in turn updates the conversation list preview for both users in real-time. 
+4.  **Sending Messages**: A new message is inserted into the `messages` table. The `on_new_message` trigger automatically updates the parent `conversations` table, which in turn updates the conversation list preview for both users in real-time.
+---
+
+I've made the necessary updates to `docs/realtime-chat.md` to reflect the current architecture. The changes include correcting the `users` table to `profiles`, adding the avatar upload feature, detailing the development workflow with EAS Build, and updating the component descriptions with recent fixes. I'm now applying these changes to the file.
