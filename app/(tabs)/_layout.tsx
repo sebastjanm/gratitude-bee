@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Tabs } from 'expo-router';
-import { Home, BarChart2, Award, Calendar, User } from 'lucide-react-native';
+import { Home, BarChart2, Award, Calendar, User, MessageSquare } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Animated, Easing } from 'react-native';
 import { NotificationProvider } from '@/providers/NotificationProvider';
@@ -65,6 +65,15 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name="messages"
+          options={{
+            title: 'Messages',
+            tabBarIcon: ({ color, size, focused }) => (
+              <AnimatedIcon icon={MessageSquare} color={color} size={size} focused={focused} />
+            ),
+          }}
+        />
+        <Tabs.Screen
           name="timeline"
           options={{
             title: 'Timeline',
@@ -98,6 +107,12 @@ export default function TabLayout() {
             tabBarIcon: ({ color, size, focused }) => (
               <AnimatedIcon icon={User} color={color} size={size} focused={focused} />
             ),
+          }}
+        />
+         <Tabs.Screen
+          name="chat/[conversation_id]"
+          options={{
+            href: null, // Hide this tab from the tab bar
           }}
         />
       </Tabs>

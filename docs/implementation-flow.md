@@ -835,6 +835,30 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
     *   **Solution:** Removed the redundant manual `invoke` call from `handleSendHornet` in `app/(tabs)/index.tsx`. All Hornet notifications are now handled exclusively by the database trigger, ensuring a single, correct notification is sent and unifying the notification architecture across all event types.
 *   **Next Step:** Commit all pending notification fixes and begin final regression testing. 
 
+---
+
+### **Step 39: Chat Module Implementation**
+
+- **Date:** 2024-07-22
+- **Description:** Implemented a full-featured, real-time chat module.
+- **Details:**
+  - **Backend:** Created a new database schema in Supabase with `conversations`, `messages`, and `conversation_participants` tables. Implemented Postgres functions, triggers, and Row Level Security policies for a durable and secure backend.
+  - **Frontend:** Added a "Messages" tab to the main navigator. Created a conversation list screen that updates in real-time and a full chat interface using `react-native-gifted-chat`.
+  - **Real-time:** Leveraged Supabase's Postgres Changes for message persistence and real-time delivery, and the Presence feature for online status.
+- **Reference:** For the detailed technical plan, see [Real-time Chat Plan](./realtime-chat.md). 
+
+---
+
+### **Step 20: Real-time Chat Module**
+*   **Timestamp:** `2025-07-23T10:00:00Z`
+*   **Commit:** `[pending_commit]`
+*   **Description:**
+    *   **Backend:** Established a complete, secure backend for real-time chat. Created `conversations`, `messages`, and `conversation_participants` tables. Implemented a `get_or_create_conversation` PostgreSQL function to simplify creating 1-on-1 chats and an automated trigger to keep conversation metadata updated.
+    *   **Security:** Implemented strict Row Level Security (RLS) policies to ensure users can only access their own conversations and messages. Corrected an initial RLS bug that prevented users from seeing conversation participant details.
+    *   **Frontend:** Built the user-facing chat interface. Added a new "Messages" tab to the main navigation. Created a conversation list screen (`app/(tabs)/messages.tsx`) and the main chat screen (`app/chat/[conversation_id].tsx`).
+    *   **Technology:** Leveraged `react-native-gifted-chat` for a feature-rich UI and subscribed to Supabase **Postgres Changes** to deliver messages in real-time without custom websocket code.
+*   **Next Step:** Continued application monitoring and stability improvements. 
+
 
 
  

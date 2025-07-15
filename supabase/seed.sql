@@ -110,3 +110,79 @@ INSERT INTO public.hornet_templates (id, title, description, severity, points, i
 ('light-misunderstanding', 'Light Misunderstanding', 'Minor issue that needs gentle addressing', 'light', -10, '🤔'),
 ('not-ok', 'Hey, This Is Not OK', 'Significant concern that requires attention', 'medium', -50, '😠'),
 ('clusterfuck', 'Clusterfuck', 'Major issue requiring serious discussion', 'heavy', -100, '💣'); 
+
+-- =================================================================
+-- 4. SEED CHAT CONVERSATION
+-- =================================================================
+--
+-- This script creates a sample conversation between two specific users.
+-- It is designed to be idempotent by deleting previously seeded chat data.
+--
+DO $$
+DECLARE
+    -- User IDs provided from your database
+    user_a_id uuid := 'b4838b76-2a34-4a00-a4d6-6a8ee7444155'; -- Sebastjan
+    user_b_id uuid := '79826ff4-32e5-45c7-9089-43d1b5c93d10'; -- Breda
+    
+    -- Variables to hold the new conversation ID and the last message time
+    new_conversation_id uuid;
+    last_message_timestamp timestamptz;
+BEGIN
+    -- Step 0: Clean up any previously seeded conversation between these two users
+    -- to make this script runnable multiple times.
+    DELETE FROM public.conversations
+    WHERE id IN (
+        SELECT cp1.conversation_id
+        FROM conversation_participants cp1
+        JOIN conversation_participants cp2 ON cp1.conversation_id = cp2.conversation_id
+        WHERE cp1.user_id = user_a_id AND cp2.user_id = user_b_id
+    );
+
+    -- Step 1: Create a new conversation and get its ID
+    INSERT INTO public.conversations DEFAULT VALUES RETURNING id INTO new_conversation_id;
+
+    -- Step 2: Add both users as participants
+    INSERT INTO public.conversation_participants (conversation_id, user_id)
+    VALUES (new_conversation_id, user_a_id), (new_conversation_id, user_b_id);
+
+    -- Step 3: Seed some messages into the conversation, spanning multiple days
+    INSERT INTO public.messages (conversation_id, sender_id, text, created_at)
+    VALUES
+        -- Day before yesterday
+        (new_conversation_id, user_a_id, 'Did you see that movie we talked about?', NOW() - interval '2 days'),
+        (new_conversation_id, user_b_id, 'Oh yeah, I watched it last night. It was incredible!', NOW() - interval '2 days' + interval '5 minutes'),
+        (new_conversation_id, user_a_id, 'Right? The ending was such a twist.', NOW() - interval '2 days' + interval '10 minutes'),
+
+        -- Yesterday
+        (new_conversation_id, user_b_id, 'Morning! Fancy a coffee run later?', NOW() - interval '1 day'),
+        (new_conversation_id, user_a_id, 'Absolutely, I need it. Around 11?', NOW() - interval '1 day' + interval '5 minutes'),
+        (new_conversation_id, user_b_id, 'Perfect. See you then!', NOW() - interval '1 day' + interval '10 minutes'),
+
+        -- Today
+        (new_conversation_id, user_a_id, 'Hey! How are you doing?', NOW() - interval '5 minutes'),
+        (new_conversation_id, user_b_id, 'I''m good, thanks! Just chilling. You?', NOW() - interval '4 minutes'),
+        (new_conversation_id, user_a_id, 'Same here. Thinking about what to have for dinner.', NOW() - interval '3 minutes'),
+        (new_conversation_id, user_b_id, 'Pizza sounds good, doesn''t it?', NOW() - interval '2 minutes'),
+        (new_conversation_id, user_a_id, 'Pizza always sounds good!', NOW() - interval '1 minute');
+
+    -- Step 4: Manually update the conversation's 'last_message' details
+    -- The handle_new_message trigger does this for live messages, but we set it
+    -- explicitly here for the seeded data.
+    
+    -- Get the timestamp of the very last message
+    SELECT created_at INTO last_message_timestamp
+    FROM public.messages
+    WHERE conversation_id = new_conversation_id
+    ORDER BY created_at DESC
+    LIMIT 1;
+    
+    -- Update the conversation record
+    UPDATE public.conversations
+    SET
+        last_message = 'Pizza always sounds good!',
+        last_message_sent_at = last_message_timestamp
+    WHERE
+        id = new_conversation_id;
+
+    RAISE NOTICE 'Successfully seeded conversation between Sebastjan and Breda.';
+END $$; 

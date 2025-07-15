@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { supabase } from '@/utils/supabase';
 import { Session } from '@supabase/supabase-js';
+import { AppState } from 'react-native';
 import { 
   registerForPushNotificationsAsync, 
   savePushTokenToSupabase, 
@@ -48,6 +49,32 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
       authListener.subscription.unsubscribe();
     };
   }, []);
+
+  // Update last_seen timestamp on app state change
+  useEffect(() => {
+    const updateLastSeen = async () => {
+      if (session?.user) {
+        const { error } = await supabase
+          .from('users')
+          .update({ last_seen: new Date().toISOString() })
+          .eq('id', session.user.id);
+        if (error) {
+          console.error('Failed to update last_seen:', error);
+        }
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        updateLastSeen();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [session?.user]);
+
 
   // Setup push notifications when user signs in
   useEffect(() => {
