@@ -1,7 +1,7 @@
 // This file displays the chat interface for a selected conversation.
 // All features like date separators and avatars are implemented.
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -20,7 +20,6 @@ import { supabase } from '@/utils/supabase';
 import { useSession } from '@/providers/SessionProvider';
 import { Send, ChevronLeft, HelpCircle as HelpCircleIcon } from 'lucide-react-native';
 import { formatDistanceToNow } from 'date-fns';
-import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
 
 const PAGE_SIZE = 20;
 
@@ -130,9 +129,10 @@ export default function ChatScreen() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [allMessagesLoaded, setAllMessagesLoaded] = useState(false);
+  const flatListRef = useRef<FlatList<MessageListItem>>(null);
   
   const processedMessages = useMemo(() => {
-    return groupMessagesByDate([...messages].reverse()).reverse();
+    return groupMessagesByDate([...messages].reverse());
   }, [messages]);
 
   const fetchChatData = useCallback(async () => {
@@ -212,6 +212,13 @@ export default function ChatScreen() {
   }, [fetchChatData, fetchMessages]);
 
   useEffect(() => {
+    // Scroll to the bottom when new messages are added
+    if (flatListRef.current && messages.length > 0) {
+      setTimeout(() => flatListRef.current?.scrollToOffset({ animated: true, offset: 0 }), 100);
+    }
+  }, [messages]);
+
+  useEffect(() => {
     const channel = supabase
       .channel(`chat:${conversation_id}`)
       .on('postgres_changes', {
@@ -280,6 +287,7 @@ export default function ChatScreen() {
       />
       <ChatHeader participant={participant} onBack={handleBack} />
       <FlatList
+          ref={flatListRef}
           data={processedMessages}
           renderItem={renderItem}
           keyExtractor={(item, index) => item.type === 'date' ? item.date : item.data.id.toString()}
@@ -295,7 +303,7 @@ export default function ChatScreen() {
       />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
         <View style={styles.inputToolbar}>
             <TextInput
@@ -420,15 +428,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
   headerBackButton: {
     paddingRight: 10,
-  },
-  headerTitleContainer: {
-    // This style is no longer needed
   },
   headerButton: {
     padding: 8,
@@ -444,7 +445,6 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   headerTextContainer: {
-    flexDirection: 'column',
     justifyContent: 'center',
   },
   headerName: {

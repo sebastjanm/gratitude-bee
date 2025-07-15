@@ -16,7 +16,7 @@ import { supabase } from '@/utils/supabase';
 import { useSession } from '@/providers/SessionProvider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCodeModal from '@/components/QRCodeModal';
-import QRScannerModal from '@/components/QRScannerModal';
+// import QRScannerModal from '@/components/QRScannerModal';
 
 export default function PartnerLinkScreen() {
   const { session } = useSession();
@@ -26,7 +26,7 @@ export default function PartnerLinkScreen() {
   const [loading, setLoading] = useState(false);
   const [partnerName, setPartnerName] = useState('');
   const [isQRModalVisible, setQRModalVisible] = useState(false);
-  const [isScannerVisible, setScannerVisible] = useState(false);
+  // const [isScannerVisible, setScannerVisible] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -87,7 +87,7 @@ export default function PartnerLinkScreen() {
       
       setPartnerName(data.partnerName);
       setIsConnected(true);
-      if (isScannerVisible) setScannerVisible(false);
+      // if (isScannerVisible) setScannerVisible(false);
       
       setTimeout(() => {
         Alert.alert(
@@ -122,11 +122,11 @@ export default function PartnerLinkScreen() {
           inviteCode={inviteCode}
           inviteLink={inviteLink}
         />
-        <QRScannerModal
+        {/* <QRScannerModal
           visible={isScannerVisible}
           onClose={() => setScannerVisible(false)}
           onCodeScanned={handleConnectWithCode}
-        />
+        /> */}
         <View style={styles.successContainer}>
           <View style={styles.successIcon}>
             <CheckCircle color="#4ECDC4" size={64} />
@@ -166,10 +166,6 @@ export default function PartnerLinkScreen() {
           <TouchableOpacity style={styles.qrButton} onPress={() => setQRModalVisible(true)}>
             <QrCode color="#666" size={20} />
             <Text style={styles.qrButtonText}>Show My Code</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.qrButton, styles.scanButton]} onPress={() => setScannerVisible(true)}>
-            <QrCode color="white" size={20} />
-            <Text style={[styles.qrButtonText, { color: 'white' }]}>Scan Partner's Code</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -269,7 +265,6 @@ const styles = StyleSheet.create({
   },
   qrButtonContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     gap: 12,
   },
   qrButton: {
