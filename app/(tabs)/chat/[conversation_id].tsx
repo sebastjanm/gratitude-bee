@@ -15,10 +15,10 @@ import {
   SafeAreaView,
   Image,
 } from 'react-native';
-import { useLocalSearchParams, Stack } from 'expo-router';
+import { useLocalSearchParams, Stack, router } from 'expo-router';
 import { supabase } from '@/utils/supabase';
 import { useSession } from '@/providers/SessionProvider';
-import { Send } from 'lucide-react-native';
+import { Send, ChevronLeft, HelpCircle as HelpCircleIcon } from 'lucide-react-native';
 import { formatDistanceToNow } from 'date-fns';
 
 const PAGE_SIZE = 20;
@@ -91,6 +91,25 @@ const CustomHeader = ({ participant }: { participant: Participant }) => {
         <Text style={styles.headerName}>{participant.display_name}</Text>
         <Text style={styles.headerLastSeen}>{lastSeenText}</Text>
       </View>
+    </View>
+  );
+};
+
+// A new, fully custom header component
+const ChatHeader = ({ participant }: { participant: Participant }) => {
+  return (
+    <View style={styles.fixedHeaderContainer}>
+        <View style={styles.header}>
+            <View style={styles.headerLeft}>
+                <TouchableOpacity onPress={() => router.back()} style={styles.headerBackButton}>
+                    <ChevronLeft color="#333" size={30} />
+                </TouchableOpacity>
+                <CustomHeader participant={participant} />
+            </View>
+            <TouchableOpacity style={styles.headerButton} onPress={() => router.push('/help')}>
+                <HelpCircleIcon color="#666" size={24} />
+            </TouchableOpacity>
+        </View>
     </View>
   );
 };
@@ -247,12 +266,11 @@ export default function ChatScreen() {
     <SafeAreaView style={styles.container}>
       <Stack.Screen
         options={{
-          headerShown: true,
-          headerTitleAlign: 'left',
-          headerTitle: () => <CustomHeader participant={participant} />,
+          headerShown: false,
         }}
       />
-        <KeyboardAvoidingView
+      <ChatHeader participant={participant} />
+      <KeyboardAvoidingView
             style={styles.container}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
@@ -290,7 +308,7 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#FFF8F0',
   },
   avatar: {
     width: 40,
@@ -376,6 +394,32 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  fixedHeaderContainer: {
+    backgroundColor: '#FFF8F0',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+    paddingBottom: 10,
+    paddingTop: Platform.OS === 'android' ? 15 : 10,
+    paddingHorizontal: 20,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerBackButton: {
+    paddingRight: 10,
+  },
+  headerTitleContainer: {
+    // This style is no longer needed
+  },
+  headerButton: {
+    padding: 8,
+  },
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -391,11 +435,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerName: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+    color: '#333',
   },
   headerLastSeen: {
-    fontSize: 12,
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
     color: '#666',
     marginTop: 2,
   },

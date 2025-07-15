@@ -379,15 +379,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 12,
+    paddingTop: 20,
+    paddingBottom: 16,
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontFamily: 'Inter-Bold',
     color: '#333',
     marginLeft: 12,
@@ -556,10 +556,10 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: 'Inter-Regular',
     color: '#666',
-    lineHeight: 24,
+    lineHeight: 22,
     paddingHorizontal: 20,
   },
 });
