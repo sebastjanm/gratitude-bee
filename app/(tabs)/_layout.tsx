@@ -109,12 +109,6 @@ export default function TabLayout() {
             ),
           }}
         />
-         <Tabs.Screen
-          name="chat/[conversation_id]"
-          options={{
-            href: null, // Hide this tab from the tab bar
-          }}
-        />
       </Tabs>
     </NotificationProvider>
   );

@@ -90,15 +90,31 @@ The most critical challenge encountered during development was a bug where new r
 
 ### Screens & Components
 
-- **Conversation List (`app/(tabs)/messages.tsx`)**: Displays a list of the user's ongoing conversations with real-time previews of the last message.
-- **Chat Screen (`app/chat/[conversation_id].tsx`)**:
-  - **Routing**: This screen is located at `app/chat/` and is presented as a stack screen, *not* as a direct child of the tab navigator. This was a key fix to resolve routing conflicts with Expo Router.
+- **Conversation List (`app/(tabs)/messages/index.tsx`)**: Displays a list of the user's ongoing conversations with real-time previews of the last message.
+- **Chat Screen (`app/(tabs)/messages/[conversation_id].tsx`)**:
+  - **Routing**: This screen is now properly nested under the messages tab using a stack navigator, allowing the bottom tab navigation to remain visible during chat sessions.
   - **Custom Header**: Displays the partner's name, avatar, and a real-time "last seen" status.
   - **Realtime Subscription**: Subscribes to new `INSERT` events on the `messages` table for the current conversation, using the stale-state-proof method described above.
 - **Avatar Uploads (`app/(tabs)/profile.tsx`)**:
   - Users can tap their avatar to launch the image picker.
   - The selected image is uploaded to the `avatars` Supabase Storage bucket.
   - The user's `avatar_url` in the `users` table is updated with the new public URL.
+
+### Navigation Architecture Fix
+
+A critical navigation issue was resolved regarding avatar click functionality in the messages list:
+
+- **The Problem:** Avatar clicks in the conversation list were using relative navigation paths (`router.push(`${item.id}`)`) which failed to resolve correctly within the nested tab/stack navigation structure. This caused navigation failures when users tried to open conversations by clicking on partner avatars.
+
+- **The Root Cause:** Expo Router's file-based routing system requires explicit paths when navigating between nested route segments. Relative paths can become ambiguous within complex navigation hierarchies, especially when combining tab and stack navigators.
+
+- **The Solution:** All navigation calls were updated to use absolute paths (`router.push(`/messages/${item.id}`)`) instead of relative paths. This ensures consistent navigation behavior regardless of the current route context. The fix was applied to:
+  - Avatar clicks in grid view (`GridItem` component)
+  - Row clicks in list view (`renderItem` component) 
+  - New chat creation (`handleNewChat` function)
+  - Automatic single-conversation redirect
+
+This fix ensures that clicking on any avatar in the messages list reliably opens the conversation page between the user and that specific partner, maintaining the expected user experience flow.
 
 ### Data Flow
 

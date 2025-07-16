@@ -279,7 +279,6 @@ const ChatScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ headerShown: false }} />
       <ChatHeader participant={participant} />
       <GiftedChat
         messages={messages}
