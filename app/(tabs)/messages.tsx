@@ -125,7 +125,7 @@ export default function MessagesScreen() {
     if (!loading && conversations.length === 1 && !hasPerformedInitialRedirect.current) {
       console.log('Performing initial redirect to single conversation...');
       hasPerformedInitialRedirect.current = true;
-      router.replace(`/chat/${conversations[0].id}`);
+      router.push(`/chat/${conversations[0].id}`);
     }
   }, [loading, conversations, router]);
 

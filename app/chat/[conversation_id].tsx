@@ -13,7 +13,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { useLocalSearchParams, Stack, router } from 'expo-router';
+import { useLocalSearchParams, router, Stack } from 'expo-router';
 import { supabase } from '@/utils/supabase';
 import { useSession } from '@/providers/SessionProvider';
 import { ChevronLeft, HelpCircle as HelpCircleIcon } from 'lucide-react-native';
@@ -66,13 +66,30 @@ const formatMessagesForGiftedChat = (
   });
 };
 
-// Custom Header Component, now with avatar_url
-const CustomHeader = ({ participant }: { participant: ChatUser }) => {
+// Custom Header Component for the title part
+const HeaderTitle = ({ participant }: { participant: ChatUser | null }) => {
+  if (!participant) {
+    return <Text style={styles.title}>Loading...</Text>;
+  }
+
+  return (
+    <View style={styles.headerTitleContainer}>
+      <Image
+        source={participant.avatar_url ? { uri: participant.avatar_url } : require('@/assets/images/icon.png')}
+        style={styles.headerAvatar}
+      />
+      <Text style={styles.title}>{participant.display_name || 'Participant'}</Text>
+    </View>
+  );
+};
+
+// Main Chat Header Component - styled to match profile.tsx
+const ChatHeader = ({ participant }: { participant: ChatUser | null }) => {
   const [lastSeenText, setLastSeenText] = useState('offline');
 
   useEffect(() => {
     const updateLastSeen = () => {
-      if (participant.last_seen) {
+      if (participant?.last_seen) {
         const lastSeenDate = new Date(participant.last_seen);
         setLastSeenText(`last seen ${formatDistanceToNow(lastSeenDate)} ago`);
       } else {
@@ -81,42 +98,28 @@ const CustomHeader = ({ participant }: { participant: ChatUser }) => {
     };
 
     updateLastSeen();
-    const intervalId = setInterval(updateLastSeen, 60000);
+    const intervalId = setInterval(updateLastSeen, 60000); // update every minute
     return () => clearInterval(intervalId);
-  }, [participant.last_seen]);
-
-  return (
-    <View style={styles.headerContainer}>
-      <Image
-        source={participant.avatar_url ? { uri: participant.avatar_url } : require('@/assets/images/icon.png')}
-        style={styles.headerAvatar}
-      />
-      <View style={styles.headerTextContainer}>
-        <Text style={styles.headerName}>{participant.display_name || 'Participant'}</Text>
-        <Text style={styles.headerLastSeen}>{lastSeenText}</Text>
-      </View>
-    </View>
-  );
-};
-
-// Main Chat Header Component
-const ChatHeader = ({ participant, onBack }: { participant: ChatUser; onBack: () => void }) => {
+  }, [participant?.last_seen]);
+  
   return (
     <View style={styles.fixedHeaderContainer}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <TouchableOpacity onPress={onBack} style={styles.headerBackButton}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.headerBackButton}>
             <ChevronLeft color="#333" size={30} />
           </TouchableOpacity>
-          <CustomHeader participant={participant} />
+          <HeaderTitle participant={participant} />
         </View>
         <TouchableOpacity style={styles.headerButton} onPress={() => router.push('/help')}>
           <HelpCircleIcon color="#666" size={24} />
         </TouchableOpacity>
       </View>
+      {participant && <Text style={styles.subtitle}>{lastSeenText}</Text>}
     </View>
   );
 };
+
 
 const ChatScreen = () => {
   const { conversation_id } = useLocalSearchParams() as { conversation_id: string };
@@ -217,6 +220,13 @@ const ChatScreen = () => {
     fetchParticipantAndMessages();
   }, [fetchParticipantAndMessages]);
 
+  // This single useEffect now controls the header's appearance for all states.
+  useEffect(() => {
+    // The Stack.Screen options={{ headerShown: false }} handles the header visibility.
+    // We only need to set the title and left/right buttons here.
+    // The ChatHeader component will render the full header.
+  }, []);
+
   useEffect(() => {
     // Ensure we have the necessary data before subscribing
     if (!conversation_id || !session?.user?.id || !participant || !myAvatar) {
@@ -267,19 +277,10 @@ const ChatScreen = () => {
     [conversation_id, session]
   );
 
-  const handleBack = () => {
-    if (router.canGoBack()) router.back();
-    else router.replace('/messages');
-  };
-
-  if (loading || !participant) {
-    return <ActivityIndicator style={StyleSheet.absoluteFill} size="large" color="#FF8C42" />;
-  }
-
   return (
     <SafeAreaView style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
-      <ChatHeader participant={participant} onBack={handleBack} />
+      <ChatHeader participant={participant} />
       <GiftedChat
         messages={messages}
         onSend={onSend}
@@ -291,6 +292,11 @@ const ChatScreen = () => {
         alwaysShowSend
         isTyping={isTyping} // Stub
       />
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#FF8C42" />
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -306,47 +312,55 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF8F0',
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
-    paddingBottom: 10,
-    paddingTop: Platform.OS === 'android' ? 15 : 10,
-    paddingHorizontal: 20,
+    paddingBottom: 20,
+    paddingTop: Platform.OS === 'android' ? 15 : 0, // Adjusted for SafeAreaView
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 10,
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   headerBackButton: {
-    paddingRight: 10,
+    marginRight: 10,
+    padding: 5,
   },
-  headerButton: {
-    padding: 8,
-  },
-  headerContainer: {
+  headerTitleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   headerAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     marginRight: 12,
   },
-  headerTextContainer: {
-    justifyContent: 'center',
-  },
-  headerName: {
-    fontSize: 18,
+  title: {
+    fontSize: 24,
     fontFamily: 'Inter-Bold',
     color: '#333',
   },
-  headerLastSeen: {
-    fontSize: 14,
+  headerButton: {
+    padding: 8,
+  },
+  subtitle: {
+    fontSize: 15,
     fontFamily: 'Inter-Regular',
     color: '#666',
-    marginTop: 2,
+    lineHeight: 22,
+    paddingHorizontal: 20,
+    marginLeft: 45, // Align with title
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255, 248, 240, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
