@@ -13,12 +13,12 @@ This document outlines the architecture of the real-time chat module. The system
 
 ## Backend Architecture (Supabase)
 
-The backend is built with three core tables, a separate `profiles` table for public user data, server-side logic to simplify client operations, and robust security policies.
+The backend is built with three core tables, a separate `users` table for public user data, server-side logic to simplify client operations, and robust security policies.
 
 ### Database Schema
 
-#### `profiles` Table
-Crucially, public user data is stored in a `profiles` table, which is linked one-to-one with the private `auth.users` table. This is a Supabase best practice that enhances security.
+#### `users` Table
+Crucially, public user data is stored in a `users` table, which is linked one-to-one with the private `auth.users` table. This is a Supabase best practice that enhances security.
 - `id` (uuid, fk -> auth.users.id, pk)
 - `full_name` (text, nullable)
 - `avatar_url` (text, nullable): Stores a URL to the user's avatar image.
@@ -34,7 +34,7 @@ Stores metadata for each chat thread.
 Stores individual chat messages.
 - `id` (uuid, pk)
 - `conversation_id` (uuid, fk -> conversations.id)
-- `sender_id` (uuid, fk -> profiles.id)
+- `sender_id` (uuid, fk -> users.id)
 - `text` (text)
 - `created_at` (timestamptz)
 
@@ -42,7 +42,7 @@ Stores individual chat messages.
 Links users to conversations, forming a many-to-many relationship.
 - `id` (uuid, pk)
 - `conversation_id` (uuid, fk -> conversations.id)
-- `user_id` (uuid, fk -> profiles.id)
+- `user_id` (uuid, fk -> users.id)
 - `UNIQUE` constraint on `(conversation_id, user_id)`
 
 #### `storage.objects` for Avatars
@@ -56,7 +56,7 @@ A dedicated storage bucket named `avatars` is used to store user profile picture
 ### Realtime & Row Level Security (RLS)
 
 - **Postgres Changes**: Replication is enabled on the `conversations` and `messages` tables, allowing the client to subscribe to database changes in real-time.
-- **RLS Policies**: Strict RLS policies are implemented to ensure users can only access data from conversations they are a participant in. The use of the `profiles` table is key to this security model, as it separates private auth data from public profile data.
+- **RLS Policies**: Strict RLS policies are implemented to ensure users can only access data from conversations they are a participant in. The use of the `users` table is key to this security model, as it separates private auth data from public users data.
 
 ### Migrations
 All schema changes are version-controlled in `supabase/migrations/`:
@@ -94,7 +94,7 @@ Due to the inclusion of native modules like `expo-image-picker`, the standard Ex
 - **Avatar Uploads (`Profile` screen)**:
   - Users can tap their avatar to launch the image picker.
   - The selected image is uploaded to the `avatars` Supabase Storage bucket.
-  - The user's `avatar_url` in the `profiles` table is updated with the new public URL.
+  - The user's `avatar_url` in the `users` table is updated with the new public URL.
 - **Session Provider (`providers/SessionProvider.tsx`)**:
   - Exposes a `setSession` function, allowing components like the Profile screen to update the global user session instantly after an avatar upload, ensuring the new avatar is displayed immediately across the app.
   - Manages the user's `last_seen` status using `AppState` to detect when the app is active.
@@ -107,4 +107,4 @@ Due to the inclusion of native modules like `expo-image-picker`, the standard Ex
 4.  **Sending Messages**: A new message is inserted into the `messages` table. The `on_new_message` trigger automatically updates the parent `conversations` table, which in turn updates the conversation list preview for both users in real-time.
 ---
 
-I've made the necessary updates to `docs/realtime-chat.md` to reflect the current architecture. The changes include correcting the `users` table to `profiles`, adding the avatar upload feature, detailing the development workflow with EAS Build, and updating the component descriptions with recent fixes. I'm now applying these changes to the file.
+I've made the necessary updates to `docs/realtime-chat.md` to reflect the current architecture. The changes include correcting the `users` table to `users`, adding the avatar upload feature, detailing the development workflow with EAS Build, and updating the component descriptions with recent fixes. I'm now applying these changes to the file.

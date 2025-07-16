@@ -24,6 +24,7 @@ import { useSession } from '@/providers/SessionProvider';
 import { supabase } from '@/utils/supabase';
 import QRCodeModal from '@/components/QRCodeModal';
 import * as ImagePicker from 'expo-image-picker';
+import Constants from 'expo-constants';
 
 export default function ProfileScreen() {
   const { session, setSession } = useSession();
@@ -44,6 +45,9 @@ export default function ProfileScreen() {
     day_streak: 0,
     days_active: 0,
   });
+
+  const appVersion = Constants.expoConfig?.version ?? 'N/A';
+  const buildNumber = Constants.nativeBuildVersion ?? 'N/A';
 
   useEffect(() => {
     if (session) {
@@ -445,6 +449,9 @@ export default function ProfileScreen() {
         inviteCode={inviteCode}
         inviteLink={`https://gratitudebee.app/invite/${inviteCode}`}
       />
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>Version: {appVersion} (Build {buildNumber})</Text>
+      </View>
     </View>
   );
 }
@@ -654,5 +661,16 @@ const styles = StyleSheet.create({
     color: '#666',
     lineHeight: 22,
     paddingHorizontal: 20,
+  },
+  footer: {
+    paddingVertical: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#EEE',
+  },
+  footerText: {
+    fontSize: 14,
+    color: '#A0A0A0',
   },
 });

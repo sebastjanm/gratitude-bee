@@ -19,6 +19,7 @@ export default {
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.sebastjanm.gratitudebee",
+      "buildNumber": "1",
       "associatedDomains": [
         "applinks:gratitudebee.app"
       ],
@@ -33,6 +34,7 @@ export default {
         "backgroundColor": "#FFF8F0"
       },
       "package": "com.gratitudebee",
+      "versionCode": 1,
       "googleServicesFile": process.env.GOOGLE_SERVICES_JSON || "./google-services.json",
       "intentFilters": [
         {
