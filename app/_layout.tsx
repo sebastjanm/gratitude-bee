@@ -9,6 +9,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { registerForPushNotificationsAsync } from '../utils/pushNotifications';
 import * as Notifications from 'expo-notifications';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useReactQueryDevTools } from '@dev-plugins/react-query';
 
 // This handler decides how foreground notifications are presented.
 Notifications.setNotificationHandler({
@@ -69,7 +71,11 @@ function RootLayoutNav() {
   );
 }
 
+const queryClient = new QueryClient();
+
 export default function RootLayout() {
+  useReactQueryDevTools(queryClient);
+
   const [fontsLoaded, fontError] = useFonts({
     'Inter-Regular': Inter_400Regular,
     'Inter-Medium': Inter_500Medium,
@@ -90,10 +96,12 @@ export default function RootLayout() {
   }
 
   return (
-    <SafeAreaProvider>
+    <QueryClientProvider client={queryClient}>
       <SessionProvider>
-        <RootLayoutNav />
+        <SafeAreaProvider>
+          <RootLayoutNav />
+        </SafeAreaProvider>
       </SessionProvider>
-    </SafeAreaProvider>
+    </QueryClientProvider>
   );
 }

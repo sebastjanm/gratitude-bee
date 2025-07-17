@@ -1,7 +1,7 @@
-// This file displays the chat interface for a selected conversation.
-// It fetches messages and participant data from Supabase and uses GiftedChat for the UI.
+// This file has been refactored to use TanStack Query's `useInfiniteQuery` for robust, cursor-based pagination.
+// This approach simplifies state management, improves caching, and aligns with modern data-fetching best practices.
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import { useSession } from '@/providers/SessionProvider';
 import { ChevronLeft, HelpCircle as HelpCircleIcon } from 'lucide-react-native';
 import { formatDistanceToNow } from 'date-fns';
 import { GiftedChat, IMessage } from 'react-native-gifted-chat';
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 
 const PAGE_SIZE = 20;
 
@@ -120,160 +121,182 @@ const ChatHeader = ({ participant, router }: { participant: ChatUser | null; rou
   );
 };
 
+const fetchChatData = async (conversation_id: string, myUserId: string) => {
+    // 1. Fetch my own avatar
+    const { data: myUserData, error: myUserError } = await supabase
+      .from('users')
+      .select('avatar_url')
+      .eq('id', myUserId)
+      .single();
+    if (myUserError) throw myUserError;
+
+    // 2. Fetch the participant's ID from the conversation_participants table
+    const { data: participantLink, error: participantLinkError } = await supabase
+      .from('conversation_participants')
+      .select('user_id')
+      .eq('conversation_id', conversation_id)
+      .neq('user_id', myUserId)
+      .single();
+    
+    if (participantLinkError) throw new Error('Could not find chat participant.');
+    const participantId = participantLink.user_id;
+
+    // 3. Fetch the participant's data from the users table
+    const { data: participantData, error: participantError } = await supabase
+      .from('users')
+      .select('id, display_name, last_seen, avatar_url')
+      .eq('id', participantId)
+      .single();
+    
+    if (participantError) throw participantError;
+
+    // 4. Fetch the initial batch of messages
+    const { data: messagesData, error: messagesError } = await supabase
+      .from('messages')
+      .select('id, text, created_at, sender_id, uri')
+      .eq('conversation_id', conversation_id)
+      .order('created_at', { ascending: false })
+      .range(0, PAGE_SIZE - 1);
+
+    if (messagesError) throw messagesError;
+
+    return {
+      myAvatar: myUserData.avatar_url,
+      participant: participantData,
+      initialMessages: messagesData,
+    };
+};
+
 
 const ChatScreen = () => {
   const { conversation_id } = useLocalSearchParams() as { conversation_id: string };
   const { session } = useSession();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
-  const [messages, setMessages] = useState<IMessage[]>([]);
+  // State for optimistic updates and participant info
   const [participant, setParticipant] = useState<ChatUser | null>(null);
   const [myAvatar, setMyAvatar] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [allMessagesLoaded, setAllMessagesLoaded] = useState(false);
-  const [isTyping, setIsTyping] = useState(false); // Stub
 
-  const fetchParticipantAndMessages = useCallback(async () => {
-    if (!conversation_id || !session?.user?.id) return;
-    setLoading(true);
+  // Fetch participant data separately, as it doesn't need to be part of the infinite query
+  useEffect(() => {
+    const fetchParticipantInfo = async () => {
+      if (!conversation_id || !session?.user?.id) return;
+      try {
+        const { data: myUserData } = await supabase.from('users').select('avatar_url').eq('id', session.user.id).single();
+        setMyAvatar(myUserData?.avatar_url || null);
+        
+        const { data: pLink } = await supabase.from('conversation_participants').select('user_id').eq('conversation_id', conversation_id).neq('user_id', session.user.id).single();
+        if (!pLink) throw new Error('Participant not found.');
 
-    try {
-      // 1. Fetch my own avatar
-      const { data: myUserData, error: myUserError } = await supabase
-        .from('users')
-        .select('avatar_url')
-        .eq('id', session.user.id)
-        .single();
-      if (myUserError) throw myUserError;
-      setMyAvatar(myUserData.avatar_url);
+        const { data: pData } = await supabase.from('users').select('id, display_name, last_seen, avatar_url').eq('id', pLink.user_id).single();
+        setParticipant(pData);
 
-      // 2. Fetch the participant's ID from the conversation_participants table
-      const { data: participantLink, error: participantLinkError } = await supabase
-        .from('conversation_participants')
-        .select('user_id')
-        .eq('conversation_id', conversation_id)
-        .neq('user_id', session.user.id)
-        .single();
-      
-      if (participantLinkError) throw new Error('Could not find chat participant.');
-      const participantId = participantLink.user_id;
-
-      // 3. Fetch the participant's data from the users table
-      const { data: participantData, error: participantError } = await supabase
-        .from('users')
-        .select('id, display_name, last_seen, avatar_url')
-        .eq('id', participantId)
-        .single();
-      
-      if (participantError) throw participantError;
-      setParticipant(participantData);
-
-      // 4. Now that we have the participant, fetch the initial batch of messages
-      const { data: messagesData, error: messagesError } = await supabase
-        .from('messages')
-        .select('id, text, created_at, sender_id, uri')
-        .eq('conversation_id', conversation_id)
-        .order('created_at', { ascending: false })
-        .range(0, PAGE_SIZE - 1);
-
-      if (messagesError) throw messagesError;
-      if (messagesData.length < PAGE_SIZE) setAllMessagesLoaded(true);
-
-      const formattedMessages = formatMessagesForGiftedChat(messagesData, session.user.id, myUserData.avatar_url, participantData);
-      setMessages(formattedMessages);
-
-    } catch (error) {
-      console.error('Failed to fetch chat data:', error);
-      Alert.alert('Error', 'Could not load chat. Please go back and try again.');
-    } finally {
-      setLoading(false);
-    }
+      } catch (error) {
+        console.error("Failed to fetch participant info:", error);
+        Alert.alert('Error', 'Could not load chat participant details.');
+      }
+    };
+    fetchParticipantInfo();
   }, [conversation_id, session?.user?.id]);
 
-  const fetchMoreMessages = useCallback(async () => {
-    if (loadingMore || allMessagesLoaded || !session?.user?.id) return;
-    setLoadingMore(true);
 
-    try {
-      const from = messages.length;
-      const to = from + PAGE_SIZE - 1;
-      const { data, error } = await supabase
-        .from('messages')
-        .select('id, text, created_at, sender_id, uri')
-        .eq('conversation_id', conversation_id)
-        .order('created_at', { ascending: false })
-        .range(from, to);
-      if (error) throw error;
-      if (data.length < PAGE_SIZE) setAllMessagesLoaded(true);
+  const fetchMessages = async ({ pageParam }: { pageParam?: string }) => {
+    const query = supabase
+      .from('messages')
+      .select('id, text, created_at, sender_id, uri')
+      .eq('conversation_id', conversation_id)
+      .order('created_at', { ascending: false });
 
-      const formattedMessages = formatMessagesForGiftedChat(data, session.user.id, myAvatar, participant);
-      setMessages(prev => GiftedChat.append(prev, formattedMessages));
-
-    } catch (error) {
-      console.error('Error fetching more messages:', error);
-    } finally {
-      setLoadingMore(false);
+    // If we have a pageParam (cursor), use it to fetch older messages
+    if (pageParam) {
+      query.lt('created_at', pageParam);
     }
-  }, [loadingMore, allMessagesLoaded, messages.length, session?.user?.id, myAvatar, participant]);
+    
+    const { data, error } = await query.limit(PAGE_SIZE);
 
+    if (error) throw error;
+    return data;
+  };
+
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isPending, // Use isPending instead of status
+  } = useInfiniteQuery({
+    queryKey: ['messages', conversation_id],
+    queryFn: fetchMessages,
+    initialPageParam: undefined,
+    getNextPageParam: (lastPage) => {
+      // If the last page had fewer messages than PAGE_SIZE, we've reached the end
+      if (lastPage.length < PAGE_SIZE) {
+        return undefined;
+      }
+      // Otherwise, use the oldest message's created_at as the cursor for the next page
+      return lastPage[lastPage.length - 1].created_at;
+    },
+    // Keep data fresh for a short time, but prioritize refetching on window focus
+    staleTime: 1000 * 60, // 1 minute
+  });
+
+  // Use useMemo to flatten the pages into a single array of messages
+  const messages = useMemo(() => {
+    if (!data?.pages) return [];
+    const allMessages = data.pages.flat();
+    return formatMessagesForGiftedChat(allMessages, session!.user.id, myAvatar, participant);
+  }, [data, session?.user?.id, myAvatar, participant]);
+
+
+  // Real-time subscription for new messages
   useEffect(() => {
-    if (session) {
-      fetchParticipantAndMessages();
-    }
-  }, [session, fetchParticipantAndMessages]);
+    if (!conversation_id) return;
 
-  // This single useEffect now controls the header's appearance for all states.
-  useEffect(() => {
-    // The Stack.Screen options={{ headerShown: false }} handles the header visibility.
-    // We only need to set the title and left/right buttons here.
-    // The ChatHeader component will render the full header.
-  }, []);
+    const channel = supabase.channel(`realtime-chat:${conversation_id}`);
 
-  useEffect(() => {
-    // Ensure we have the necessary data before subscribing
-    if (!conversation_id || !session?.user?.id || !participant || !myAvatar) {
-      return;
-    }
-
-    const channel = supabase
-      .channel(`realtime-chat:${conversation_id}`)
+    const subscription = channel
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversation_id}` },
-        payload => {
+        (payload) => {
           const newMessage = payload.new as ChatMessage;
-          // Ensure we don't append our own messages twice
-          if (newMessage.sender_id !== session.user.id) {
-            const formattedMessage = formatMessagesForGiftedChat([newMessage], session!.user.id, myAvatar, participant);
-            setMessages(previousMessages => GiftedChat.append(previousMessages, formattedMessage));
-          }
+
+          // Manually update the cache to avoid a full refetch
+          queryClient.setQueryData(['messages', conversation_id], (oldData: any) => {
+            if (!oldData) return oldData;
+            
+            // Create a new pages array with the new message added to the first page
+            const newPages = [...oldData.pages];
+            newPages[0] = [newMessage, ...newPages[0]];
+
+            return {
+              ...oldData,
+              pages: newPages,
+            };
+          });
         }
       )
       .subscribe();
 
-    // Cleanup function to remove the channel subscription
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [conversation_id, session?.user?.id, participant, myAvatar]); // Correct dependency array
+  }, [conversation_id, queryClient]);
+
 
   const onSend = useCallback(
     (newMessages: IMessage[] = []) => {
       const textToSend = newMessages[0].text;
-      const messageToAppend = newMessages[0];
       
-      // Optimistically update the UI
-      setMessages(previousMessages => GiftedChat.append(previousMessages, [messageToAppend]));
-
-      // Asynchronously send to the backend
+      // No optimistic update needed with react-query's speed, but we could add it.
+      // For simplicity, we just insert and let the subscription handle the update.
       supabase.from('messages').insert([
         { conversation_id, sender_id: session!.user.id, text: textToSend },
       ]).then(({ error }) => {
         if (error) {
           console.error('Error sending message:', error);
           Alert.alert('Error', 'Message failed to send.');
-          // Optional: implement logic to mark the message as failed in the UI
         }
       });
     },
@@ -287,14 +310,14 @@ const ChatScreen = () => {
         messages={messages}
         onSend={onSend}
         user={{ _id: session!.user.id }}
-        loadEarlier={!allMessagesLoaded}
-        onLoadEarlier={fetchMoreMessages}
-        isLoadingEarlier={loadingMore}
+        loadEarlier={hasNextPage}
+        onLoadEarlier={fetchNextPage}
+        isLoadingEarlier={isFetchingNextPage}
         alwaysShowSend
-        isTyping={isTyping} // Stub
         keyboardShouldPersistTaps="handled"
+        minInputToolbarHeight={44} // Add this prop
       />
-      {loading && (
+      {isPending && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" />
         </View>
@@ -326,6 +349,10 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
   },
