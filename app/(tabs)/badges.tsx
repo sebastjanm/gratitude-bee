@@ -277,8 +277,6 @@ export default function BadgesScreen() {
   );
 
   const renderBadge = (item: Badge) => {
-    console.log('--- Rendering Badge ---');
-    console.log('Badge data:', JSON.stringify(item, null, 2));
     const BadgeIcon = item.icon;
     const isEmoji = typeof item.icon === 'string';
     return (

@@ -46,6 +46,7 @@ interface TimelineEvent {
     icon?: string; // Added for dynamic icons
     color?: string; // Added for dynamic colors
   };
+  isEmojiIcon?: boolean;
 }
 
 const filterOptions = [
@@ -365,132 +366,6 @@ export default function TimelineScreen() {
     );
   };
 
-
-  const renderTimelineEvent = (event: TimelineEvent, index: number) => {
-    const { partnerName, badgeName, description, timestamp, icon: Icon, color, type, status, eventType, isEmojiIcon } = event;
-    const isLast = index === events.length - 1;
-
-    return (
-      <View key={event.id} style={styles.timelineItem}>
-        <View style={styles.timelineMarker}>
-          <View style={[
-            styles.timelineIcon, 
-            { backgroundColor: color },
-            event.isNegative && styles.negativeTimelineIcon
-          ]}>
-            {isEmojiIcon ? (
-              <Text style={styles.emojiIcon}>{Icon}</Text>
-            ) : (
-              <Icon color="white" size={20} />
-            )}
-          </View>
-          {!isLast && <View style={styles.timelineLine} />}
-        </View>
-        
-        <View style={styles.timelineContent}>
-          <View style={[
-            styles.eventCard,
-            event.isNegative && styles.negativeEventCard
-          ]}>
-            <View style={styles.cardContent}>
-              <Text style={styles.eventTypeTag}>{formatEventType(event.eventType)}</Text>
-
-              <View style={styles.cardHeader}>
-                <Text style={styles.eventTitle} numberOfLines={2}>
-                  {event.badgeName}
-                </Text>
-              </View>
-
-              {event.description && (
-                <Text style={styles.eventDescription}>{event.description}</Text>
-              )}
-              
-              {event.isNegative && event.cancelledBadges && (
-                <View style={styles.cancelledBadgesInfo}>
-                  <X color="#FF4444" size={14} />
-                  <Text style={styles.cancelledBadgesText}>
-                    Cancelled {event.cancelledBadges.length} positive badge{event.cancelledBadges.length > 1 ? 's' : ''}
-                  </Text>
-                </View>
-              )}
-              
-              {event.message && (
-                <View style={[
-                  styles.messageContainer,
-                  event.isNegative && styles.negativeMessageContainer
-                ]}>
-                  <Text style={styles.messageText}>"{event.message}"</Text>
-                </View>
-              )}
-
-              {/* Status Indicator for Favors */}
-              {event.category.includes('favor') && (
-                <View style={styles.favorStatusContainer}>
-                  {renderStatusBadge(event.status)}
-                </View>
-              )}
-
-              {/* Action Buttons for Favors */}
-              {event.category.includes('favor') && event.status === 'PENDING' && event.type === 'received' && (
-                <View style={styles.actionsContainer}>
-                    <>
-                      <TouchableOpacity 
-                        style={[styles.actionButton, styles.acceptButton]}
-                        onPress={() => handleFavorResponse(event.id, 'ACCEPTED')}>
-                        <ThumbsUp color="white" size={16} />
-                        <Text style={styles.actionButtonText}>Accept</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity 
-                        style={[styles.actionButton, styles.declineButton]}
-                        onPress={() => handleFavorResponse(event.id, 'DECLINED')}>
-                        <ThumbsDown color="white" size={16} />
-                        <Text style={styles.actionButtonText}>Decline</Text>
-                      </TouchableOpacity>
-                    </>
-                </View>
-              )}
-              
-              {event.category.includes('favor') && event.status === 'ACCEPTED' && event.type === 'sent' && (
-                <View style={styles.actionsContainer}>
-                    <TouchableOpacity 
-                      style={[styles.actionButton, styles.completeButton]}
-                      onPress={() => handleFavorCompletion(event.id)}>
-                      <CheckCircle color="white" size={16} />
-                      <Text style={styles.actionButtonText}>Mark as Complete</Text>
-                    </TouchableOpacity>
-                </View>
-              )}
-            </View>
-            
-            <View style={styles.divider} />
-
-            <View style={styles.cardFooter}>
-               <View style={styles.directionContainer}>
-                  {event.type === 'sent' 
-                    ? <ArrowUpRight color={styles.sentColor.color} size={14} /> 
-                    : <ArrowDownLeft color={styles.receivedColor.color} size={14} />
-                  }
-                  <Text style={[styles.eventPartner, event.type === 'sent' ? styles.sentColor : styles.receivedColor]}>
-                    {event.type === 'sent' ? `${event.partnerName}` : `${event.partnerName}`}
-                  </Text>
-                </View>
-
-                <View style={styles.footerRight}>
-                <Text style={styles.eventTime}>{formatTimestamp(event.timestamp)}</Text>
-                  {event.content?.points && (
-                    <View style={styles.pointsContainer}>
-                      <Text style={styles.pointsText}>{event.content.points} {event.content.points_icon}</Text>
-                    </View>
-                  )}
-                  
-                </View>
-            </View>
-            
-          </View>
-        </View>
-      </View>
-    );
-  };
 
   return (
     <View style={[styles.container, {

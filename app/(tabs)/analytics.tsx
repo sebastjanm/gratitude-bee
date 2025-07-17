@@ -37,6 +37,30 @@ interface WeeklyData {
   total: number;
 }
 
+interface CategoryStat {
+  name: string;
+  color: string;
+  sent: number;
+  received: number;
+}
+
+interface InsightCategoryBreakdown {
+  category: string;
+  count: number;
+}
+
+interface Insights {
+  streak_status?: string;
+  first_event_time?: string;
+  last_event_time?: string;
+  most_active_hour?: string;
+  category_breakdown?: InsightCategoryBreakdown[];
+  most_active_day?: string;
+  favorite_category?: string;
+  partner_favorite_category?: string;
+  balance_score?: string;
+}
+
 const periodFilters = [
   { id: 'today', name: 'Today' },
   { id: 'week', name: 'This Week' },
@@ -53,8 +77,8 @@ export default function AnalyticsScreen() {
   const [mainStats, setMainStats] = useState<StatCard[]>([]);
   const [breakdownTitle, setBreakdownTitle] = useState('');
   const [breakdownData, setBreakdownData] = useState<WeeklyData[]>([]);
-  const [categoryStats, setCategoryStats] = useState<any[]>([]);
-  const [insights, setInsights] = useState<any>({});
+  const [categoryStats, setCategoryStats] = useState<CategoryStat[]>([]);
+  const [insights, setInsights] = useState<Insights>({});
 
   useFocusEffect(
     React.useCallback(() => {
@@ -76,7 +100,6 @@ export default function AnalyticsScreen() {
     });
 
     if (error) {
-      console.error("Error fetching analytics:", error);
       setLoading(false);
       return;
     }
@@ -315,7 +338,7 @@ export default function AnalyticsScreen() {
                 </View>
                 <View style={styles.insightContent}>
                   <Text style={styles.insightTitle}>Category Breakdown</Text>
-                  {insights.category_breakdown.map((cat: any, idx: number) => (
+                  {insights.category_breakdown.map((cat: InsightCategoryBreakdown, idx: number) => (
                     <Text key={idx} style={styles.insightValue}>{cat.category}: {cat.count}</Text>
                   ))}
                   <Text style={styles.insightDescription}>Badges sent by category today</Text>

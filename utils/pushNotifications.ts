@@ -64,7 +64,6 @@ export async function registerForPushNotificationsAsync(): Promise<string | null
       })).data;
       
       console.log('📱 Push token obtained:', token);
-      Alert.alert('Push Token', `Obtained token: ${token ? 'Yes' : 'No'}`);
       
       // Save the token to Supabase
       const { data: { user } } = await supabase.auth.getUser();

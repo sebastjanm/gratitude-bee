@@ -24,5 +24,10 @@
   },
   "submit": {
     "production": {}
+  },
+  "extra": {
+    "eas": {
+      "projectId": "f79e657c-c749-450f-8015-617242c36691"
+    }
   }
 }

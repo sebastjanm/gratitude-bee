@@ -59,7 +59,6 @@ export default function ProfileScreen() {
           .single();
         if (error) {
             Alert.alert('Error', 'Could not fetch your profile data.');
-            console.error(error);
         } else if (data) {
           setInviteCode(data.invite_code);
           setAvatarUrl(data.avatar_url);
@@ -72,7 +71,6 @@ export default function ProfileScreen() {
             if (partnerData) {
               setPartnerName(partnerData.display_name);
             } else if (partnerError) {
-                console.error("Could not fetch partner's name", partnerError);
             }
           }
         }
@@ -83,7 +81,6 @@ export default function ProfileScreen() {
         const { data, error } = await supabase.rpc('get_user_profile_stats', { p_user_id: session.user.id });
         if (error) {
           Alert.alert('Error', 'Could not fetch your stats.');
-          console.error(error);
         } else {
           setStats(data);
         }
@@ -117,11 +114,9 @@ export default function ProfileScreen() {
   const uploadAvatar = async (uri: string) => {
     if (!session?.user) return;
     setUploading(true);
-    console.log('[AVATAR UPLOAD] Starting upload for URI:', uri);
     try {
       const fileExt = uri.split('.').pop();
       const filePath = `${session.user.id}/${new Date().getTime()}.${fileExt}`;
-      console.log('[AVATAR UPLOAD] Uploading to path:', filePath);
 
       const formData = new FormData();
       formData.append('file', {
@@ -137,14 +132,11 @@ export default function ProfileScreen() {
         });
 
       if (uploadError) {
-        console.error('[AVATAR UPLOAD] Supabase storage error:', uploadError);
         throw uploadError;
       }
-      console.log('[AVATAR UPLOAD] Upload successful.');
 
       const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
       const publicUrl = data.publicUrl;
-      console.log('[AVATAR UPLOAD] Public URL:', publicUrl);
 
 
       const { error: updateUserError } = await supabase
@@ -153,10 +145,8 @@ export default function ProfileScreen() {
         .eq('id', session.user.id);
 
       if (updateUserError) {
-        console.error('[AVATAR UPLOAD] Error updating user profile:', updateUserError);
         throw updateUserError;
       }
-      console.log('[AVATAR UPLOAD] User profile updated.');
 
       setAvatarUrl(publicUrl);
        if(session) {
@@ -166,7 +156,6 @@ export default function ProfileScreen() {
        }
       
     } catch (error) {
-      console.error('[AVATAR UPLOAD] General error:', error);
       Alert.alert('Error', 'Failed to upload avatar.');
     } finally {
       setUploading(false);
