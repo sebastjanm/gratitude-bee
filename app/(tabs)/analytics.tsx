@@ -449,22 +449,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF8F0',
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
-    paddingBottom: 24,
+    paddingBottom: 20,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 12,
+    paddingTop: 20,
+    paddingBottom: 4,
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontFamily: 'Inter-Bold',
     color: '#333',
     marginLeft: 12,
@@ -473,12 +473,12 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: 'Inter-Regular',
     color: '#666',
-    lineHeight: 24,
+    lineHeight: 22,
     paddingHorizontal: 20,
-    paddingBottom: 20, // Add more space
+    paddingBottom: 20,
   },
   content: {
     flex: 1,

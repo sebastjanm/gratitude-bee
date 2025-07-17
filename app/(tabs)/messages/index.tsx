@@ -6,13 +6,14 @@
 // - Adjusted rendering logic in `ListEmptyComponent` to access partner data from the corrected structure.
 // - Refactored data fetching and state management to be more robust and fix inconsistent pull-to-refresh behavior.
 // - Temporarily removed pull-to-refresh functionality for debugging purposes.
+// - Redesigned conversation list from a grid to large, tappable buttons for better UX.
 //
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, SafeAreaView, Image } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { supabase } from '@/utils/supabase';
 import { useSession } from '@/providers/SessionProvider';
-import { MessageSquarePlus, User } from 'lucide-react-native';
+import { MessageSquarePlus, User, ChevronRight } from 'lucide-react-native';
 import LottieView from 'lottie-react-native';
 
 // Define types for our data structures
@@ -174,37 +175,23 @@ export default function MessagesScreen() {
     };
   }, [fetchData]);
   
-  const GridItem = ({ item }: { item: Conversation }) => (
+  const ConversationItem = ({ item }: { item: Conversation }) => (
     <TouchableOpacity 
-      style={styles.gridItem} 
+      style={styles.conversationItem} 
       onPress={() => router.push(`/messages/${item.id}`)}
     >
         {item.participant_avatar_url ? (
-            <Image source={{ uri: item.participant_avatar_url }} style={styles.gridAvatarImage} />
+            <Image source={{ uri: item.participant_avatar_url }} style={styles.conversationAvatarImage} />
         ) : (
-            <View style={styles.gridAvatar}>
+            <View style={styles.conversationAvatar}>
                 <User size={30} color="#FF8C42" />
             </View>
         )}
-      <Text style={styles.gridName} numberOfLines={1}>{item.participant_name}</Text>
-    </TouchableOpacity>
-  );
-
-  const renderItem = ({ item }: { item: Conversation }) => (
-    <TouchableOpacity 
-      style={styles.itemContainer} 
-      onPress={() => router.push(`/messages/${item.id}`)}
-    >
-        <User size={40} color="#FF8C42" style={styles.avatar}/>
-        <View style={styles.textContainer}>
-            <Text style={styles.name}>{item.participant_name}</Text>
-            <Text style={styles.message} numberOfLines={1}>
-                {item.last_message || 'No messages yet...'}
-            </Text>
-        </View>
-        <Text style={styles.time}>
-            {item.last_message_sent_at ? new Date(item.last_message_sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-        </Text>
+      <View style={styles.conversationTextContainer}>
+        <Text style={styles.conversationName} numberOfLines={1}>{item.participant_name}</Text>
+        <Text style={styles.conversationAction}>Start chatting</Text>
+      </View>
+      <ChevronRight color="#BDBDBD" size={24} />
     </TouchableOpacity>
   );
 
@@ -258,12 +245,11 @@ export default function MessagesScreen() {
       ) : (
         <FlatList
             data={conversations}
-            renderItem={GridItem}
+            renderItem={ConversationItem}
             keyExtractor={(item) => item.id}
-            numColumns={4}
             ListEmptyComponent={ListEmptyComponent}
             style={styles.list}
-            contentContainerStyle={styles.gridContainer}
+            contentContainerStyle={{ paddingVertical: 10 }}
         />
       )}
     </SafeAreaView>
@@ -287,7 +273,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: 20,
-    paddingBottom: 16,
+    paddingBottom: 4,
   },
   headerContent: {
     flexDirection: 'row',
@@ -311,66 +297,54 @@ const styles = StyleSheet.create({
   },
   list: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: '#FFF8F0', // Match container background
   },
-  gridContainer: {
-    padding: 10,
-  },
-  gridItem: {
-    flex: 1,
-    margin: 10,
+  conversationItem: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: 'white',
+    padding: 16,
+    marginHorizontal: 16,
+    marginVertical: 8,
+    borderRadius: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
-  gridAvatar: {
+  conversationAvatar: {
     width: 60,
     height: 60,
     borderRadius: 30,
     backgroundColor: '#FFF3E0',
     justifyContent: 'center',
     alignItems: 'center',
+    marginRight: 16,
     borderWidth: 1,
     borderColor: '#FFE0B2',
   },
-  gridAvatarImage: {
+  conversationAvatarImage: {
     width: 60,
     height: 60,
     borderRadius: 30,
+    marginRight: 16,
     borderWidth: 1,
     borderColor: '#FFE0B2',
   },
-  gridName: {
-    marginTop: 8,
-    fontSize: 12,
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  itemContainer: {
-    flexDirection: 'row',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-    alignItems: 'center',
-  },
-  avatar: {
-    marginRight: 12,
-  },
-  textContainer: {
+  conversationTextContainer: {
     flex: 1,
   },
-  name: {
-    fontSize: 16,
-    fontWeight: 'bold',
+  conversationName: {
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+    color: '#333',
   },
-  message: {
+  conversationAction: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: 'Inter-Regular',
+    color: '#FF8C42',
     marginTop: 4,
-  },
-  time: {
-    fontSize: 12,
-    color: '#999',
-    marginLeft: 10,
   },
   emptyContainer: {
     flex: 1,

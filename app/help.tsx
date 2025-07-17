@@ -1,15 +1,41 @@
 // Update: Replaced deprecated 'expo-av' with 'expo-video' to resolve deprecation warning.
+// Refactored to use the modern, hook-based API for 'expo-video' with `useVideoPlayer` and `VideoView`.
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Platform, Modal, Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { ArrowLeft, HelpCircle, Video, MessageSquare, Users, Heart, Settings, Gift, Play, X, ChevronRight } from 'lucide-react-native';
-import { Video as ExpoVideo, ResizeMode } from 'expo-video';
+import { ArrowLeft, HelpCircle, Video as VideoIcon, MessageSquare, Users, Heart, Settings, Gift, Play, X, ChevronRight, LucideIcon } from 'lucide-react-native';
+import { VideoView, useVideoPlayer } from 'expo-video';
+
 
 const { width } = Dimensions.get('window');
 
+interface FAQ {
+  q: string;
+  a: string;
+}
+
+interface FAQCategory {
+  id: string;
+  title: string;
+  icon: LucideIcon;
+  color: string;
+  description: string;
+  faqs: FAQ[];
+}
+
+interface VideoGuide {
+  id: string;
+  title: string;
+  description: string;
+  duration: string;
+  thumbnail: string;
+  videoUrl: string;
+}
+
+
 // FAQ Categories with organized content
-const faqCategories = [
+const faqCategories: FAQCategory[] = [
   {
     id: 'getting-started',
     title: 'Getting Started',
@@ -97,7 +123,7 @@ const faqCategories = [
 ];
 
 // Video guides with embedded content
-const videoGuides = [
+const videoGuides: VideoGuide[] = [
   {
     id: 'getting-started',
     title: 'Getting Started & Partner Connection',
@@ -124,10 +150,29 @@ const videoGuides = [
   },
 ];
 
+const VideoPlayer = ({ url, description }: { url: string; description: string }) => {
+  const player = useVideoPlayer(url);
+
+  return (
+    <View style={styles.videoPlayerContainer}>
+      <VideoView
+        style={styles.videoPlayer}
+        player={player}
+        nativeControls
+        contentFit="contain"
+      />
+      <View style={styles.videoModalInfo}>
+        <Text style={styles.videoModalDescription}>{description}</Text>
+      </View>
+    </View>
+  );
+};
+
+
 export default function HelpScreen() {
   const insets = useSafeAreaInsets();
-  const [selectedFAQCategory, setSelectedFAQCategory] = useState(null);
-  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [selectedFAQCategory, setSelectedFAQCategory] = useState<FAQCategory | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<VideoGuide | null>(null);
   const [videoModalVisible, setVideoModalVisible] = useState(false);
   
   // Debug logging
@@ -138,11 +183,11 @@ export default function HelpScreen() {
     };
   }, []);
 
-  const handleCategoryPress = (category) => {
+  const handleCategoryPress = (category: FAQCategory) => {
     setSelectedFAQCategory(category);
   };
 
-  const handleVideoPress = (video) => {
+  const handleVideoPress = (video: VideoGuide) => {
     setSelectedVideo(video);
     setVideoModalVisible(true);
   };
@@ -182,7 +227,7 @@ export default function HelpScreen() {
   const renderVideoGuides = () => (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Video color="#FF6B9D" size={20} />
+        <VideoIcon color="#FF6B9D" size={20} />
         <Text style={styles.sectionTitle}>Quick Guides</Text>
       </View>
       {videoGuides.map((video) => (
@@ -215,31 +260,19 @@ export default function HelpScreen() {
       paddingRight: insets.right,
     }]}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity onPress={() => selectedFAQCategory ? setSelectedFAQCategory(null) : router.back()} style={styles.backButton}>
           <ArrowLeft color="#333" size={24} />
         </TouchableOpacity>
-        <HelpCircle color="#FF8C42" size={28} />
-        <Text style={styles.title}>Help Center</Text>
+        {selectedFAQCategory ? 
+            React.createElement(selectedFAQCategory.icon, { color: selectedFAQCategory.color, size: 28 }) : 
+            <HelpCircle color="#FF8C42" size={28} />
+        }
+        <Text style={styles.title}>{selectedFAQCategory ? selectedFAQCategory.title : 'Help Center'}</Text>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {selectedFAQCategory ? (
           <View style={styles.section}>
-            <TouchableOpacity 
-              style={styles.backToCategories}
-              onPress={() => setSelectedFAQCategory(null)}
-            >
-              <ArrowLeft color="#666" size={20} />
-              <Text style={styles.backText}>Back to Categories</Text>
-            </TouchableOpacity>
-            
-            <View style={styles.categoryHeader}>
-              <View style={[styles.categoryIcon, { backgroundColor: selectedFAQCategory.color }]}>
-                {React.createElement(selectedFAQCategory.icon, { color: "white", size: 24 })}
-              </View>
-              <Text style={styles.categoryHeaderTitle}>{selectedFAQCategory.title}</Text>
-            </View>
-
             {selectedFAQCategory.faqs.map((faq, index) => (
               <View key={index} style={styles.faqItem}>
                 <Text style={styles.faqQuestion}>{faq.q}</Text>
@@ -277,18 +310,7 @@ export default function HelpScreen() {
           </View>
           
           {selectedVideo && (
-            <View style={styles.videoPlayerContainer}>
-              <ExpoVideo
-                style={styles.videoPlayer}
-                source={{ uri: selectedVideo.videoUrl }}
-                useNativeControls
-                resizeMode={ResizeMode.CONTAIN}
-                shouldPlay={false}
-              />
-              <View style={styles.videoModalInfo}>
-                <Text style={styles.videoModalDescription}>{selectedVideo.description}</Text>
-              </View>
-            </View>
+            <VideoPlayer url={selectedVideo.videoUrl} description={selectedVideo.description} />
           )}
         </View>
       </Modal>
@@ -369,32 +391,6 @@ const styles = StyleSheet.create({
   },
   
   // FAQ Detail View
-  backToCategories: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-    paddingVertical: 8,
-  },
-  backText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: '#666',
-    marginLeft: 8,
-  },
-  categoryHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 24,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-  },
-  categoryHeaderTitle: {
-    fontSize: 24,
-    fontFamily: 'Inter-Bold',
-    color: '#333',
-    marginLeft: 16,
-  },
   faqItem: {
     backgroundColor: 'white',
     borderRadius: 12,

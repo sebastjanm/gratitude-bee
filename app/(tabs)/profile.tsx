@@ -462,7 +462,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: 20,
-    paddingBottom: 16,
+    paddingBottom: 4,
   },
   headerContent: {
     flexDirection: 'row',

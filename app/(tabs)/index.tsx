@@ -622,7 +622,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: 20,
-    paddingBottom: 12,
+    paddingBottom: 4,
   },
   headerContent: {
     flexDirection: 'row',
@@ -630,7 +630,7 @@ const styles = StyleSheet.create({
     flex: 1, // Allow content to take up space
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontFamily: 'Inter-Bold',
     color: '#333',
     marginLeft: 12,
@@ -643,10 +643,10 @@ const styles = StyleSheet.create({
     marginLeft: 16,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: 'Inter-Regular',
     color: '#666',
-    lineHeight: 24,
+    lineHeight: 22,
     paddingHorizontal: 20,
   },
   scrollView: {
