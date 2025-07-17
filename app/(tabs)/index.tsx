@@ -19,13 +19,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Heart, Star, Smile, Compass, MessageCircle, HelpCircle, Award, Gift, Bell, Bug, Crown, ArrowUpCircle, ArrowDownCircle, Home } from 'lucide-react-native';
 import { HandHeart } from 'lucide-react-native';
 import NegativeBadgeModal from '@/components/NegativeBadgeModal';
-import DontPanicModal from '@/components/DontPanicModal';
+import DontPanicModal, { DontPanicTemplate } from '@/components/DontPanicModal';
 import AppreciationModal from '@/components/AppreciationModal';
 import RelationshipWisdomModal from '@/components/RelationshipWisdomModal';
 import FavorsModal from '@/components/FavorsModal';
 import QuickSendActions from '@/components/QuickSendActions';
 import TodayTip from '@/components/TodayTip';
-import PingModal from '@/components/PingModal';
+import PingModal, { PingTemplate } from '@/components/PingModal';
 import EngagementCard from '@/components/EngagementCard';
 import BraveryBadge from '@/components/BraveryBadge';
 import { supabase } from '@/utils/supabase';
@@ -59,7 +59,6 @@ const statsConfig = [
 ];
 
 export default function HomeScreen() {
-  console.log('HomeScreen: mounting');
   const [showNegativeModal, setShowNegativeModal] = useState(false);
   const [showDontPanicModal, setShowDontPanicModal] = useState(false);
   const [showAppreciationModal, setShowAppreciationModal] = useState(false);
@@ -72,7 +71,6 @@ export default function HomeScreen() {
   const [engagementStage, setEngagementStage] = useState<'boring' | 'demanding' | 'sad' | 'spark' | 'love' | 'none'>('boring');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { session } = useSession();
-  console.log('HomeScreen: session', session);
   const insets = useSafeAreaInsets();
 
   const userName = session?.user?.user_metadata?.display_name || 'Breda';
@@ -97,13 +95,11 @@ export default function HomeScreen() {
     });
 
     if (error) {
-      console.error('HomeScreen: Error fetching daily stats:', error);
       Alert.alert('Error', 'Could not fetch your daily stats.');
     } else if (data && data.length > 0) {
       const newStats = { ...data[0] };
       setStats(newStats);
       calculateEngagementStage(newStats.sent_today, newStats.received_today);
-      console.log('HomeScreen: fetched stats', newStats);
     }
     
     if (isRefresh) {
@@ -210,12 +206,10 @@ export default function HomeScreen() {
       },
     };
 
-    console.log('[handleSendBadge] Inserting event:', eventPayload);
     const { data: eventData, error } = await supabase.from('events').insert(eventPayload).select().single();
 
     if (error) {
       Alert.alert('Error', 'Could not send the badge. Please try again.');
-      console.error('Error inserting event:', error);
     } else {
       Alert.alert(
         'Badge Sent! 🎉',
@@ -223,7 +217,6 @@ export default function HomeScreen() {
         [{ text: 'OK' }]
       );
       
-      console.log('[handleSendBadge] Event inserted, now invoking send-notification');
       // Now, invoke the notification function
       const { error: notificationError } = await supabase.functions.invoke('send-notification', {
         body: { record: eventData }, // Pass the newly created event record
@@ -232,9 +225,7 @@ export default function HomeScreen() {
       if (notificationError) {
         // Log the error but don't show another alert to the user,
         // as the main action (sending the badge) was successful.
-        console.error('Error sending push notification:', notificationError);
       } else {
-        console.log('[handleSendBadge] Successfully invoked send-notification.');
       }
     }
   };
@@ -295,7 +286,6 @@ export default function HomeScreen() {
   
     if (error) {
       Alert.alert('Error', 'Could not send the favor request. Please try again.');
-      console.error(error);
     } else {
       Alert.alert(
         'Favor Requested! 🙏',
@@ -313,13 +303,11 @@ export default function HomeScreen() {
         .single();
         
       if (fetchError) {
-        console.error('Error fetching the event to send notification:', fetchError);
       } else {
         const { error: notificationError } = await supabase.functions.invoke('send-notification', {
           body: { record: eventData },
         });
         if (notificationError) {
-          console.error('Error sending favor notification:', notificationError);
         }
       }
     }
@@ -355,7 +343,6 @@ export default function HomeScreen() {
 
     if (error) {
       Alert.alert('Error', 'Could not send the hornet. Please try again.');
-      console.error('Error sending hornet:', error);
     } else {
       Alert.alert('Hornet Sent', 'Your message has been delivered.');
     }
@@ -393,14 +380,12 @@ export default function HomeScreen() {
 
     if (error) {
       Alert.alert('Error', 'Could not send the message. Please try again.');
-      console.error(`Error sending "Don't Panic" message:`, error);
     } else {
       Alert.alert('Message Sent', 'Your partner has been notified.');
       const { error: notificationError } = await supabase.functions.invoke('send-notification', {
         body: { record: eventData },
       });
       if (notificationError) {
-        console.error(`Error sending "Don't Panic" notification:`, notificationError);
       }
     }
   };
@@ -434,7 +419,6 @@ export default function HomeScreen() {
 
     if (error) {
       Alert.alert('Error', 'Could not send wisdom. Please try again.');
-      console.error('Error sending wisdom:', error);
     } else {
       Alert.alert('Wisdom Sent!', 'Your partner has received your wise words.');
       
@@ -444,7 +428,6 @@ export default function HomeScreen() {
       });
 
       if (notificationError) {
-        console.error('Error sending wisdom notification:', notificationError);
       }
     }
   };
@@ -480,14 +463,12 @@ export default function HomeScreen() {
 
     if (error) {
       Alert.alert('Error', 'Could not send the ping. Please try again.');
-      console.error('Error sending ping:', error);
     } else {
       Alert.alert('Ping Sent!', 'Your partner has been notified.');
       const { error: notificationError } = await supabase.functions.invoke('send-notification', {
         body: { record: eventData },
       });
       if (notificationError) {
-        console.error('Error sending ping notification:', notificationError);
       }
     }
   };
@@ -527,12 +508,9 @@ export default function HomeScreen() {
             <Text style={styles.title}>Hi, <Text style={styles.headerName}>{userName}</Text></Text>
           </View>
           <TouchableOpacity style={styles.headerButton} onPress={() => {
-            console.log('Help button pressed - navigating to /help');
             try {
               router.push('/help');
-              console.log('Navigation completed successfully');
             } catch (error) {
-              console.error('Navigation error:', error);
             }
           }}>
             <HelpCircle color="#666" size={24} />

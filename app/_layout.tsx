@@ -29,8 +29,6 @@ function GlobalLogic() {
   const segments = useSegments();
   const { session, loading } = useSession();
 
-  console.log('GlobalLogic: session', session, 'loading', loading);
-
   // Handles session-based navigation
   useEffect(() => {
     if (loading) return;
