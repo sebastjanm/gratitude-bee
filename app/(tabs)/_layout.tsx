@@ -71,6 +71,8 @@ export default function TabLayout() {
             tabBarIcon: ({ color, size, focused }) => (
               <AnimatedIcon icon={MessageSquare} color={color} size={size} focused={focused} />
             ),
+            headerShown: false,
+            tabBarHideOnKeyboard: true,
           }}
         />
         <Tabs.Screen

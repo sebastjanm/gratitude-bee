@@ -116,6 +116,14 @@ A critical navigation issue was resolved regarding avatar click functionality in
 
 This fix ensures that clicking on any avatar in the messages list reliably opens the conversation page between the user and that specific partner, maintaining the expected user experience flow.
 
+### Fixing Component Scope Issues: The `router` ReferenceError
+
+A `ReferenceError: Property 'router' doesn't exist` was encountered, crashing the app when interacting with header buttons.
+
+-   **The Problem:** The `ChatHeader` component, which contains the back and help buttons, needs access to the `router` object to perform navigation.
+-   **The Root Cause:** The `ChatHeader` component was defined as a standalone component outside the scope of the `ChatScreen` component. The `router` instance, created using the `useRouter()` hook, only existed within the `ChatScreen`'s scope and was not accessible to the `ChatHeader`.
+-   **The Solution:** The `router` instance was passed from the parent component (`ChatScreen`) down to the child component (`ChatHeader`) as a prop. This is a fundamental and standard React pattern for sharing state and functions between components, often referred to as "prop drilling". This gives `ChatHeader` direct access to the navigation functions it needs, resolving the reference error.
+
 ### Data Flow
 
 1.  **Loading Conversations**: The `messages.tsx` screen fetches all conversations the current user is a participant in.

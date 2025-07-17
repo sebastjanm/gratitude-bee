@@ -13,7 +13,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { useLocalSearchParams, router, Stack } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { supabase } from '@/utils/supabase';
 import { useSession } from '@/providers/SessionProvider';
 import { ChevronLeft, HelpCircle as HelpCircleIcon } from 'lucide-react-native';
@@ -84,7 +84,7 @@ const HeaderTitle = ({ participant }: { participant: ChatUser | null }) => {
 };
 
 // Main Chat Header Component - styled to match profile.tsx
-const ChatHeader = ({ participant }: { participant: ChatUser | null }) => {
+const ChatHeader = ({ participant, router }: { participant: ChatUser | null; router: any }) => {
   const [lastSeenText, setLastSeenText] = useState('offline');
 
   useEffect(() => {
@@ -124,6 +124,7 @@ const ChatHeader = ({ participant }: { participant: ChatUser | null }) => {
 const ChatScreen = () => {
   const { conversation_id } = useLocalSearchParams() as { conversation_id: string };
   const { session } = useSession();
+  const router = useRouter();
 
   const [messages, setMessages] = useState<IMessage[]>([]);
   const [participant, setParticipant] = useState<ChatUser | null>(null);
@@ -217,8 +218,10 @@ const ChatScreen = () => {
   }, [loadingMore, allMessagesLoaded, messages.length, session?.user?.id, myAvatar, participant]);
 
   useEffect(() => {
-    fetchParticipantAndMessages();
-  }, [fetchParticipantAndMessages]);
+    if (session) {
+      fetchParticipantAndMessages();
+    }
+  }, [session, fetchParticipantAndMessages]);
 
   // This single useEffect now controls the header's appearance for all states.
   useEffect(() => {
@@ -279,7 +282,7 @@ const ChatScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ChatHeader participant={participant} />
+      <ChatHeader participant={participant} router={router} />
       <GiftedChat
         messages={messages}
         onSend={onSend}
@@ -287,13 +290,13 @@ const ChatScreen = () => {
         loadEarlier={!allMessagesLoaded}
         onLoadEarlier={fetchMoreMessages}
         isLoadingEarlier={loadingMore}
-        renderAvatarOnTop
         alwaysShowSend
         isTyping={isTyping} // Stub
+        keyboardShouldPersistTaps="handled"
       />
       {loading && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#FF8C42" />
+          <ActivityIndicator size="large" />
         </View>
       )}
     </SafeAreaView>
