@@ -13,10 +13,12 @@ import {
   ActivityIndicator,
   RefreshControl,
   StatusBar as RNStatusBar,
+  LayoutAnimation,
+  UIManager,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Heart, Star, Smile, Compass, MessageCircle, HelpCircle, Award, Gift, Bell, Bug, Crown, ArrowUpCircle, ArrowDownCircle, Home } from 'lucide-react-native';
+import { Heart, Star, Smile, Compass, MessageCircle, HelpCircle, Award, Gift, Bell, Bug, Crown, ArrowUpCircle, ArrowDownCircle, Home, ChevronDown, ChevronUp } from 'lucide-react-native';
 import { HandHeart } from 'lucide-react-native';
 import NegativeBadgeModal from '@/components/NegativeBadgeModal';
 import DontPanicModal, { DontPanicTemplate } from '@/components/DontPanicModal';
@@ -52,11 +54,15 @@ const badgeCategoryConfig: Omit<BadgeCategory, 'count'>[] = [
 ];
 
 const statsConfig = [
-  { key: 'sent_today', name: 'Sent Today', icon: ArrowUpCircle, color: '#4ECDC4' },
-  { key: 'received_today', name: 'Received Today', icon: ArrowDownCircle, color: '#FF6B9D' },
-  { key: 'favor_points', name: 'Favor Points', icon: Gift, color: '#FFD93D' },
-  { key: 'appreciation_points', name: 'Appreciation', icon: Award, color: '#A8E6CF' },
+  { key: 'sent_today', name: 'Sent Today', icon: ArrowUpCircle, color: '#4ECDC4', description: 'Appreciations you sent today.' },
+  { key: 'received_today', name: 'Received Today', icon: ArrowDownCircle, color: '#FF6B9D', description: 'Appreciations you received today.' },
+  { key: 'favor_points', name: 'Favor Points', icon: Gift, color: '#FFD93D', description: 'Use these to ask for special favors.' },
+  { key: 'appreciation_points', name: 'Appreciation', icon: Award, color: '#A8E6CF', description: 'Your total positive karma.' },
 ];
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 export default function HomeScreen() {
   const [showNegativeModal, setShowNegativeModal] = useState(false);
@@ -70,6 +76,7 @@ export default function HomeScreen() {
   const [stats, setStats] = useState({ sent_today: 0, received_today: 0, favor_points: 0, appreciation_points: 0 });
   const [engagementStage, setEngagementStage] = useState<'boring' | 'demanding' | 'sad' | 'spark' | 'love' | 'none'>('boring');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isStatsExpanded, setIsStatsExpanded] = useState(false);
   const { session } = useSession();
   const insets = useSafeAreaInsets();
 
@@ -111,6 +118,11 @@ export default function HomeScreen() {
 
   const onRefresh = () => {
     fetchStats();
+  };
+
+  const toggleStatsExpansion = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setIsStatsExpanded(!isStatsExpanded);
   };
 
   const getDailyDeterministicRandom = () => {
@@ -474,6 +486,31 @@ export default function HomeScreen() {
   };
 
   const renderStats = () => {
+    if (isStatsExpanded) {
+      // Expanded list view
+      return (
+        <View style={{ paddingTop: 16 }}>
+          {statsConfig.map((stat, index) => {
+            const Icon = stat.icon;
+            const value = stats[stat.key as keyof typeof stats] ?? 0;
+            return (
+              <View key={stat.key} style={[styles.statItemExpanded, index === 0 && { paddingTop: 0 }]}>
+                <View style={[styles.statIcon, { backgroundColor: stat.color + '20', alignSelf: 'flex-start' }]}>
+                  <Icon color={stat.color} size={22} />
+                </View>
+                <View style={styles.statTextExpanded}>
+                  <View style={styles.statHeaderExpanded}>
+                    <Text style={styles.statLabel}>{stat.name}</Text>
+                    <Text style={styles.statNumber}>{value}</Text>
+                  </View>
+                  <Text style={styles.statDescriptionExpanded}>{stat.description}</Text>
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      );
+    }
     return (
       <View style={styles.statsGrid}>
         {statsConfig.map((stat) => {
@@ -533,7 +570,7 @@ export default function HomeScreen() {
           />
         }
       >
-        <View style={{ height: 32 }} />
+        <View style={{ height: 20 }} />
 
 
         {engagementStage !== 'none' && (
@@ -542,11 +579,17 @@ export default function HomeScreen() {
 
 
 
-        <View style={styles.statsContainer}>
-          {renderStats()}
-        </View>
+        <TouchableOpacity activeOpacity={0.8} onPress={toggleStatsExpansion}>
+          <View style={styles.statsContainer}>
+            <View style={styles.statsHeaderRow}>
+              <Text style={styles.statsTitle}>Today's Snapshot</Text>
+              {isStatsExpanded ? <ChevronUp color="#666" size={20} /> : <ChevronDown color="#666" size={20} />}
+            </View>
+            {renderStats()}
+          </View>
+        </TouchableOpacity>
 
-        <View style={{ height: 32 }} />
+        <View style={{ height: 8 }} />
 
         <QuickSendActions
           onShowAppreciationModal={() => setShowAppreciationModal(true)}
@@ -558,9 +601,11 @@ export default function HomeScreen() {
           heartAnimation={heartAnimation}
         />
         
+        <View style={{ height: 24 }} />
+        
         <TodayTip />
 
-        <View style={{ height: 32 }} />
+        <View style={{ height: 24 }} />
 
         <View style={styles.specialActions}>
           <NegativeBadgeModal
@@ -828,32 +873,34 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingVertical: 16,
     paddingHorizontal: 12,
-    marginTop: 20,
-    marginBottom: 24,
+    marginTop: 10,
+    marginBottom: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
+    overflow: 'hidden',
   },
   statsGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    paddingTop: 12,
   },
   statItem: {
     alignItems: 'center',
     flex: 1,
   },
   statIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 42,
+    height: 42,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
   },
   statNumber: {
-    fontSize: 20,
+    fontSize: 18,
     fontFamily: 'Inter-Bold',
     color: '#333',
   },
@@ -862,18 +909,45 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: '#666',
     marginTop: 4,
+    textAlign: 'center',
+  },
+  statsHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 8,
   },
   statsTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: '#333',
-    textAlign: 'center',
-    marginBottom: 16,
   },
   statsSubtitle: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
     color: '#999',
+    textAlign: 'center',
+  },
+  statItemExpanded: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+  },
+  statTextExpanded: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  statHeaderExpanded: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+  statDescriptionExpanded: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    color: '#666',
   },
   statsHeader: {
     backgroundColor: 'white',

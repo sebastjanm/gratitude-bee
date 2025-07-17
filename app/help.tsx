@@ -265,7 +265,7 @@ export default function HelpScreen() {
         </TouchableOpacity>
         {selectedFAQCategory ? 
             React.createElement(selectedFAQCategory.icon, { color: selectedFAQCategory.color, size: 28 }) : 
-            <HelpCircle color="#FF8C42" size={28} />
+        <HelpCircle color="#FF8C42" size={28} />
         }
         <Text style={styles.title}>{selectedFAQCategory ? selectedFAQCategory.title : 'Help Center'}</Text>
       </View>

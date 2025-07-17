@@ -16,13 +16,13 @@ type EngagementCardProps = {
 const stageContentMapping: Record<string, StageContent> = {
   boring: {
     animation: require('@/assets/lottie/boring.json'),
-    title: 'Boring...',
-    subtitle: 'Nothing is happening. Maybe send a little ping?',
+    title: 'Boring day...',
+    subtitle: 'Nothing is happening. Maybe send a little wisdom?',
   },
   demanding: {
     animation: require('@/assets/lottie/demanding.json'),
-    title: 'Hey, do something!',
-    subtitle: 'Your partner might appreciate a small gesture.',
+    title: 'Hey, share some love!',
+    subtitle: 'Your partner might appreciate a small gesture. Send a ping!ß',
   },
   sad: {
     animation: require('@/assets/lottie/sad.json'),
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     marginHorizontal: 16,
-    marginBottom: 16,
+    marginBottom: 8,
     flexDirection: 'row',
     alignItems: 'center',
     shadowColor: '#000',

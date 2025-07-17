@@ -190,7 +190,7 @@ export default function MessagesScreen() {
       <View style={styles.conversationTextContainer}>
         <Text style={styles.conversationName} numberOfLines={1}>{item.participant_name}</Text>
         <Text style={styles.conversationAction}>Start chatting</Text>
-      </View>
+        </View>
       <ChevronRight color="#BDBDBD" size={24} />
     </TouchableOpacity>
   );
