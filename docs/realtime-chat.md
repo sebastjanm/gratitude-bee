@@ -1,12 +1,12 @@
 # Real-time Chat Architecture
 
-This document outlines the architecture and implementation of the real-time chat module. The system is built on Supabase, leveraging **Postgres Changes** for message history and **Presence** for online status, adhering to official best practices for a simple, maintainable, and durable implementation.
+This document outlines the architecture and implementation of the real-time chat module. The system is built on Supabase and uses **TanStack Query (`useInfiniteQuery`)** for state management, adhering to modern best practices for a performant, maintainable, and robust implementation.
 
 ## Guiding Principles
 
-- **KISS (Keep It Simple, Stupid):** The architecture avoids over-engineering, resulting in a lean, manageable system.
+- **KISS (Keep It Simple, Stupid):** The architecture avoids over-engineering by leveraging a powerful state management library.
 - **DRY (Don't Repeat Yourself):** Reusable functions and database triggers automate common processes.
-- **Single Source of Truth:** The Postgres database is the definitive source for all chat history.
+- **Single Source of Truth:** The Postgres database is the definitive source for all chat history. TanStack Query acts as a synchronized client-side cache.
 - **Security First:** Strict Row Level Security (RLS) is implemented on all chat-related tables.
 
 ---
@@ -73,60 +73,36 @@ All schema changes are version-controlled in `supabase/migrations/`:
 
 ## Frontend Architecture
 
-The frontend consists of a conversation list, a chat screen, a custom header, and an avatar upload feature.
+The frontend consists of a conversation list and a chat screen, powered by modern data-fetching and state management patterns.
 
 ### Key Dependencies
-- **`react-native-gifted-chat`**: Provides the core chat UI, including message bubbles, input toolbar, and avatars.
-- **`expo-image-picker`**: Allows users to select images from their device's library for avatar uploads or for sending in chat.
-- **`date-fns`**: Used for formatting timestamps, such as the "last seen" status.
+- **`@tanstack/react-query`**: Manages all asychronous server state, including message fetching, pagination, and caching.
+- **`@dev-plugins/react-query`**: The official Expo Dev Tools plugin for TanStack Query, essential for debugging cache state and query behavior.
+- **`react-native-gifted-chat`**: Provides the core chat UI.
+- **`expo-image-picker`**: Allows users to select images for sending in chat.
+- **`date-fns`**: Used for formatting timestamps.
 
-### The Real-Time Fix: Solving Stale State Closures
+### The Modernization of Chat: From Manual State to TanStack Query
 
-The most critical challenge encountered during development was a bug where new real-time messages were received by the client but did not render in the UI without a manual refresh.
+The most critical challenge during development was a series of bugs related to unreliable message loading and slow real-time updates, particularly on certain Android devices. These issues were solved by replacing a manual, `useState`-based implementation with TanStack Query.
 
-- **The Problem:** The `useEffect` hook that established the Supabase Realtime subscription created a "stale closure." The subscription callback function captured the `messages` state from the initial render. When a new message arrived, the callback tried to update the state, but it was operating on the old, empty `messages` array, not the most current one.
+- **The Problems:**
+  1.  **Unreliable Pagination:** The initial implementation used offset-based pagination (`.range()`), which caused messages to be skipped or duplicated during active conversations.
+  2.  **Inefficient Real-time Updates:** The first attempt at a fix used `queryClient.invalidateQueries`. This triggered a "refetch storm," re-downloading the entire visible chat history for every new message, causing significant performance issues and UI lag.
+  3.  **Stale State:** The manual state management was prone to stale closures, where callbacks would operate on outdated state, a common and difficult-to-debug React issue.
 
-- **The Solution:** The fix was to use the **functional update form** of the React state setter. Instead of calling `setMessages([...newMessages, ...messages])`, we switched to `setMessages(previousMessages => GiftedChat.append(previousMessages, newMessages))`. This approach provides the callback with the *most recent* state (`previousMessages`) directly, ensuring that new messages are always appended to the current list, thus bypassing the stale closure problem entirely. This is a robust and standard React pattern for handling state updates that depend on the previous state, especially within callbacks or asynchronous operations.
+- **The Solution: A Robust, Performant Architecture**
+  1.  **Cursor-Based Pagination with `useInfiniteQuery`**: The core of the solution was refactoring to `useInfiniteQuery`. This hook manages all the complexity of pagination automatically. It uses the `created_at` timestamp of the oldest message as a "cursor," ensuring that loading more messages is reliable and efficient. It also provides convenient boolean states like `isPending`, `hasNextPage`, and `isFetchingNextPage` out-of-the-box.
+  2.  **Instant Real-time Updates with `setQueryData`**: To solve the refetch storm, the Supabase subscription callback was changed to manually update the TanStack Query cache using `queryClient.setQueryData`. When a new message arrives, it is directly injected into the cached data (`data.pages[0]`). This results in an instantaneous UI update with **zero** additional network requests, providing a seamless user experience and dramatically improving performance. This is the official, recommended pattern for handling real-time updates with `useInfiniteQuery`.
 
 ### Screens & Components
 
 - **Conversation List (`app/(tabs)/messages/index.tsx`)**: Displays a list of the user's ongoing conversations with real-time previews of the last message.
 - **Chat Screen (`app/(tabs)/messages/[conversation_id].tsx`)**:
-  - **Routing**: This screen is now properly nested under the messages tab using a stack navigator, allowing the bottom tab navigation to remain visible during chat sessions.
   - **Custom Header**: Displays the partner's name, avatar, and a real-time "last seen" status.
-  - **Realtime Subscription**: Subscribes to new `INSERT` events on the `messages` table for the current conversation, using the stale-state-proof method described above.
-- **Avatar Uploads (`app/(tabs)/profile.tsx`)**:
-  - Users can tap their avatar to launch the image picker.
-  - The selected image is uploaded to the `avatars` Supabase Storage bucket.
-  - The user's `avatar_url` in the `users` table is updated with the new public URL.
+  - **Data Fetching**: All message fetching and pagination is handled by the `useInfiniteQuery` hook.
+  - **Realtime Subscription**: Subscribes to new `INSERT` events on the `messages` table and uses `setQueryData` to instantly update the UI.
 
-### Navigation Architecture Fix
+### Debugging & Device-Specific Issues
 
-A critical navigation issue was resolved regarding avatar click functionality in the messages list:
-
-- **The Problem:** Avatar clicks in the conversation list were using relative navigation paths (`router.push(`${item.id}`)`) which failed to resolve correctly within the nested tab/stack navigation structure. This caused navigation failures when users tried to open conversations by clicking on partner avatars.
-
-- **The Root Cause:** Expo Router's file-based routing system requires explicit paths when navigating between nested route segments. Relative paths can become ambiguous within complex navigation hierarchies, especially when combining tab and stack navigators.
-
-- **The Solution:** All navigation calls were updated to use absolute paths (`router.push(`/messages/${item.id}`)`) instead of relative paths. This ensures consistent navigation behavior regardless of the current route context. The fix was applied to:
-  - Avatar clicks in grid view (`GridItem` component)
-  - Row clicks in list view (`renderItem` component) 
-  - New chat creation (`handleNewChat` function)
-  - Automatic single-conversation redirect
-
-This fix ensures that clicking on any avatar in the messages list reliably opens the conversation page between the user and that specific partner, maintaining the expected user experience flow.
-
-### Fixing Component Scope Issues: The `router` ReferenceError
-
-A `ReferenceError: Property 'router' doesn't exist` was encountered, crashing the app when interacting with header buttons.
-
--   **The Problem:** The `ChatHeader` component, which contains the back and help buttons, needs access to the `router` object to perform navigation.
--   **The Root Cause:** The `ChatHeader` component was defined as a standalone component outside the scope of the `ChatScreen` component. The `router` instance, created using the `useRouter()` hook, only existed within the `ChatScreen`'s scope and was not accessible to the `ChatHeader`.
--   **The Solution:** The `router` instance was passed from the parent component (`ChatScreen`) down to the child component (`ChatHeader`) as a prop. This is a fundamental and standard React pattern for sharing state and functions between components, often referred to as "prop drilling". This gives `ChatHeader` direct access to the navigation functions it needs, resolving the reference error.
-
-### Data Flow
-
-1.  **Loading Conversations**: The `messages.tsx` screen fetches all conversations the current user is a participant in.
-2.  **Entering a Chat**: Navigating to `[conversation_id].tsx` fetches the partner's profile (`display_name`, `avatar_url`, `last_seen`) and the most recent batch of messages for initial display.
-3.  **Receiving Messages**: The Supabase Realtime subscription, safely using a functional state update, listens for new rows in the `messages` table and appends them to the `GiftedChat` component.
-4.  **Sending Messages**: A new message is inserted into the `messages` table. The `on_new_message` trigger automatically updates the parent `conversations` table, which in turn updates the conversation list preview for both users in real-time.
+A device-specific bug where a Google Pixel phone failed to refresh the UI was a key driver for this refactor. The final architecture was confirmed to be working correctly using the **`@dev-plugins/react-query`** tool, which allowed us to inspect the query cache and confirm that `invalidateQueries` was causing a refetch storm, leading us to the final `setQueryData` solution. The improved performance of the final solution resolved the issue on the Pixel device.
