@@ -132,6 +132,11 @@ Deno.serve(async (req) => {
         }
         categoryIdentifier = 'hornet';
         break;
+      case 'REACTION':
+        title = `${content.sender_name} reacted to your message!`;
+        body = `They reacted with ${content.reaction} to "${content.original_event_title}"`;
+        categoryIdentifier = 'default';
+        break;
     }
 
     const { data: notification, error: notificationError } = await supabaseAdmin

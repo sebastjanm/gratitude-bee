@@ -293,6 +293,27 @@ This document tracks the step-by-step implementation of the Gratitude Bee applic
         *   The existing real-time subscription for `users` table updates ensures the new avatar is automatically displayed on the messages list and chat headers for both users.
 *   **Next Step:** Final regression testing of all features and preparation for a production release. 
 
+### Video Player Modal
+
+- **File**: `components/VideoPlayerModal.tsx`
+- **Description**: A reusable modal component to play videos, replacing the inline player in the Help screen. It receives a video URL and a function to close the modal.
+- **Related Files**: `app/(tabs)/help.tsx`, `app/(tabs)/index.tsx`
+
+### Event Reactions
+
+- **Description**: Added a feature allowing users to react to events in their timeline. This provides a quick way to acknowledge a message without sending a full reply.
+- **Database Changes**:
+  - A `reaction` column (TEXT) was added to the `events` table to store the reaction key (e.g., 'love', 'sad').
+  - **Migration**: `supabase/migrations/20250726120000_add_reaction_to_events.sql`
+- **Backend**:
+  - **Edge Function**: `supabase/functions/add-reaction/index.ts` was created to handle adding a reaction to an event and triggering a push notification to the original sender.
+  - The `send-notification` function was updated to handle the new `REACTION` event type.
+- **Frontend**:
+  - **Component**: `components/ReactionModal.tsx` was created to display reaction options.
+  - **Timeline**: `app/(tabs)/timeline.tsx` was updated to:
+    - Make received event cards tappable to open the `ReactionModal`.
+    - Display the selected reaction icon on the event card.
+    - Handle a special "Thank You" case for completed favors.
 
 
  

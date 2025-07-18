@@ -18,6 +18,7 @@ import { Heart, Star, Smile, Compass, MessageCircle, Filter, Calendar, Bug, X, C
 import { useSession } from '@/providers/SessionProvider';
 import { supabase } from '@/utils/supabase';
 import { router } from 'expo-router';
+import ReactionModal from '@/components/ReactionModal';
 
 const { width } = Dimensions.get('window');
 
@@ -36,6 +37,7 @@ interface TimelineEvent {
   isNegative?: boolean;
   cancelledBadges?: string[];
   status?: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'COMPLETED';
+  reaction?: string; // Add reaction field
   content?: {
     title: string;
     description?: string;
@@ -69,6 +71,15 @@ const categoryDetails: { [key: string]: { icon: any; color: string } } = {
   ping: { icon: MessageCircle, color: '#3B82F6' },
   dont_panic: { icon: Heart, color: '#6366F1' },
   default: { icon: Heart, color: '#ccc' },
+};
+
+const reactionIcons: { [key: string]: string } = {
+  love: '❤️',
+  thumbs_up: '👍',
+  smile: '😊',
+  sad: '😢',
+  pray: '🙏',
+  why: '🤔',
 };
 
 const getEventVisuals = (event: any) => {
@@ -120,6 +131,7 @@ const transformEvent = (event: any, currentUserId: string, usersMap: Map<string,
     color: color,
     isNegative: event.event_type === 'HORNET',
     status: event.status,
+    reaction: event.reaction, // Pass reaction
     content: content,
     description: description,
     isEmojiIcon: isEmojiIcon,
@@ -138,6 +150,9 @@ export default function TimelineScreen() {
   const [hasMore, setHasMore] = useState(true);
   const PAGE_SIZE = 10;
   const [refreshing, setRefreshing] = useState(false);
+  const [isReactionModalVisible, setReactionModalVisible] = useState(false);
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [currentReactionOptions, setCurrentReactionOptions] = useState({});
 
   const formatEventType = (type: string) => {
     if (!type) return '';
@@ -161,6 +176,43 @@ export default function TimelineScreen() {
     fetchEvents(true).then(() => setRefreshing(false));
   }, []);
 
+  const handleCardPress = (event: TimelineEvent) => {
+    if (event.type === 'received' && !event.reaction) {
+      if (event.eventType === 'FAVOR' && event.status === 'COMPLETED') {
+        Alert.alert(
+          "Send 'Thank You'",
+          `Would you like to send a "Thank You" for this completed favor?`,
+          [
+            { text: "Cancel", style: "cancel" },
+            { text: "Send", onPress: () => sendThankYouForFavor(event.id) }
+          ]
+        );
+        return;
+      }
+      
+      const positiveReactions = { 'love': '❤️', 'thumbs_up': '👍', 'smile': '😊' };
+      const negativeReactions = { 'sad': '😢', 'pray': '🙏', 'why': '🤔' };
+      
+      setCurrentReactionOptions(event.isNegative ? negativeReactions : positiveReactions);
+      setSelectedEventId(event.id);
+      setReactionModalVisible(true);
+    }
+  };
+
+  const sendThankYouForFavor = async (eventId: string) => {
+    if (!session) return;
+    try {
+      const { error } = await supabase.functions.invoke('send-thank-you', {
+        body: { original_event_id: eventId, user_id: session.user.id },
+      });
+      if (error) throw error;
+      Alert.alert('Success', 'A thank you has been sent!');
+      fetchEvents(true);
+    } catch (err) {
+      Alert.alert('Error', 'Could not send thank you message.');
+    }
+  }
+
   const fetchEvents = async (isInitialFetch = false) => {
     if (!session || (!isInitialFetch && (loadingMore || !hasMore))) return;
 
@@ -176,7 +228,7 @@ export default function TimelineScreen() {
     const from = currentPage * PAGE_SIZE;
     const to = from + PAGE_SIZE - 1;
 
-    let query = supabase.from('events').select('*').range(from, to);
+    let query = supabase.from('events').select('*, reaction').range(from, to);
 
     if (filter === 'sent') {
       query = query.eq('sender_id', session.user.id);
@@ -401,7 +453,7 @@ export default function TimelineScreen() {
           <ActivityIndicator size="large" color="#FF8C42" style={{ marginTop: 50 }} />
         ) : filteredEvents.length > 0 ? (
           filteredEvents.map((event, index) => {
-            const { partnerName, badgeName, description, timestamp, icon: Icon, color, type, status, eventType, isEmojiIcon } = event;
+            const { partnerName, badgeName, description, timestamp, icon: Icon, color, type, status, eventType, isEmojiIcon, reaction } = event;
             const isLast = index === filteredEvents.length - 1;
         
             return (
@@ -420,7 +472,11 @@ export default function TimelineScreen() {
                   </View>
                   {!isLast && <View style={styles.timelineLine} />}
                 </View>
-                <View style={styles.timelineContent}>
+                <TouchableOpacity 
+                  style={styles.timelineContent}
+                  onPress={() => handleCardPress(event)}
+                  activeOpacity={event.type === 'received' && !event.reaction ? 0.7 : 1}
+                >
                   <View style={[
                     styles.eventCard,
                     event.isNegative && styles.negativeEventCard
@@ -498,6 +554,7 @@ export default function TimelineScreen() {
                       </View>
                       <View style={styles.footerRight}>
                         <Text style={styles.eventTime}>{formatTimestamp(event.timestamp)}</Text>
+                        {reaction && <Text style={styles.reactionIcon}>{reactionIcons[reaction]}</Text>}
                         {event.content?.points && (
                           <View style={styles.pointsContainer}>
                             <Text style={styles.pointsText}>{event.content.points} {event.content.points_icon}</Text>
@@ -506,7 +563,7 @@ export default function TimelineScreen() {
                       </View>
                     </View>
                   </View>
-                </View>
+                </TouchableOpacity>
               </View>
             );
           })
@@ -530,6 +587,15 @@ export default function TimelineScreen() {
           </TouchableOpacity>
         )}
       </ScrollView>
+      <ReactionModal 
+        isVisible={isReactionModalVisible}
+        onClose={() => {
+          setReactionModalVisible(false);
+          fetchEvents(true);
+        }}
+        eventId={selectedEventId}
+        reactionOptions={currentReactionOptions}
+      />
     </View>
   );
 }
@@ -878,4 +944,8 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: 'white',
   },
+  reactionIcon: {
+    fontSize: 16,
+    marginLeft: 8,
+  }
 });
