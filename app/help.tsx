@@ -5,7 +5,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Platform
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { ArrowLeft, HelpCircle, Video as VideoIcon, MessageSquare, Users, Heart, Settings, Gift, Play, X, ChevronRight, LucideIcon } from 'lucide-react-native';
-import { VideoView, useVideoPlayer } from 'expo-video';
+import VideoPlayerModal from '../components/VideoPlayerModal';
 
 
 const { width } = Dimensions.get('window');
@@ -150,25 +150,6 @@ const videoGuides: VideoGuide[] = [
   },
 ];
 
-const VideoPlayer = ({ url, description }: { url: string; description: string }) => {
-  const player = useVideoPlayer(url);
-
-  return (
-    <View style={styles.videoPlayerContainer}>
-      <VideoView
-        style={styles.videoPlayer}
-        player={player}
-        nativeControls
-        contentFit="contain"
-      />
-      <View style={styles.videoModalInfo}>
-        <Text style={styles.videoModalDescription}>{description}</Text>
-      </View>
-    </View>
-  );
-};
-
-
 export default function HelpScreen() {
   const insets = useSafeAreaInsets();
   const [selectedFAQCategory, setSelectedFAQCategory] = useState<FAQCategory | null>(null);
@@ -288,31 +269,11 @@ export default function HelpScreen() {
       </ScrollView>
 
       {/* Video Modal */}
-      <Modal
+      <VideoPlayerModal 
+        video={selectedVideo}
         visible={videoModalVisible}
-        animationType="fade"
-        transparent={false}
-        onRequestClose={() => setVideoModalVisible(false)}
-      >
-        <View style={[styles.videoModalContainer, {
-          paddingTop: insets.top,
-          paddingBottom: insets.bottom,
-        }]}>
-          <View style={styles.videoModalHeader}>
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setVideoModalVisible(false)}
-            >
-              <X color="#333" size={24} />
-            </TouchableOpacity>
-            <Text style={styles.videoModalTitle}>{selectedVideo?.title}</Text>
-          </View>
-          
-          {selectedVideo && (
-            <VideoPlayer url={selectedVideo.videoUrl} description={selectedVideo.description} />
-          )}
-        </View>
-      </Modal>
+        onClose={() => setVideoModalVisible(false)}
+      />
     </View>
   );
 }
@@ -485,47 +446,5 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   
-  // Video Modal
-  videoModalContainer: {
-    flex: 1,
-    backgroundColor: '#000',
-  },
-  videoModalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-  },
-  closeButton: {
-    padding: 8,
-  },
-  videoModalTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    flex: 1,
-    textAlign: 'center',
-    marginRight: 40, // Balance the close button
-  },
-  videoPlayerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  videoPlayer: {
-    width: '100%',
-    height: 250,
-  },
-  videoModalInfo: {
-    backgroundColor: 'white',
-    padding: 20,
-  },
-  videoModalDescription: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    lineHeight: 24,
-  },
+  // Video Modal - REMOVED as it's now in a separate component
 }); 
