@@ -17,12 +17,19 @@ export default function TermsScreen() {
       paddingLeft: insets.left,
       paddingRight: insets.right,
     }]}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <ArrowLeft color="#333" size={24} />
-        </TouchableOpacity>
-        <FileText color="#FF8C42" size={28} />
-        <Text style={styles.title}>Terms & Conditions</Text>
+      <View style={styles.fixedHeaderContainer}>
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+              <ArrowLeft color="#333" size={24} />
+            </TouchableOpacity>
+            <FileText color="#FF8C42" size={28} />
+            <Text style={styles.title}>Terms & Conditions</Text>
+          </View>
+          {/* Empty view for spacing, consistent with profile header structure */}
+          <View />
+        </View>
+        <Text style={styles.subtitle}>The rules for using our app</Text>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -128,24 +135,32 @@ const styles = StyleSheet.create({
     flex: 1, 
     backgroundColor: '#FFF8F0'
   },
+  fixedHeaderContainer: {
+    backgroundColor: '#FFF8F0',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+    paddingBottom: 20,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    paddingTop: 20,
+    paddingBottom: 4,
   },
-  backButton: { 
-    padding: 8, 
-    marginRight: 12 
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  title: { 
-    fontSize: 24, 
-    fontFamily: 'Inter-Bold', 
-    color: '#333', 
-    marginLeft: 8 
+  backButton: { padding: 8, marginRight: 8, marginLeft: -8 },
+  title: { fontSize: 24, fontFamily: 'Inter-Bold', color: '#333', marginLeft: 12 },
+  subtitle: {
+    fontSize: 15,
+    fontFamily: 'Inter-Regular',
+    color: '#666',
+    lineHeight: 22,
+    paddingHorizontal: 20,
   },
   content: { 
     flex: 1,

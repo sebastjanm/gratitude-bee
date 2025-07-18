@@ -174,14 +174,6 @@ export default function HelpScreen() {
   const [selectedFAQCategory, setSelectedFAQCategory] = useState<FAQCategory | null>(null);
   const [selectedVideo, setSelectedVideo] = useState<VideoGuide | null>(null);
   const [videoModalVisible, setVideoModalVisible] = useState(false);
-  
-  // Debug logging
-  useEffect(() => {
-    console.log('HelpScreen mounted - modal should be visible now');
-    return () => {
-      console.log('HelpScreen unmounted');
-    };
-  }, []);
 
   const handleCategoryPress = (category: FAQCategory) => {
     setSelectedFAQCategory(category);
@@ -259,15 +251,22 @@ export default function HelpScreen() {
       paddingLeft: insets.left,
       paddingRight: insets.right,
     }]}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => selectedFAQCategory ? setSelectedFAQCategory(null) : router.back()} style={styles.backButton}>
-          <ArrowLeft color="#333" size={24} />
-        </TouchableOpacity>
-        {selectedFAQCategory ? 
-            React.createElement(selectedFAQCategory.icon, { color: selectedFAQCategory.color, size: 28 }) : 
-        <HelpCircle color="#FF8C42" size={28} />
-        }
-        <Text style={styles.title}>{selectedFAQCategory ? selectedFAQCategory.title : 'Help Center'}</Text>
+      <View style={styles.fixedHeaderContainer}>
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity onPress={() => selectedFAQCategory ? setSelectedFAQCategory(null) : router.back()} style={styles.backButton}>
+              <ArrowLeft color="#333" size={24} />
+            </TouchableOpacity>
+            {selectedFAQCategory ? 
+              React.createElement(selectedFAQCategory.icon, { color: selectedFAQCategory.color, size: 28 }) : 
+              <HelpCircle color="#FF8C42" size={28} />
+            }
+            <Text style={styles.title}>{selectedFAQCategory ? selectedFAQCategory.title : 'Help Center'}</Text>
+          </View>
+          {/* Empty view for spacing, consistent with profile header structure */}
+          <View />
+        </View>
+        <Text style={styles.subtitle}>How can we help you?</Text>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -323,21 +322,37 @@ const styles = StyleSheet.create({
     flex: 1, 
     backgroundColor: '#FFF8F0'
   },
+  fixedHeaderContainer: {
+    backgroundColor: '#FFF8F0',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+    paddingBottom: 20,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    paddingTop: 20,
+    paddingBottom: 4,
   },
-  backButton: { padding: 8, marginRight: 12 },
-  title: { fontSize: 24, fontFamily: 'Inter-Bold', color: '#333', marginLeft: 8 },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButton: { padding: 8, marginRight: 8, marginLeft: -8 },
+  title: { fontSize: 24, fontFamily: 'Inter-Bold', color: '#333', marginLeft: 12 },
+  subtitle: {
+    fontSize: 15,
+    fontFamily: 'Inter-Regular',
+    color: '#666',
+    lineHeight: 22,
+    paddingHorizontal: 20,
+  },
   content: { flex: 1 },
-  section: { margin: 20 },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
-  sectionTitle: { fontSize: 20, fontFamily: 'Inter-SemiBold', color: '#333', marginLeft: 8 },
+  section: { marginHorizontal: 20, marginTop: 20, marginBottom: 10 },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
+  sectionTitle: { fontSize: 18, fontFamily: 'Inter-SemiBold', color: '#333', marginLeft: 12 },
   
   // FAQ Categories
   categoryGrid: {
@@ -359,24 +374,24 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   categoryIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
   },
   categoryTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: 'Inter-SemiBold',
     color: '#333',
     marginBottom: 4,
   },
   categoryDescription: {
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: 'Inter-Regular',
     color: '#666',
-    lineHeight: 16,
+    lineHeight: 18,
     marginBottom: 12,
   },
   categoryFooter: {
@@ -409,10 +424,10 @@ const styles = StyleSheet.create({
     marginBottom: 8 
   },
   faqAnswer: { 
-    fontSize: 14, 
+    fontSize: 15, 
     fontFamily: 'Inter-Regular', 
     color: '#666', 
-    lineHeight: 20 
+    lineHeight: 22 
   },
   
   // Video Guides
@@ -428,7 +443,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   videoThumbnailContainer: {
-    height: 160,
+    height: 180,
     backgroundColor: '#f0f0f0',
     justifyContent: 'center',
     alignItems: 'center',
@@ -452,7 +467,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 4,
+    borderRadius: 8,
   },
   videoInfo: {
     padding: 16,
@@ -461,7 +476,7 @@ const styles = StyleSheet.create({
     fontSize: 16, 
     fontFamily: 'Inter-SemiBold', 
     color: '#333', 
-    marginBottom: 4 
+    marginBottom: 6 
   },
   videoDescription: { 
     fontSize: 14, 
@@ -478,19 +493,22 @@ const styles = StyleSheet.create({
   videoModalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
   },
   closeButton: {
     padding: 8,
-    marginRight: 12,
   },
   videoModalTitle: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
     color: '#333',
     flex: 1,
+    textAlign: 'center',
+    marginRight: 40, // Balance the close button
   },
   videoPlayerContainer: {
     flex: 1,
