@@ -126,7 +126,7 @@ export default function MessagesScreen() {
     if (!loading && conversations.length === 1 && !hasPerformedInitialRedirect.current) {
       console.log('Performing initial redirect to single conversation...');
       hasPerformedInitialRedirect.current = true;
-      router.push(`./${conversations[0].id}`);
+      router.push(`/messages/${conversations[0].id}`);
     }
   }, [loading, conversations, router]);
 
@@ -140,16 +140,28 @@ export default function MessagesScreen() {
         return;
     }
 
-    const { data: conversationId, error: rpcError } = await supabase.rpc('get_or_create_conversation', {
-      user_one_id: session.user.id,
-      user_two_id: partner.partner_id,
-    });
+    try {
+      console.log('Starting chat with partner:', partner.partner_id);
+      
+      const { data: conversationId, error: rpcError } = await supabase.rpc('get_or_create_conversation', {
+        user_one_id: session.user.id,
+        user_two_id: partner.partner_id,
+      });
 
-    if (rpcError) {
-      alert('Could not start a new chat. Please try again.');
-      return;
+      console.log('RPC response:', { conversationId, rpcError });
+
+      if (rpcError || !conversationId) {
+        console.error('Error creating conversation:', rpcError);
+        alert(`Could not start a new chat. ${rpcError?.message || 'Please try again.'}`);
+        return;
+      }
+      
+      console.log('Navigating to conversation:', conversationId);
+      router.push(`/messages/${conversationId}`);
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      alert('An unexpected error occurred. Please try again.');
     }
-    router.push(`./${conversationId}`);
   };
 
   // Effect for setting up real-time subscriptions. Runs only once.
@@ -178,7 +190,7 @@ export default function MessagesScreen() {
   const ConversationItem = ({ item }: { item: Conversation }) => (
     <TouchableOpacity 
       style={styles.conversationItem} 
-      onPress={() => router.push(`./${item.id}`)}
+      onPress={() => router.push(`/messages/${item.id}`)}
     >
         {item.participant_avatar_url ? (
             <Image source={{ uri: item.participant_avatar_url }} style={styles.conversationAvatarImage} />
