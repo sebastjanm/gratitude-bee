@@ -126,7 +126,7 @@ export default function MessagesScreen() {
     if (!loading && conversations.length === 1 && !hasPerformedInitialRedirect.current) {
       console.log('Performing initial redirect to single conversation...');
       hasPerformedInitialRedirect.current = true;
-      router.push(`/messages/${conversations[0].id}`);
+      router.push(`./${conversations[0].id}`);
     }
   }, [loading, conversations, router]);
 
@@ -149,7 +149,7 @@ export default function MessagesScreen() {
       alert('Could not start a new chat. Please try again.');
       return;
     }
-    router.push(`/messages/${conversationId}`);
+    router.push(`./${conversationId}`);
   };
 
   // Effect for setting up real-time subscriptions. Runs only once.
@@ -178,7 +178,7 @@ export default function MessagesScreen() {
   const ConversationItem = ({ item }: { item: Conversation }) => (
     <TouchableOpacity 
       style={styles.conversationItem} 
-      onPress={() => router.push(`/messages/${item.id}`)}
+      onPress={() => router.push(`./${item.id}`)}
     >
         {item.participant_avatar_url ? (
             <Image source={{ uri: item.participant_avatar_url }} style={styles.conversationAvatarImage} />
@@ -234,11 +234,6 @@ export default function MessagesScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen 
-        options={{ 
-          headerShown: false,
-        }} 
-      />
       <MessagesHeader onNewChat={handleNewChat} />
       {loading ? (
           <ActivityIndicator style={{marginTop: 20}} size="large" color="#FF8C42" />
