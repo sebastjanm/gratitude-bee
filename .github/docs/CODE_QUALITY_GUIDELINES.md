@@ -21,6 +21,8 @@ npm test              # When tests are implemented
 ./scripts/pre-push.sh  # Runs all checks automatically
 ```
 
+See [pre-push.sh](../../scripts/pre-push.sh) for implementation details.
+
 ## Code Quality Standards
 
 ### 1. ESLint Compliance
