@@ -126,7 +126,7 @@ export default function MessagesScreen() {
     if (!loading && conversations.length === 1 && !hasPerformedInitialRedirect.current) {
       console.log('Performing initial redirect to single conversation...');
       hasPerformedInitialRedirect.current = true;
-      router.push(`/(tabs)/messages/${conversations[0].id}`);
+      router.push(`/messages/${conversations[0].id}`);
     }
   }, [loading, conversations, router]);
 
@@ -158,8 +158,7 @@ export default function MessagesScreen() {
       }
       
       console.log('Navigating to conversation:', conversationId);
-      // Use proper nested navigation path
-      router.push(`/(tabs)/messages/${conversationId}`);
+      router.push(`/messages/${conversationId}`);
     } catch (error) {
       console.error('Unexpected error:', error);
       alert('An unexpected error occurred. Please try again.');
@@ -192,7 +191,7 @@ export default function MessagesScreen() {
   const ConversationItem = ({ item }: { item: Conversation }) => (
     <TouchableOpacity 
       style={styles.conversationItem} 
-      onPress={() => router.push(`/(tabs)/messages/${item.id}`)}
+      onPress={() => router.push(`/messages/${item.id}`)}
     >
         {item.participant_avatar_url ? (
             <Image source={{ uri: item.participant_avatar_url }} style={styles.conversationAvatarImage} />
