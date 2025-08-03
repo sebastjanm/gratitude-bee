@@ -91,11 +91,8 @@ function RootLayoutNav() {
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="(modals)" options={{ presentation: 'modal', headerShown: false }} />
-        <Stack.Screen name="help" options={{ presentation: 'modal', headerShown: false }} />
-        <Stack.Screen name="impressum" options={{ presentation: 'modal', headerShown: false }} />
+        <Stack.Screen name="(info)" options={{ headerShown: false }} />
         <Stack.Screen name="invite/[code]" options={{ headerShown: false }} />
-        <Stack.Screen name="privacy" options={{ presentation: 'modal', headerShown: false }} />
-        <Stack.Screen name="terms" options={{ presentation: 'modal', headerShown: false }} />
       </Stack>
     </>
   );
