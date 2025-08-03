@@ -168,7 +168,7 @@ export default function MessagesScreen() {
 
   // Subscribe to new messages
   useEffect(() => {
-    if (!conversationId) return;
+    if (!conversationId || !myUserId) return;
 
     const channel = supabase
       .channel(`messages:${conversationId}`)
@@ -181,7 +181,23 @@ export default function MessagesScreen() {
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
-          queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
+          const newMessage = payload.new as ChatMessage;
+          
+          // Only add if it's not from the current user (to avoid duplicates)
+          if (newMessage.sender_id !== myUserId) {
+            queryClient.setQueryData(['messages', conversationId], (oldData: any) => {
+              if (!oldData || !oldData.pages) return oldData;
+              
+              // Add to the first page (newest messages)
+              const newPages = [...oldData.pages];
+              newPages[0] = [newMessage, ...newPages[0]];
+              
+              return {
+                ...oldData,
+                pages: newPages,
+              };
+            });
+          }
         }
       )
       .subscribe();
@@ -189,7 +205,7 @@ export default function MessagesScreen() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [conversationId, queryClient]);
+  }, [conversationId, myUserId, queryClient]);
 
   const allMessages = useMemo(() => {
     if (!data?.pages) return [];
@@ -215,24 +231,61 @@ export default function MessagesScreen() {
   const onSend = useCallback(async (messages: IMessage[] = []) => {
     if (!conversationId || !myUserId || messages.length === 0) return;
 
+    const message = messages[0];
+    const tempId = `temp-${Date.now()}`;
+    
+    // Optimistic update - add message immediately
+    const optimisticMessage: ChatMessage = {
+      id: tempId,
+      conversation_id: conversationId,
+      sender_id: myUserId,
+      text: message.text,
+      created_at: new Date().toISOString(),
+      uri: message.image || null,
+    };
+    
+    queryClient.setQueryData(['messages', conversationId], (oldData: any) => {
+      if (!oldData || !oldData.pages) return oldData;
+      const newPages = [...oldData.pages];
+      newPages[0] = [optimisticMessage, ...newPages[0]];
+      return { ...oldData, pages: newPages };
+    });
+
     setIsSending(true);
     try {
-      const message = messages[0];
-      const { error } = await supabase.from('messages').insert({
+      const { data, error } = await supabase.from('messages').insert({
         conversation_id: conversationId,
         sender_id: myUserId,
         text: message.text,
         uri: message.image || null,
-      });
+      }).select().single();
 
       if (error) throw error;
+
+      // Replace temp message with real one
+      queryClient.setQueryData(['messages', conversationId], (oldData: any) => {
+        if (!oldData || !oldData.pages) return oldData;
+        const newPages = oldData.pages.map((page: ChatMessage[]) =>
+          page.map(msg => msg.id === tempId ? data : msg)
+        );
+        return { ...oldData, pages: newPages };
+      });
     } catch (error) {
+      // Remove optimistic message on error
+      queryClient.setQueryData(['messages', conversationId], (oldData: any) => {
+        if (!oldData || !oldData.pages) return oldData;
+        const newPages = oldData.pages.map((page: ChatMessage[]) =>
+          page.filter(msg => msg.id !== tempId)
+        );
+        return { ...oldData, pages: newPages };
+      });
+      
       console.error('Error sending message:', error);
       Alert.alert('Error', 'Failed to send message');
     } finally {
       setIsSending(false);
     }
-  }, [conversationId, myUserId]);
+  }, [conversationId, myUserId, queryClient]);
 
   const onLoadEarlier = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {
