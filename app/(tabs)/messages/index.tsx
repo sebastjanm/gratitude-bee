@@ -126,7 +126,7 @@ export default function MessagesScreen() {
     if (!loading && conversations.length === 1 && !hasPerformedInitialRedirect.current) {
       console.log('Performing initial redirect to single conversation...');
       hasPerformedInitialRedirect.current = true;
-      router.push(`/messages/${conversations[0].id}`);
+      router.push(`/(tabs)/messages/${conversations[0].id}`);
     }
   }, [loading, conversations, router]);
 
@@ -143,10 +143,11 @@ export default function MessagesScreen() {
     try {
       console.log('Starting chat with partner:', partner.partner_id);
       
-      const { data: conversationId, error: rpcError } = await supabase.rpc('get_or_create_conversation', {
-        user_one_id: session.user.id,
-        user_two_id: partner.partner_id,
-      });
+      const { data: conversationId, error: rpcError } = await supabase
+        .rpc<string>('get_or_create_conversation', {
+          user_one_id: session.user.id,
+          user_two_id: partner.partner_id,
+        });
 
       console.log('RPC response:', { conversationId, rpcError });
 
@@ -157,7 +158,8 @@ export default function MessagesScreen() {
       }
       
       console.log('Navigating to conversation:', conversationId);
-      router.push(`/messages/${conversationId}`);
+      // Use proper nested navigation path
+      router.push(`/(tabs)/messages/${conversationId}`);
     } catch (error) {
       console.error('Unexpected error:', error);
       alert('An unexpected error occurred. Please try again.');
@@ -190,7 +192,7 @@ export default function MessagesScreen() {
   const ConversationItem = ({ item }: { item: Conversation }) => (
     <TouchableOpacity 
       style={styles.conversationItem} 
-      onPress={() => router.push(`/messages/${item.id}`)}
+      onPress={() => router.push(`/(tabs)/messages/${item.id}`)}
     >
         {item.participant_avatar_url ? (
             <Image source={{ uri: item.participant_avatar_url }} style={styles.conversationAvatarImage} />
