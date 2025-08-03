@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Tabs } from 'expo-router';
 import { Home, BarChart2, Award, Calendar, User, MessageSquare } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Animated, Easing } from 'react-native';
+import { Animated, Easing, Platform } from 'react-native';
 import { NotificationProvider } from '@/providers/NotificationProvider';
 
 interface AnimatedIconProps {

@@ -10,7 +10,17 @@
       "WebFetch(domain:reactnavigation.org)",
       "WebFetch(domain:supabase.com)",
       "Bash(git diff:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(npx tsc:*)",
+      "Bash(chmod:*)",
+      "Bash(ruby --version)",
+      "Bash(gem install:*)",
+      "Bash(fastlane:*)",
+      "Bash(gem:*)",
+      "Bash(export:*)",
+      "Bash(eas build:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:kirillzyusko.github.io)"
     ],
     "deny": []
   }

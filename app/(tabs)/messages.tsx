@@ -9,13 +9,15 @@ import {
   Image,
   TouchableOpacity,
   Alert,
+  Keyboard,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/utils/supabase';
 import { useSession } from '@/providers/SessionProvider';
 import { ChevronLeft, HelpCircle as HelpCircleIcon } from 'lucide-react-native';
 import { formatDistanceToNow } from 'date-fns';
-import { GiftedChat, IMessage } from 'react-native-gifted-chat';
+import { GiftedChat, IMessage, Day, LoadEarlier } from 'react-native-gifted-chat';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 
 const PAGE_SIZE = 20;
@@ -50,9 +52,9 @@ const formatMessagesForGiftedChat = (
       user: {
         _id: isMine ? myUserId : message.sender_id,
         name: isMine ? 'You' : participant?.display_name || 'Partner',
-        avatar: isMine ? myAvatarUrl : participant?.avatar_url,
+        avatar: isMine ? (myAvatarUrl || undefined) : (participant?.avatar_url || undefined),
       },
-      image: message.uri,
+      image: message.uri || undefined,
     };
   });
 };
@@ -92,7 +94,7 @@ export default function MessagesScreen() {
 
         // Get or create conversation
         const { data: convId, error: rpcError } = await supabase
-          .rpc<string>('get_or_create_conversation', {
+          .rpc('get_or_create_conversation', {
             user_one_id: session.user.id,
             user_two_id: userData.partner_id,
           });
@@ -136,7 +138,7 @@ export default function MessagesScreen() {
     isFetchingNextPage,
     isPending,
     refetch,
-  } = useInfiniteQuery({
+  } = useInfiniteQuery<ChatMessage[], Error>({
     queryKey: ['messages', conversationId],
     queryFn: async ({ pageParam }) => {
       if (!conversationId) throw new Error('No conversation ID');
@@ -161,7 +163,7 @@ export default function MessagesScreen() {
       return lastPage[lastPage.length - 1].created_at;
     },
     enabled: !!conversationId,
-    initialPageParam: undefined,
+    initialPageParam: undefined as string | undefined,
   });
 
   // Subscribe to new messages
@@ -194,8 +196,19 @@ export default function MessagesScreen() {
     return data.pages.flat();
   }, [data]);
 
+  // Debug info
+  useEffect(() => {
+    if (__DEV__) {
+      console.log('Messages pagination:', {
+        totalMessages: allMessages.length,
+        hasNextPage,
+        pageSize: PAGE_SIZE,
+      });
+    }
+  }, [allMessages.length, hasNextPage]);
+
   const formattedMessages = useMemo(() => {
-    if (!myUserId) return [];
+    if (!myUserId || !allMessages) return [];
     return formatMessagesForGiftedChat(allMessages, myUserId, myAvatarUrl, participant);
   }, [allMessages, myUserId, myAvatarUrl, participant]);
 
@@ -229,36 +242,52 @@ export default function MessagesScreen() {
 
   if (isLoadingConversation) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#FF8C42" />
-          <Text style={styles.loadingText}>Loading conversation...</Text>
-        </View>
-      </SafeAreaView>
+      <View style={styles.container}>
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#FF8C42" />
+            <Text style={styles.loadingText}>Loading conversation...</Text>
+          </View>
+        </SafeAreaView>
+      </View>
     );
   }
 
   if (!conversationId || !participant) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyTitle}>No Partner Connected</Text>
-          <Text style={styles.emptySubtitle}>
-            Connect with your partner to start chatting
-          </Text>
-          <TouchableOpacity 
-            style={styles.connectButton}
-            onPress={() => router.push('/(modals)/connect-partner')}>
-            <Text style={styles.connectButtonText}>Connect Partner</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
+      <View style={styles.container}>
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyTitle}>No Partner Connected</Text>
+            <Text style={styles.emptySubtitle}>
+              Connect with your partner to start chatting
+            </Text>
+            <TouchableOpacity 
+              style={styles.connectButton}
+              onPress={() => router.push('/(modals)/connect-partner')}>
+              <Text style={styles.connectButtonText}>Connect Partner</Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <KeyboardAvoidingView 
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={() => {
+            Keyboard.dismiss();
+            router.push('/(tabs)');
+          }}>
+          <ChevronLeft color="#666" size={24} />
+        </TouchableOpacity>
         <View style={styles.headerLeft}>
           <View style={styles.headerTitleContainer}>
             {participant.avatar_url ? (
@@ -294,9 +323,87 @@ export default function MessagesScreen() {
         onLoadEarlier={onLoadEarlier}
         isLoadingEarlier={isFetchingNextPage}
         alwaysShowSend
-        scrollToBottom
         renderUsernameOnMessage={false}
         messagesContainerStyle={styles.messagesContainer}
+        bottomOffset={0}
+        minInputToolbarHeight={56}
+        keyboardShouldPersistTaps="handled"
+        isKeyboardInternallyHandled={false}
+        listViewProps={{
+          contentContainerStyle: { paddingTop: 10 },
+          showsVerticalScrollIndicator: false,
+        }}
+        renderDay={(props) => (
+          <Day
+            {...props}
+            textStyle={{
+              color: '#999',
+              fontSize: 12,
+              fontFamily: 'Inter-Medium',
+              marginTop: 10,
+              marginBottom: 10,
+            }}
+            containerStyle={{
+              marginVertical: 10,
+            }}
+          />
+        )}
+        renderLoadEarlier={(props) => (
+          <View style={{
+            alignItems: 'center',
+            marginVertical: 20,
+          }}>
+            <TouchableOpacity
+              style={{
+                backgroundColor: 'white',
+                paddingHorizontal: 20,
+                paddingVertical: 10,
+                borderRadius: 20,
+                borderWidth: 1,
+                borderColor: '#FFE0B2',
+                shadowColor: '#FF8C42',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 4,
+                elevation: 2,
+              }}
+              onPress={props.onLoadEarlier}
+              disabled={props.isLoadingEarlier}>
+              {props.isLoadingEarlier ? (
+                <ActivityIndicator size="small" color="#FF8C42" />
+              ) : (
+                <Text style={{
+                  color: '#FF8C42',
+                  fontSize: 14,
+                  fontFamily: 'Inter-Medium',
+                }}>
+                  Load earlier messages
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
+        renderTime={(props) => (
+          <View style={{ 
+            marginLeft: 10, 
+            marginRight: 10,
+            marginBottom: 5,
+          }}>
+            <Text style={{
+              fontSize: 11,
+              color: '#999',
+              fontFamily: 'Inter-Regular',
+            }}>
+              {props.currentMessage?.createdAt && 
+                new Date(props.currentMessage.createdAt).toLocaleTimeString('en-US', {
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  hour12: true,
+                })
+              }
+            </Text>
+          </View>
+        )}
       />
 
       {isSending && (
@@ -304,7 +411,8 @@ export default function MessagesScreen() {
           <ActivityIndicator size="small" color="#FF8C42" />
         </View>
       )}
-    </SafeAreaView>
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -312,6 +420,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFF8F0',
+  },
+  safeArea: {
+    flex: 1,
   },
   loadingContainer: {
     flex: 1,
@@ -370,6 +481,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
   },
+  backButton: {
+    padding: 8,
+    marginLeft: -8,
+    marginRight: 8,
+  },
   headerLeft: {
     flex: 1,
   },
@@ -409,6 +525,8 @@ const styles = StyleSheet.create({
   },
   messagesContainer: {
     backgroundColor: '#FFF8F0',
+    paddingHorizontal: 10,
+    paddingBottom: 10,
   },
   sendingOverlay: {
     position: 'absolute',

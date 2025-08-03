@@ -14,6 +14,7 @@ import { useReactQueryDevTools } from '@dev-plugins/react-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../utils/supabase';
 import { Alert } from 'react-native';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 // This handler decides how foreground notifications are presented.
 Notifications.setNotificationHandler({
@@ -126,7 +127,9 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <SessionProvider>
         <SafeAreaProvider>
-          <RootLayoutNav />
+          <KeyboardProvider>
+            <RootLayoutNav />
+          </KeyboardProvider>
         </SafeAreaProvider>
       </SessionProvider>
     </QueryClientProvider>
