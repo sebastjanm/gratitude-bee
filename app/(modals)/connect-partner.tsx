@@ -6,20 +6,17 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
-  Share,
-  Clipboard,
   SafeAreaView,
   ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
-import { Heart, QrCode, Copy, Users, CircleCheck as CheckCircle, ArrowRight } from 'lucide-react-native';
+import { Heart, QrCode, Users, CircleCheck as CheckCircle, ArrowRight, X } from 'lucide-react-native';
 import { supabase } from '@/utils/supabase';
 import { useSession } from '@/providers/SessionProvider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCodeModal from '@/components/QRCodeModal';
-// import QRScannerModal from '@/components/QRScannerModal';
 
-export default function PartnerLinkScreen() {
+export default function ConnectPartnerModal() {
   const { session } = useSession();
   const [inviteCode, setInviteCode] = useState('');
   const [partnerCode, setPartnerCode] = useState('');
@@ -28,7 +25,6 @@ export default function PartnerLinkScreen() {
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [partnerName, setPartnerName] = useState('');
   const [isQRModalVisible, setQRModalVisible] = useState(false);
-  // const [isScannerVisible, setScannerVisible] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -60,8 +56,6 @@ export default function PartnerLinkScreen() {
       setLoadingProfile(false);
     };
     fetchProfile();
-
-    // Stored invite codes are now handled in the root layout after authentication
   }, [session]);
 
   const inviteLink = `https://gratitudebee.app/invite/${inviteCode}`;
@@ -84,7 +78,6 @@ export default function PartnerLinkScreen() {
       
       setPartnerName(data.partnerName);
       setIsConnected(true);
-      // if (isScannerVisible) setScannerVisible(false);
       
       setTimeout(() => {
         Alert.alert(
@@ -93,7 +86,7 @@ export default function PartnerLinkScreen() {
           [
             {
               text: 'Start Appreciating',
-              onPress: () => router.replace('/(tabs)'),
+              onPress: () => router.back(),
             },
           ]
         );
@@ -106,38 +99,30 @@ export default function PartnerLinkScreen() {
     }
   };
 
-  const handleSkip = () => {
-    router.replace('/(tabs)');
+  const handleClose = () => {
+    router.back();
   };
 
   if (isConnected) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.content}>
-        <QRCodeModal
-          visible={isQRModalVisible}
-          onClose={() => setQRModalVisible(false)}
-          inviteCode={inviteCode}
-          inviteLink={inviteLink}
-        />
-        {/* <QRScannerModal
-          visible={isScannerVisible}
-          onClose={() => setScannerVisible(false)}
-          onCodeScanned={handleConnectWithCode}
-        /> */}
-        <View style={styles.successContainer}>
-          <View style={styles.successIcon}>
-            <CheckCircle color="#4ECDC4" size={48} />
+          <View style={styles.successContainer}>
+            <View style={styles.successIcon}>
+              <CheckCircle color="#4ECDC4" size={48} />
+            </View>
+            <Text style={styles.successTitle}>Already Connected!</Text>
+            <Text style={styles.successSubtitle}>
+              You and {partnerName} are linked together
+            </Text>
+            <View style={styles.partnerInfo}>
+              <Users color="#4ECDC4" size={24} />
+              <Text style={styles.partnerText}>{session?.user.user_metadata.display_name} & {partnerName}</Text>
+            </View>
+            <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
+              <Text style={styles.closeButtonText}>Close</Text>
+            </TouchableOpacity>
           </View>
-          <Text style={styles.successTitle}>Connected!</Text>
-          <Text style={styles.successSubtitle}>
-            You and {partnerName} are now linked together
-          </Text>
-          <View style={styles.partnerInfo}>
-            <Users color="#4ECDC4" size={24} />
-            <Text style={styles.partnerText}>{session?.user.user_metadata.display_name} & {partnerName}</Text>
-          </View>
-        </View>
         </View>
       </SafeAreaView>
     );
@@ -146,23 +131,36 @@ export default function PartnerLinkScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-      <View style={styles.header}>
-        <View style={styles.logoContainer}>
-          <Heart color="#FF8C42" size={40} fill="#FF8C42" />
+        <QRCodeModal
+          visible={isQRModalVisible}
+          onClose={() => setQRModalVisible(false)}
+          inviteCode={inviteCode}
+          inviteLink={inviteLink}
+        />
+        
+        <View style={styles.header}>
+          <View style={styles.headerTop}>
+            <View style={styles.headerLeft} />
+            <Text style={styles.headerTitle}>Connect Partner</Text>
+            <TouchableOpacity onPress={handleClose} style={styles.headerClose}>
+              <X color="#666" size={24} />
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.subtitle}>
+            Share appreciation badges with your partner
+          </Text>
         </View>
-        <Text style={styles.title}>Connect with Your Partner</Text>
-        <Text style={styles.subtitle}>
-          Share appreciation badges and build stronger bonds together
-        </Text>
-      </View>
-      
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Share Your Code</Text>
-        <Text style={styles.sectionSubtitle}>
-          Show your QR code to your partner so they can scan and connect instantly
-        </Text>
+        
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Your Invite Code</Text>
+          <Text style={styles.sectionSubtitle}>
+            Share this code with your partner
+          </Text>
 
-        <View style={styles.qrButtonContainer}>
+          <View style={styles.codeDisplay}>
+            <Text style={styles.codeText}>{loadingProfile ? 'Loading...' : inviteCode}</Text>
+          </View>
+
           <TouchableOpacity 
             style={[styles.qrButton, loadingProfile && styles.qrButtonDisabled]} 
             onPress={() => {
@@ -178,45 +176,40 @@ export default function PartnerLinkScreen() {
             ) : (
               <QrCode color="#FF8C42" size={24} />
             )}
-            <Text style={styles.qrButtonText}>{loadingProfile ? 'Loading...' : 'Show My QR Code'}</Text>
+            <Text style={styles.qrButtonText}>{loadingProfile ? 'Loading...' : 'Show QR Code'}</Text>
           </TouchableOpacity>
         </View>
-      </View>
-      
-      <View style={styles.divider}>
-        <View style={styles.dividerLine} />
-        <Text style={styles.dividerText}>OR</Text>
-        <View style={styles.dividerLine} />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Enter Partner's Code</Text>
         
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter invite code"
-            value={partnerCode}
-            onChangeText={setPartnerCode}
-            autoCapitalize="characters"
-            autoCorrect={false}
-          />
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>OR</Text>
+          <View style={styles.dividerLine} />
         </View>
-        
-        <TouchableOpacity
-          style={[styles.connectButton, loading && styles.disabledButton]}
-          onPress={() => handleConnectWithCode()}
-          disabled={loading}>
-          <Text style={styles.connectButtonText}>
-            {loading ? 'Connecting...' : 'Connect'}
-          </Text>
-          <ArrowRight color="white" size={20} />
-        </TouchableOpacity>
-      </View>
 
-      <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
-        <Text style={styles.skipButtonText}>I'll do this later</Text>
-      </TouchableOpacity>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Enter Partner's Code</Text>
+          
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter invite code"
+              value={partnerCode}
+              onChangeText={setPartnerCode}
+              autoCapitalize="characters"
+              autoCorrect={false}
+            />
+          </View>
+          
+          <TouchableOpacity
+            style={[styles.connectButton, loading && styles.disabledButton]}
+            onPress={() => handleConnectWithCode()}
+            disabled={loading}>
+            <Text style={styles.connectButtonText}>
+              {loading ? 'Connecting...' : 'Connect'}
+            </Text>
+            <ArrowRight color="white" size={20} />
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -230,36 +223,34 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 60,
+    paddingTop: 20,
     paddingBottom: 40,
   },
   header: {
-    alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 32,
   },
-  logoContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'white',
-    justifyContent: 'center',
+  headerTop: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
-    shadowColor: '#FF8C42',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    justifyContent: 'space-between',
+    marginBottom: 16,
   },
-  title: {
-    fontSize: 28,
+  headerLeft: {
+    width: 40,
+  },
+  headerTitle: {
+    fontSize: 20,
     fontFamily: 'Inter-Bold',
     color: '#333',
-    marginBottom: 12,
     textAlign: 'center',
+    flex: 1,
+  },
+  headerClose: {
+    width: 40,
+    alignItems: 'flex-end',
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: 'Inter-Regular',
     color: '#666',
     textAlign: 'center',
@@ -281,12 +272,26 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     lineHeight: 22,
   },
-  qrButtonContainer: {
-    flexDirection: 'row',
-    gap: 12,
+  codeDisplay: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  codeText: {
+    fontSize: 24,
+    fontFamily: 'Inter-Bold',
+    color: '#FF8C42',
+    letterSpacing: 2,
   },
   qrButton: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -301,10 +306,6 @@ const styles = StyleSheet.create({
   },
   qrButtonDisabled: {
     opacity: 0.6,
-  },
-  scanButton: {
-    backgroundColor: '#FF8C42',
-    borderColor: '#FF8C42',
   },
   qrButtonText: {
     fontSize: 16,
@@ -371,17 +372,6 @@ const styles = StyleSheet.create({
     color: 'white',
     marginRight: 8,
   },
-  skipButton: {
-    alignItems: 'center',
-    paddingVertical: 16,
-    marginTop: 'auto',
-  },
-  skipButtonText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#999',
-    textAlign: 'center',
-  },
   successContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -433,5 +423,15 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
     color: '#333',
     marginLeft: 12,
+  },
+  closeButton: {
+    marginTop: 32,
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+  },
+  closeButtonText: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#FF8C42',
   },
 });

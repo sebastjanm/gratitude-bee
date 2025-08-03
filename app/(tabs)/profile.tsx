@@ -163,11 +163,7 @@ export default function ProfileScreen() {
   };
 
   const handleConnectPartner = async () => {
-    if (!inviteCode) {
-      Alert.alert('Could not find your invite code.');
-      return;
-    }
-    setIsQrModalVisible(true);
+    router.push('/(modals)/connect-partner');
   };
 
   const handleExportData = () => {

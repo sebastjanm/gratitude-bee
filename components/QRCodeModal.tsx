@@ -12,6 +12,9 @@ interface QRCodeModalProps {
 }
 
 export default function QRCodeModal({ visible, onClose, inviteCode, inviteLink }: QRCodeModalProps) {
+  if (!inviteCode || !inviteLink) {
+    return null;
+  }
   
   const handleCopyCode = async () => {
     await Clipboard.setStringAsync(inviteCode);
@@ -52,9 +55,6 @@ export default function QRCodeModal({ visible, onClose, inviteCode, inviteLink }
             <QRCode
               value={inviteLink}
               size={220}
-              logo={require('../assets/images/icon.png')}
-              logoSize={40}
-              logoBackgroundColor="white"
             />
           </View>
           

@@ -11,11 +11,14 @@ import { Heart, Star, Smile, Users, ArrowRight } from 'lucide-react-native';
 
 export default function WelcomeScreen() {
   const handleContinue = () => {
-    router.push('/(auth)/partner-link');
+    // This should only be shown to non-authenticated users
+    // Direct them to sign up/login
+    router.push('/(auth)/auth');
   };
 
   const handleSkip = () => {
-    router.replace('/(tabs)');
+    // Skip to sign up/login
+    router.push('/(auth)/auth');
   };
 
   const features = [
@@ -81,7 +84,7 @@ export default function WelcomeScreen() {
         </Text>
         
         <TouchableOpacity style={styles.primaryButton} onPress={handleContinue}>
-          <Text style={styles.primaryButtonText}>Connect with Partner</Text>
+          <Text style={styles.primaryButtonText}>Get Started</Text>
           <ArrowRight color="white" size={20} />
         </TouchableOpacity>
         

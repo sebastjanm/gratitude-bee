@@ -9,6 +9,7 @@ export default function ModalsLayout() {
       <Stack.Screen name="ping" />
       <Stack.Screen name="dont-panic" />
       <Stack.Screen name="hornet" />
+      <Stack.Screen name="connect-partner" />
     </Stack>
   );
 } 

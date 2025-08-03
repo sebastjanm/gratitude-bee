@@ -73,14 +73,13 @@ export default function AuthScreen() {
         } else {
           Alert.alert(
             'Verification Email Sent',
-            'Please check your email and click the verification link to complete your registration.',
+            'Please check your email and click the verification link to complete your registration. After verifying, you can log in.',
             [
               {
                 text: 'OK',
                 onPress: () => {
-                  // Optionally, you could navigate to a holding screen
-                  // For now, we'll just clear the form
-                  setEmail('');
+                  // Switch to login mode
+                  setIsSignUp(false);
                   setPassword('');
                   setDisplayName('');
                 },

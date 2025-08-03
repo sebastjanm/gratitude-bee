@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Heart, Star, Smile, Compass, MessageCircle, HelpCircle, Award, Gift, Bell, Bug, Crown, ArrowUpCircle, ArrowDownCircle, Home, ChevronDown, ChevronUp } from 'lucide-react-native';
+import { Heart, Star, Smile, Compass, MessageCircle, HelpCircle, Award, Gift, Bell, Bug, Crown, ArrowUpCircle, ArrowDownCircle, Home, ChevronDown, ChevronUp, Users, ArrowRight } from 'lucide-react-native';
 import { HandHeart } from 'lucide-react-native';
 import NegativeBadgeModal from '@/components/NegativeBadgeModal';
 import DontPanicModal, { DontPanicTemplate } from '@/components/DontPanicModal';
@@ -77,6 +77,7 @@ export default function HomeScreen() {
   const [engagementStage, setEngagementStage] = useState<'boring' | 'demanding' | 'sad' | 'spark' | 'love' | 'none'>('boring');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isStatsExpanded, setIsStatsExpanded] = useState(false);
+  const [hasPartner, setHasPartner] = useState<boolean | null>(null);
   const { session } = useSession();
   const insets = useSafeAreaInsets();
 
@@ -85,8 +86,23 @@ export default function HomeScreen() {
   useEffect(() => {
     if (session?.user) {
       fetchStats();
+      checkPartnerStatus();
     }
   }, [session]);
+  
+  const checkPartnerStatus = async () => {
+    if (!session?.user) return;
+    
+    const { data, error } = await supabase
+      .from('users')
+      .select('partner_id')
+      .eq('id', session.user.id)
+      .single();
+      
+    if (!error && data) {
+      setHasPartner(!!data.partner_id);
+    }
+  };
   
   const fetchStats = async (isRefresh = false) => {
     if (!session?.user) return;
@@ -198,7 +214,14 @@ export default function HomeScreen() {
       .single();
 
     if (userError || !userData || !userData.partner_id) {
-      Alert.alert('Not Connected', 'You must be connected to a partner to send badges.');
+      Alert.alert(
+        'Not Connected', 
+        'You must be connected to a partner to send badges.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Connect Now', onPress: () => router.push('/(modals)/connect-partner') }
+        ]
+      );
       return;
     }
 
@@ -260,7 +283,14 @@ export default function HomeScreen() {
     }
   
     if (!userData.partner_id) {
-      Alert.alert('Not Connected', 'You must be connected to a partner to request favors.');
+      Alert.alert(
+        'Not Connected', 
+        'You must be connected to a partner to request favors.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Connect Now', onPress: () => router.push('/(modals)/connect-partner') }
+        ]
+      );
       return;
     }
   
@@ -572,8 +602,25 @@ export default function HomeScreen() {
       >
         <View style={{ height: 20 }} />
 
+        {hasPartner === false && (
+          <TouchableOpacity 
+            style={styles.partnerConnectBanner}
+            onPress={() => router.push('/(modals)/connect-partner')}
+            activeOpacity={0.8}>
+            <View style={styles.partnerConnectIcon}>
+              <Users color="#FF8C42" size={24} />
+            </View>
+            <View style={styles.partnerConnectText}>
+              <Text style={styles.partnerConnectTitle}>Connect with Your Partner</Text>
+              <Text style={styles.partnerConnectSubtitle}>
+                Start sharing appreciation badges together
+              </Text>
+            </View>
+            <ArrowRight color="#FF8C42" size={20} />
+          </TouchableOpacity>
+        )}
 
-        {engagementStage !== 'none' && (
+        {engagementStage !== 'none' && hasPartner && (
           <EngagementCard stage={engagementStage} />
         )}
 
@@ -969,6 +1016,47 @@ const styles = StyleSheet.create({
   specialActions: {
     marginTop: 20,
     marginBottom: 24,
+  },
+  partnerConnectBanner: {
+    backgroundColor: 'white',
+    marginHorizontal: 20,
+    marginBottom: 24,
+    borderRadius: 20,
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    borderLeftWidth: 4,
+    borderLeftColor: '#FF8C42',
+  },
+  partnerConnectIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#FFF8F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  partnerConnectText: {
+    flex: 1,
+    marginRight: 12,
+  },
+  partnerConnectTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#333',
+    marginBottom: 4,
+  },
+  partnerConnectSubtitle: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: '#666',
+    lineHeight: 20,
   },
 });
 

@@ -24,15 +24,19 @@ export default function InviteScreen() {
       if (session) {
         // User is logged in, attempt to connect
         try {
-          const { error } = await supabase.functions.invoke('connect-partner', {
+          const { data, error } = await supabase.functions.invoke('connect-partner', {
             body: { inviteCode: code },
           });
 
           if (error) throw error;
 
-          Alert.alert('Connected!', 'You are now connected with your partner.', [
-            { text: 'Awesome!', onPress: () => router.replace('/(tabs)') },
-          ]);
+          Alert.alert(
+            'Connected Successfully! 🎉', 
+            `You and ${data.partnerName} are now connected. Start sharing appreciation badges together!`,
+            [
+              { text: 'Start Appreciating', onPress: () => router.replace('/(tabs)') },
+            ]
+          );
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Could not connect with this invite code.';
           Alert.alert('Connection Failed', message, [
@@ -42,7 +46,13 @@ export default function InviteScreen() {
       } else {
         // User is not logged in, store code and redirect to auth
         await AsyncStorage.setItem('invite_code', code);
-        router.replace('/(auth)/auth');
+        Alert.alert(
+          'Sign In Required',
+          'Please sign in or create an account to connect with your partner.',
+          [
+            { text: 'Continue', onPress: () => router.replace('/(auth)/auth') },
+          ]
+        );
       }
     };
 
