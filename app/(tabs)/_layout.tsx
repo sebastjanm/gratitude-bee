@@ -4,6 +4,7 @@ import { Home, BarChart2, Award, Calendar, User, MessageSquare } from 'lucide-re
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Animated, Easing, Platform } from 'react-native';
 import { NotificationProvider } from '@/providers/NotificationProvider';
+import { Colors, Typography, Layout } from '@/utils/design-system';
 
 interface AnimatedIconProps {
   focused: boolean;
@@ -37,21 +38,21 @@ export default function TabLayout() {
     <NotificationProvider>
       <Tabs
         screenOptions={{
-          tabBarActiveTintColor: '#FF8C42',
-          tabBarInactiveTintColor: '#999',
+          tabBarActiveTintColor: Colors.primary,
+          tabBarInactiveTintColor: Colors.textTertiary,
           tabBarStyle: {
-            backgroundColor: '#FFFFFF',
+            backgroundColor: Colors.backgroundElevated,
             borderTopWidth: 1,
-            borderTopColor: '#E0E0E0',
-            height: 70 + insets.bottom,
+            borderTopColor: Colors.border,
+            height: Layout.tabBarHeight + insets.bottom,
             paddingBottom: insets.bottom,
-            paddingTop: 10,
+            paddingTop: 8,
           },
           tabBarLabelStyle: {
-            fontSize: 12,
-            fontFamily: 'Inter-Medium',
+            fontSize: Typography.fontSize.xs,
+            fontFamily: Typography.fontFamily.medium,
             marginTop: 0,
-            paddingBottom: 5,
+            paddingBottom: 4,
           },
           headerShown: false,
         }}>

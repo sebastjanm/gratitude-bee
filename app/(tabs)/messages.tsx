@@ -11,6 +11,7 @@ import {
   Alert,
   Keyboard,
   KeyboardAvoidingView,
+  Animated,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/utils/supabase';
@@ -19,6 +20,7 @@ import { ChevronLeft, HelpCircle as HelpCircleIcon } from 'lucide-react-native';
 import { formatDistanceToNow } from 'date-fns';
 import { GiftedChat, IMessage, Day, LoadEarlier } from 'react-native-gifted-chat';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles, A11y } from '@/utils/design-system';
 
 const PAGE_SIZE = 20;
 
@@ -69,12 +71,37 @@ export default function MessagesScreen() {
   const [isSending, setIsSending] = useState(false);
   const [isLoadingConversation, setIsLoadingConversation] = useState(true);
   const [isPartnerTyping, setIsPartnerTyping] = useState(false);
+  const [isPartnerOnline, setIsPartnerOnline] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastTypingStatusRef = useRef(false);
   const typingDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const pulseAnim = useRef(new Animated.Value(0.6)).current;
+  const [isScrolling, setIsScrolling] = useState(false);
+  const [floatingDate, setFloatingDate] = useState<string>('');
+  const scrollingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const myUserId = session?.user?.id;
   const myAvatarUrl = session?.user?.user_metadata?.avatar_url || null;
+
+  // Update last_seen when user opens chat
+  useEffect(() => {
+    const updateLastSeen = async () => {
+      if (!myUserId) return;
+      
+      await supabase
+        .from('users')
+        .update({ last_seen: new Date().toISOString() })
+        .eq('id', myUserId);
+    };
+
+    updateLastSeen();
+    
+    // Update every 30 seconds while chat is open
+    const interval = setInterval(updateLastSeen, 30000);
+    
+    return () => clearInterval(interval);
+  }, [myUserId]);
 
   // Initialize or find conversation
   useEffect(() => {
@@ -171,9 +198,39 @@ export default function MessagesScreen() {
     initialPageParam: undefined as string | undefined,
   });
 
-  // Subscribe to new messages and typing events
+  // Subscribe to participant updates (for last_seen)
   useEffect(() => {
-    if (!conversationId || !myUserId) return;
+    if (!participant) return;
+
+    const userChannel = supabase
+      .channel(`user:${participant.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'users',
+          filter: `id=eq.${participant.id}`,
+        },
+        (payload) => {
+          // Update participant data with new last_seen
+          if (payload.new && payload.new.last_seen) {
+            setParticipant(prev => prev ? { ...prev, last_seen: payload.new.last_seen as string } : null);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(userChannel);
+    };
+  }, [participant]);
+
+  // Subscribe to new messages, typing, and presence
+  useEffect(() => {
+    if (!conversationId || !myUserId || !participant) return;
+
+    setConnectionStatus('connecting');
 
     // Messages channel for new messages
     const messageChannel = supabase
@@ -206,7 +263,13 @@ export default function MessagesScreen() {
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          setConnectionStatus('connected');
+        } else if (status === 'TIMED_OUT' || status === 'CLOSED') {
+          setConnectionStatus('disconnected');
+        }
+      });
 
     // Typing channel for typing indicators
     const typingChannel = supabase
@@ -234,14 +297,53 @@ export default function MessagesScreen() {
       )
       .subscribe();
 
+    // Presence channel for online/offline status
+    const presenceChannel = supabase
+      .channel(`presence:${conversationId}`)
+      .on('presence', { event: 'sync' }, () => {
+        const state = presenceChannel.presenceState();
+        // Check if partner is online
+        const partnerPresence = Object.values(state).find(
+          (presence: any) => presence[0]?.user_id === participant.id
+        );
+        setIsPartnerOnline(!!partnerPresence);
+      })
+      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+        // Check if the joining user is our partner
+        if (newPresences[0]?.user_id === participant.id) {
+          setIsPartnerOnline(true);
+        }
+      })
+      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+        // Check if the leaving user is our partner
+        if (leftPresences[0]?.user_id === participant.id) {
+          setIsPartnerOnline(false);
+        }
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          // Track our own presence
+          await presenceChannel.track({
+            user_id: myUserId,
+            online_at: new Date().toISOString(),
+          });
+        } else if (status === 'TIMED_OUT' || status === 'CLOSED') {
+          setConnectionStatus('disconnected');
+        }
+      });
+
     return () => {
       supabase.removeChannel(messageChannel);
       supabase.removeChannel(typingChannel);
+      supabase.removeChannel(presenceChannel);
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
       if (typingDebounceRef.current) {
         clearTimeout(typingDebounceRef.current);
+      }
+      if (scrollingTimeoutRef.current) {
+        clearTimeout(scrollingTimeoutRef.current);
       }
       // Send typing false on unmount
       if (lastTypingStatusRef.current && conversationId && myUserId) {
@@ -257,7 +359,41 @@ export default function MessagesScreen() {
         });
       }
     };
-  }, [conversationId, myUserId, queryClient]);
+  }, [conversationId, myUserId, participant, queryClient]);
+
+  // Pulse animation for connection status
+  useEffect(() => {
+    if (connectionStatus === 'disconnected') {
+      const animation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 0.6,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      animation.start();
+      return () => animation.stop();
+    }
+  }, [connectionStatus, pulseAnim]);
+
+  // Auto-reconnect when disconnected
+  useEffect(() => {
+    if (connectionStatus === 'disconnected' && conversationId) {
+      const reconnectTimer = setTimeout(() => {
+        // Force a refetch which will re-establish connection
+        refetch();
+      }, 5000); // Try to reconnect after 5 seconds
+
+      return () => clearTimeout(reconnectTimer);
+    }
+  }, [connectionStatus, conversationId, refetch]);
 
   const allMessages = useMemo(() => {
     if (!data?.pages) return [];
@@ -393,7 +529,7 @@ export default function MessagesScreen() {
       <View style={styles.container}>
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#FF8C42" />
+            <ActivityIndicator size="large" color={Colors.primary} />
             <Text style={styles.loadingText}>Loading conversation...</Text>
           </View>
         </SafeAreaView>
@@ -434,39 +570,63 @@ export default function MessagesScreen() {
             Keyboard.dismiss();
             router.push('/(tabs)');
           }}>
-          <ChevronLeft color="#666" size={24} />
+          <ChevronLeft color={Colors.textSecondary} size={Layout.iconSize.lg} />
         </TouchableOpacity>
         <View style={styles.headerLeft}>
           <View style={styles.headerTitleContainer}>
-            {participant.avatar_url ? (
-              <Image source={{ uri: participant.avatar_url }} style={styles.headerAvatar} />
-            ) : (
-              <View style={[styles.headerAvatar, styles.headerAvatarPlaceholder]}>
-                <Text style={styles.avatarText}>
-                  {participant.display_name?.[0]?.toUpperCase() || '?'}
-                </Text>
-              </View>
-            )}
+            <View>
+              {participant.avatar_url ? (
+                <Image source={{ uri: participant.avatar_url }} style={styles.headerAvatar} />
+              ) : (
+                <View style={[styles.headerAvatar, styles.headerAvatarPlaceholder]}>
+                  <Text style={styles.avatarText}>
+                    {participant.display_name?.[0]?.toUpperCase() || '?'}
+                  </Text>
+                </View>
+              )}
+              {isPartnerOnline && <View style={styles.onlineDot} />}
+            </View>
             <View>
               <Text style={styles.title}>{participant.display_name || 'Partner'}</Text>
-              {participant.last_seen && (
-                <Text style={styles.lastSeen}>
-                  Last seen {formatDistanceToNow(new Date(participant.last_seen), { addSuffix: true })}
-                </Text>
-              )}
+              <Text style={[styles.lastSeen, isPartnerOnline && styles.onlineStatus]}>
+                {isPartnerOnline 
+                  ? 'Online' 
+                  : participant.last_seen 
+                    ? `Last seen ${formatDistanceToNow(new Date(participant.last_seen), { addSuffix: true })}`
+                    : 'Offline'
+                }
+              </Text>
             </View>
           </View>
         </View>
         <TouchableOpacity style={styles.headerButton} onPress={() => router.push('/help')}>
-          <HelpCircleIcon color="#666" size={24} />
+          <HelpCircleIcon color={Colors.textSecondary} size={Layout.iconSize.lg} />
         </TouchableOpacity>
       </View>
+
+      {connectionStatus === 'disconnected' && (
+        <View style={styles.connectionBanner}>
+          <Animated.View style={[styles.connectionDot, { opacity: pulseAnim }]} />
+          <Text style={styles.connectionText}>Connecting...</Text>
+        </View>
+      )}
+
+      {isScrolling && floatingDate && (
+        <Animated.View style={[
+          styles.floatingDateBadge,
+          {
+            opacity: isScrolling ? 1 : 0,
+          }
+        ]}>
+          <Text style={styles.floatingDateText}>{floatingDate}</Text>
+        </Animated.View>
+      )}
 
       <GiftedChat
         messages={formattedMessages}
         onSend={onSend}
         user={{ _id: myUserId || '' }}
-        renderLoading={() => <ActivityIndicator size="large" color="#FF8C42" />}
+        renderLoading={() => <ActivityIndicator size="large" color={Colors.primary} />}
         loadEarlier={hasNextPage}
         onLoadEarlier={onLoadEarlier}
         isLoadingEarlier={isFetchingNextPage}
@@ -480,24 +640,183 @@ export default function MessagesScreen() {
         isTyping={isPartnerTyping}
         onInputTextChanged={handleTyping}
         listViewProps={{
-          style: { paddingTop: 10 },
+          style: { paddingTop: Spacing.sm },
           showsVerticalScrollIndicator: false,
+          onScroll: (event: any) => {
+            // Set scrolling state
+            setIsScrolling(true);
+            
+            // Clear existing timeout
+            if (scrollingTimeoutRef.current) {
+              clearTimeout(scrollingTimeoutRef.current);
+            }
+            
+            // Hide floating date after scrolling stops
+            scrollingTimeoutRef.current = setTimeout(() => {
+              setIsScrolling(false);
+            }, 1500) as unknown as NodeJS.Timeout;
+            
+            // Get the topmost visible message to determine date
+            const offsetY = event.nativeEvent.contentOffset.y;
+            const visibleHeight = event.nativeEvent.layoutMeasurement.height;
+            
+            // Find the first visible message
+            if (formattedMessages.length > 0) {
+              // This is a simplified approach - in a real implementation
+              // you'd calculate which message is visible based on item heights
+              const firstVisibleIndex = Math.floor(offsetY / 80); // Approximate message height
+              const visibleMessage = formattedMessages[Math.min(firstVisibleIndex, formattedMessages.length - 1)];
+              
+              if (visibleMessage?.createdAt) {
+                const messageDate = new Date(visibleMessage.createdAt);
+                const today = new Date();
+                const yesterday = new Date(today);
+                yesterday.setDate(yesterday.getDate() - 1);
+                
+                let dateText = '';
+                
+                if (messageDate.toDateString() === today.toDateString()) {
+                  dateText = 'Today';
+                } else if (messageDate.toDateString() === yesterday.toDateString()) {
+                  dateText = 'Yesterday';
+                } else {
+                  dateText = messageDate.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: messageDate.getFullYear() !== today.getFullYear() ? 'numeric' : undefined,
+                  });
+                }
+                
+                setFloatingDate(dateText);
+              }
+            }
+          },
+          scrollEventThrottle: 16,
         }}
-        renderDay={(props) => (
-          <Day
-            {...props}
-            textStyle={{
-              color: '#999',
-              fontSize: 12,
-              fontFamily: 'Inter-Medium',
-              marginTop: 10,
-              marginBottom: 10,
+        textInputStyle={{
+          fontSize: Typography.fontSize.base,
+          fontFamily: Typography.fontFamily.regular,
+          color: Colors.textPrimary,
+          paddingTop: 8,
+          paddingHorizontal: 12,
+          marginLeft: 0,
+          marginRight: 0,
+        }}
+        textInputProps={{
+          placeholderTextColor: Colors.textTertiary,
+          placeholder: 'Type a message...',
+        }}
+        renderBubble={(props) => {
+          const { currentMessage, position } = props;
+          const isLeft = position === 'left';
+          return (
+            <View style={{
+              flexDirection: 'row',
+              marginVertical: 4,
+              alignItems: 'flex-end',
+            }}>
+              <View style={{
+                maxWidth: '80%',
+                backgroundColor: isLeft ? Colors.gray100 : Colors.gray200,
+                borderRadius: BorderRadius.lg,
+                paddingHorizontal: Spacing.md,
+                paddingVertical: Spacing.sm,
+                marginLeft: isLeft ? 10 : 0,
+                marginRight: isLeft ? 0 : 10,
+                borderWidth: isLeft ? 0 : 1,
+                borderColor: isLeft ? 'transparent' : Colors.border,
+              }}>
+                <Text style={{
+                  fontSize: Typography.fontSize.base,
+                  fontFamily: Typography.fontFamily.regular,
+                  color: Colors.textPrimary,
+                  lineHeight: Typography.fontSize.base * Typography.lineHeight.normal,
+                }}>
+                  {currentMessage?.text}
+                </Text>
+              </View>
+            </View>
+          );
+        }}
+        renderSend={(props) => (
+          <TouchableOpacity
+            onPress={() => {
+              if (props.onSend && props.text?.trim()) {
+                props.onSend({ text: props.text.trim() }, true);
+              }
             }}
-            containerStyle={{
-              marginVertical: 10,
+            style={{
+              height: 44,
+              width: 44,
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginLeft: 4,
+              marginRight: 4,
+              marginBottom: 0,
             }}
-          />
+            disabled={!props.text?.trim()}
+          >
+            <View style={{
+              width: 32,
+              height: 32,
+              borderRadius: BorderRadius.full,
+              backgroundColor: props.text?.trim() ? Colors.textPrimary : Colors.gray300,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <Text style={{
+                color: Colors.white,
+                fontSize: 18,
+                fontFamily: Typography.fontFamily.medium,
+                transform: [{ rotate: '90deg' }],
+              }}>‹</Text>
+            </View>
+          </TouchableOpacity>
         )}
+        renderDay={(props) => {
+          if (!props.currentMessage?.createdAt) return null;
+          
+          const messageDate = new Date(props.currentMessage.createdAt);
+          const today = new Date();
+          const yesterday = new Date(today);
+          yesterday.setDate(yesterday.getDate() - 1);
+          
+          let dateText = '';
+          
+          if (messageDate.toDateString() === today.toDateString()) {
+            dateText = 'Today';
+          } else if (messageDate.toDateString() === yesterday.toDateString()) {
+            dateText = 'Yesterday';
+          } else {
+            dateText = messageDate.toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: messageDate.getFullYear() !== today.getFullYear() ? 'numeric' : undefined,
+            });
+          }
+          
+          return (
+            <View style={{
+              alignItems: 'center',
+              marginVertical: Spacing.md,
+            }}>
+              <View style={{
+                backgroundColor: Colors.gray100,
+                paddingHorizontal: Spacing.md,
+                paddingVertical: Spacing.xs,
+                borderRadius: BorderRadius.full,
+              }}>
+                <Text style={{
+                  fontSize: Typography.fontSize.xs,
+                  fontFamily: Typography.fontFamily.medium,
+                  color: Colors.textTertiary,
+                }}>
+                  {dateText}
+                </Text>
+              </View>
+            </View>
+          );
+        }}
         renderLoadEarlier={(props) => (
           <View style={{
             alignItems: 'center',
@@ -505,27 +824,23 @@ export default function MessagesScreen() {
           }}>
             <TouchableOpacity
               style={{
-                backgroundColor: 'white',
-                paddingHorizontal: 20,
-                paddingVertical: 10,
-                borderRadius: 20,
+                backgroundColor: Colors.backgroundElevated,
+                paddingHorizontal: Spacing.lg,
+                paddingVertical: Spacing.sm,
+                borderRadius: BorderRadius.full,
                 borderWidth: 1,
-                borderColor: '#FFE0B2',
-                shadowColor: '#FF8C42',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.1,
-                shadowRadius: 4,
-                elevation: 2,
+                borderColor: Colors.border,
+                ...Shadows.sm,
               }}
               onPress={props.onLoadEarlier}
               disabled={props.isLoadingEarlier}>
               {props.isLoadingEarlier ? (
-                <ActivityIndicator size="small" color="#FF8C42" />
+                <ActivityIndicator size="small" color={Colors.primary} />
               ) : (
                 <Text style={{
-                  color: '#FF8C42',
-                  fontSize: 14,
-                  fontFamily: 'Inter-Medium',
+                  color: Colors.primary,
+                  fontSize: Typography.fontSize.sm,
+                  fontFamily: Typography.fontFamily.medium,
                 }}>
                   Load earlier messages
                 </Text>
@@ -534,31 +849,26 @@ export default function MessagesScreen() {
           </View>
         )}
         renderTime={(props) => (
-          <View style={{ 
-            marginLeft: 10, 
-            marginRight: 10,
-            marginBottom: 5,
+          <Text style={{
+            fontSize: 10,
+            color: Colors.textTertiary,
+            fontFamily: Typography.fontFamily.regular,
+            marginHorizontal: 10,
+            marginBottom: 2,
           }}>
-            <Text style={{
-              fontSize: 11,
-              color: '#999',
-              fontFamily: 'Inter-Regular',
-            }}>
-              {props.currentMessage?.createdAt && 
-                new Date(props.currentMessage.createdAt).toLocaleTimeString('en-US', {
-                  hour: 'numeric',
-                  minute: '2-digit',
-                  hour12: true,
-                })
-              }
-            </Text>
-          </View>
+            {props.currentMessage?.createdAt && 
+              new Date(props.currentMessage.createdAt).toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+              })
+            }
+          </Text>
         )}
       />
 
       {isSending && (
         <View style={styles.sendingOverlay}>
-          <ActivityIndicator size="small" color="#FF8C42" />
+          <ActivityIndicator size="small" color={Colors.primary} />
         </View>
       )}
       </SafeAreaView>
@@ -569,7 +879,7 @@ export default function MessagesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF8F0',
+    backgroundColor: Colors.background,
   },
   safeArea: {
     flex: 1,
@@ -580,61 +890,51 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: '#666',
+    marginTop: Spacing.md,
+    ...ComponentStyles.text.body,
+    color: Colors.textSecondary,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 40,
+    paddingHorizontal: Spacing['2xl'],
   },
   emptyTitle: {
-    fontSize: 24,
-    fontFamily: 'Inter-Bold',
-    color: '#333',
-    marginBottom: 12,
+    ...ComponentStyles.text.h2,
+    marginBottom: Spacing.md,
   },
   emptySubtitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
+    ...ComponentStyles.text.body,
+    color: Colors.textSecondary,
     textAlign: 'center',
-    marginBottom: 32,
-    lineHeight: 22,
+    marginBottom: Spacing.xl,
   },
   connectButton: {
-    backgroundColor: '#FF8C42',
-    borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    shadowColor: '#FF8C42',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    ...ComponentStyles.button.primary,
+    paddingHorizontal: Spacing.xl,
   },
   connectButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: 'white',
+    ...ComponentStyles.button.text.primary,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: 'white',
+    paddingHorizontal: Layout.screenPadding,
+    paddingVertical: Spacing.md,
+    backgroundColor: Colors.backgroundElevated,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: Colors.border,
   },
   backButton: {
-    padding: 8,
-    marginLeft: -8,
-    marginRight: 8,
+    padding: Spacing.sm,
+    marginLeft: -Spacing.sm,
+    marginRight: Spacing.sm,
+    minWidth: A11y.minTouchTarget,
+    minHeight: A11y.minTouchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerLeft: {
     flex: 1,
@@ -646,49 +946,105 @@ const styles = StyleSheet.create({
   headerAvatar: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    marginRight: 12,
+    borderRadius: BorderRadius.full,
+    marginRight: Spacing.md,
   },
   headerAvatarPlaceholder: {
-    backgroundColor: '#FFE0B2',
+    backgroundColor: Colors.gray100,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   avatarText: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#FF8C42',
+    fontSize: Typography.fontSize.lg,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.textSecondary,
   },
   title: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
+    ...ComponentStyles.text.h3,
   },
   lastSeen: {
-    fontSize: 13,
-    fontFamily: 'Inter-Regular',
-    color: '#999',
+    ...ComponentStyles.text.caption,
     marginTop: 2,
   },
+  onlineStatus: {
+    color: Colors.success,
+    fontFamily: Typography.fontFamily.medium,
+  },
+  onlineDot: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 12,
+    height: 12,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.success,
+    borderWidth: 2,
+    borderColor: Colors.white,
+  },
   headerButton: {
-    padding: 8,
+    padding: Spacing.sm,
+    minWidth: A11y.minTouchTarget,
+    minHeight: A11y.minTouchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   messagesContainer: {
-    backgroundColor: '#FFF8F0',
-    paddingHorizontal: 10,
-    paddingBottom: 10,
+    backgroundColor: Colors.background,
+    paddingHorizontal: Spacing.sm,
+    paddingBottom: Spacing.sm,
   },
   sendingOverlay: {
     position: 'absolute',
     bottom: 80,
-    right: 20,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    right: Spacing.lg,
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.full,
+    padding: Spacing.sm,
+    ...Shadows.sm,
+  },
+  connectionBanner: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: Colors.warning + '10', // 10% opacity
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    zIndex: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.warning + '20', // 20% opacity
+  },
+  connectionDot: {
+    width: 8,
+    height: 8,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.warning,
+    marginRight: Spacing.sm,
+  },
+  connectionText: {
+    ...ComponentStyles.text.caption,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.warning,
+  },
+  floatingDateBadge: {
+    position: 'absolute',
+    top: 70,
+    alignSelf: 'center',
+    backgroundColor: Colors.gray800,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+    zIndex: 10,
+    ...Shadows.md,
+  },
+  floatingDateText: {
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.white,
   },
 });

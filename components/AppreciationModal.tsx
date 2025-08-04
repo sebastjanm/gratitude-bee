@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { X, Heart, Star, Smile, Compass, MessageCircle, Sparkles } from 'lucide-react-native';
 import { supabase } from '@/utils/supabase';
+import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
 
 const { width } = Dimensions.get('window');
 

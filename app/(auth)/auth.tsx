@@ -16,6 +16,7 @@ import {
 import { router } from 'expo-router';
 import { Heart, Mail, Lock, User, Eye, EyeOff } from 'lucide-react-native';
 import { supabase } from '@/utils/supabase';
+import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles, A11y } from '@/utils/design-system';
 
 export default function AuthScreen() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -124,7 +125,7 @@ export default function AuthScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
           <View style={styles.header}>
             <Animated.View style={[styles.logoContainer, animatedStyle]}>
-              <Heart color="#FF8C42" size={32} fill="#FF8C42" />
+              <Heart color={Colors.primary} size={32} fill={Colors.primary} />
             </Animated.View>
             <Text style={styles.title}>
               {isSignUp ? 'Join GratitudeBee' : 'Welcome Back'}
@@ -140,7 +141,7 @@ export default function AuthScreen() {
           <View style={styles.form}>
             {isSignUp && (
               <View style={styles.inputContainer}>
-                <User color="#666" size={20} style={styles.inputIcon} />
+                <User color={Colors.textSecondary} size={Layout.iconSize.md} style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="Display Name"
@@ -153,7 +154,7 @@ export default function AuthScreen() {
             )}
 
             <View style={styles.inputContainer}>
-              <Mail color="#666" size={20} style={styles.inputIcon} />
+              <Mail color={Colors.textSecondary} size={Layout.iconSize.md} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
                 placeholder="Email Address"
@@ -166,7 +167,7 @@ export default function AuthScreen() {
             </View>
 
             <View style={styles.inputContainer}>
-              <Lock color="#666" size={20} style={styles.inputIcon} />
+              <Lock color={Colors.textSecondary} size={Layout.iconSize.md} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
                 placeholder="Password"
@@ -180,9 +181,9 @@ export default function AuthScreen() {
                 style={styles.eyeIcon}
                 onPress={() => setShowPassword(!showPassword)}>
                 {showPassword ? (
-                  <EyeOff color="#666" size={20} />
+                  <EyeOff color={Colors.textSecondary} size={Layout.iconSize.md} />
                 ) : (
-                  <Eye color="#666" size={20} />
+                  <Eye color={Colors.textSecondary} size={Layout.iconSize.md} />
                 )}
               </TouchableOpacity>
             </View>
@@ -231,44 +232,37 @@ export default function AuthScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF8F0',
+    backgroundColor: Colors.background,
   },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 40,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing['2xl'],
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: Spacing['2xl'],
   },
   logoContainer: {
     width: 64,
     height: 64,
-    borderRadius: 32,
-    backgroundColor: 'white',
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.backgroundElevated,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
-    shadowColor: '#FF8C42',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    marginBottom: Spacing.lg,
+    ...Shadows.md,
   },
   title: {
-    fontSize: 28,
-    fontFamily: 'Inter-Bold',
-    color: '#333',
-    marginBottom: 8,
+    ...ComponentStyles.text.h1,
+    marginBottom: Spacing.sm,
+    textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
+    ...ComponentStyles.text.body,
+    color: Colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 22,
   },
   form: {
     marginBottom: 24,
@@ -276,53 +270,43 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    marginBottom: 16,
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+    marginBottom: Spacing.md,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: Colors.border,
   },
   inputIcon: {
-    marginRight: 12,
+    marginRight: Spacing.md,
   },
   input: {
     flex: 1,
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#333',
+    ...ComponentStyles.text.body,
   },
   eyeIcon: {
-    padding: 4,
+    padding: Spacing.xs,
   },
   forgotPassword: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#FF8C42',
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.primary,
     textAlign: 'right',
-    marginBottom: 24,
+    marginBottom: Spacing.lg,
   },
   authButton: {
-    backgroundColor: '#FF8C42',
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    shadowColor: '#FF8C42',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    ...ComponentStyles.button.primary,
+    paddingVertical: Spacing.md,
+    ...Shadows.md,
   },
   disabledButton: {
-    backgroundColor: '#CCC',
+    backgroundColor: Colors.gray300,
     shadowOpacity: 0,
     elevation: 0,
   },
   authButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: 'white',
+    ...ComponentStyles.button.text.primary,
   },
   switchModeButton: {
     alignItems: 'center',
@@ -330,33 +314,31 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   switchModeText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#FF8C42',
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.primary,
     textAlign: 'center',
   },
   termsText: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: '#999',
+    ...ComponentStyles.text.caption,
+    color: Colors.textTertiary,
     textAlign: 'center',
-    lineHeight: 18,
-    paddingHorizontal: 20,
-    marginBottom: 16,
+    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.md,
   },
   testAccountButton: {
-    backgroundColor: '#F0F9FF',
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    backgroundColor: Colors.info + '10',
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: Spacing.md,
     borderWidth: 1,
-    borderColor: '#DBEAFE',
+    borderColor: Colors.info + '20',
   },
   testAccountText: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    color: '#3B82F6',
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.info,
   },
 });

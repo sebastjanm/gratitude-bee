@@ -33,6 +33,7 @@ import BraveryBadge from '@/components/BraveryBadge';
 import { supabase } from '@/utils/supabase';
 import { useSession } from '@/providers/SessionProvider';
 import { router } from 'expo-router';
+import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
 
 const { width } = Dimensions.get('window');
 
@@ -46,18 +47,18 @@ interface BadgeCategory {
 }
 
 const badgeCategoryConfig: Omit<BadgeCategory, 'count'>[] = [
-  { id: 'kindness', name: 'Kindness', icon: Heart, color: '#FF6B9D', description: 'Gentle caring actions' },
-  { id: 'support', name: 'Support', icon: Star, color: '#4ECDC4', description: 'Being there when needed' },
-  { id: 'humor', name: 'Humor', icon: Smile, color: '#FFD93D', description: 'Bringing joy with laughter' },
-  { id: 'adventure', name: 'Adventure', icon: Compass, color: '#6BCF7F', description: 'Shared experiences' },
-  { id: 'words', name: 'Love Notes', icon: MessageCircle, color: '#A8E6CF', description: 'Words of affirmation' },
+  { id: 'kindness', name: 'Kindness', icon: Heart, color: Colors.primary, description: 'Gentle caring actions' },
+  { id: 'support', name: 'Support', icon: Star, color: Colors.info, description: 'Being there when needed' },
+  { id: 'humor', name: 'Humor', icon: Smile, color: Colors.warning, description: 'Bringing joy with laughter' },
+  { id: 'adventure', name: 'Adventure', icon: Compass, color: Colors.success, description: 'Shared experiences' },
+  { id: 'words', name: 'Love Notes', icon: MessageCircle, color: Colors.gray600, description: 'Words of affirmation' },
 ];
 
 const statsConfig = [
-  { key: 'sent_today', name: 'Sent Today', icon: ArrowUpCircle, color: '#4ECDC4', description: 'Appreciations you sent today.' },
-  { key: 'received_today', name: 'Received Today', icon: ArrowDownCircle, color: '#FF6B9D', description: 'Appreciations you received today.' },
-  { key: 'favor_points', name: 'Favor Points', icon: Gift, color: '#FFD93D', description: 'Use these to ask for special favors.' },
-  { key: 'appreciation_points', name: 'Appreciation', icon: Award, color: '#A8E6CF', description: 'Your total positive karma.' },
+  { key: 'sent_today', name: 'Sent Today', icon: ArrowUpCircle, color: Colors.success, description: 'Appreciations you sent today.' },
+  { key: 'received_today', name: 'Received Today', icon: ArrowDownCircle, color: Colors.primary, description: 'Appreciations you received today.' },
+  { key: 'favor_points', name: 'Favor Points', icon: Gift, color: Colors.warning, description: 'Use these to ask for special favors.' },
+  { key: 'appreciation_points', name: 'Appreciation', icon: Award, color: Colors.info, description: 'Your total positive karma.' },
 ];
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -593,10 +594,10 @@ export default function HomeScreen() {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={onRefresh}
-            colors={['#FF8C42']}
-            tintColor="#FF8C42"
+            colors={[Colors.primary]}
+            tintColor={Colors.primary}
             title="Pull to refresh"
-            titleColor="#666"
+            titleColor={Colors.textSecondary}
           />
         }
       >
@@ -700,188 +701,154 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF8F0',
+    backgroundColor: Colors.background,
   },
   fixedHeaderContainer: {
-    backgroundColor: '#FFF8F0',
+    backgroundColor: Colors.background,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-    paddingBottom: 20,
+    borderBottomColor: Colors.border,
+    paddingBottom: Spacing.lg,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 4,
+    paddingHorizontal: Layout.screenPadding,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.xs,
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1, // Allow content to take up space
+    flex: 1,
   },
   title: {
-    fontSize: 24,
-    fontFamily: 'Inter-Bold',
-    color: '#333',
-    marginLeft: 12,
+    ...ComponentStyles.text.h2,
+    marginLeft: Spacing.md,
   },
   headerName: {
-    color: '#FF8C42',
+    color: Colors.primary,
   },
   headerButton: {
-    padding: 8,
-    marginLeft: 16,
+    padding: Spacing.sm,
+    marginLeft: Spacing.md,
   },
   subtitle: {
-    fontSize: 15,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    lineHeight: 22,
-    paddingHorizontal: 20,
+    ...ComponentStyles.text.body,
+    color: Colors.textSecondary,
+    paddingHorizontal: Layout.screenPadding,
   },
   scrollView: {
     flex: 1,
   },
   streakCard: {
-    backgroundColor: 'white',
-    marginHorizontal: 20,
-    marginBottom: 24,
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    ...ComponentStyles.card,
+    marginHorizontal: Layout.screenPadding,
+    marginBottom: Spacing.lg,
   },
   streakHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: Spacing.md,
   },
   streakTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginLeft: 8,
+    ...ComponentStyles.text.h3,
+    marginLeft: Spacing.sm,
   },
   streakStats: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 16,
+    marginBottom: Spacing.md,
   },
   streakItem: {
     alignItems: 'center',
     flex: 1,
   },
   streakNumber: {
-    fontSize: 32,
-    fontFamily: 'Inter-Bold',
-    color: '#FF8C42',
+    fontSize: Typography.fontSize['4xl'],
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.primary,
   },
   streakLabel: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#666',
-    marginTop: 4,
+    ...ComponentStyles.text.caption,
+    marginTop: Spacing.xs,
   },
   streakDivider: {
     width: 1,
     height: 40,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: Colors.border,
     alignSelf: 'center',
   },
   streakEncouragement: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
+    ...ComponentStyles.text.caption,
     textAlign: 'center',
   },
   categoryCard: {
-    width: (width - 60) / 2,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+    width: (width - (Layout.screenPadding * 2) - Spacing.md) / 2,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
     borderWidth: 2,
     borderColor: 'transparent',
     position: 'relative',
+    backgroundColor: Colors.backgroundElevated,
+    ...Shadows.sm,
   },
   selectedCategory: {
-    borderColor: '#FF8C42',
+    borderColor: Colors.primary,
     transform: [{ scale: 1.02 }],
   },
   categoryIcon: {
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: BorderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: Spacing.md,
   },
   categoryName: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginBottom: 4,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.xs,
   },
   categoryDescription: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    lineHeight: 16,
+    ...ComponentStyles.text.caption,
+    lineHeight: Typography.fontSize.sm * Typography.lineHeight.normal,
   },
   categoryBadge: {
     position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: '#FF8C42',
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    top: Spacing.md,
+    right: Spacing.md,
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
     minWidth: 24,
     alignItems: 'center',
   },
   categoryCount: {
-    fontSize: 12,
-    fontFamily: 'Inter-Bold',
-    color: 'white',
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.white,
   },
   sendButton: {
-    backgroundColor: '#FF8C42',
-    borderRadius: 16,
-    paddingVertical: 16,
-    alignItems: 'center',
-    shadowColor: '#FF8C42',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    ...ComponentStyles.button.primary,
+    paddingVertical: Spacing.md,
+    ...Shadows.md,
   },
   sendButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: 'white',
+    ...ComponentStyles.button.text.primary,
   },
   collectionContainer: {
-    backgroundColor: 'white',
-    marginHorizontal: 20,
-    borderRadius: 20,
-    padding: 20,
-    marginTop: 20, // Add space above this container
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    ...ComponentStyles.card,
+    marginHorizontal: Layout.screenPadding,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.lg,
   },
   collectionTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginBottom: 20,
+    ...ComponentStyles.text.h3,
+    marginBottom: Spacing.lg,
     textAlign: 'center',
   },
   collectionGrid: {
@@ -897,36 +864,28 @@ const styles = StyleSheet.create({
   collectionCategoryIcon: {
     width: 56,
     height: 56,
-    borderRadius: 28,
+    borderRadius: BorderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: Spacing.sm,
   },
   collectionCategoryCount: {
-    fontSize: 20,
-    fontFamily: 'Inter-Bold',
-    color: '#333',
+    fontSize: Typography.fontSize.xl,
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.textPrimary,
   },
   collectionCategoryName: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    marginTop: 4,
+    ...ComponentStyles.text.caption,
+    marginTop: Spacing.xs,
     textAlign: 'center',
   },
   statsContainer: {
-    backgroundColor: 'white',
-    marginHorizontal: 20,
-    borderRadius: 20,
-    paddingVertical: 16,
-    paddingHorizontal: 12,
-    marginTop: 10,
-    marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    ...ComponentStyles.card,
+    marginHorizontal: Layout.screenPadding,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    marginTop: Spacing.sm,
+    marginBottom: Spacing.sm,
     overflow: 'hidden',
   },
   statsGrid: {
@@ -941,21 +900,21 @@ const styles = StyleSheet.create({
   statIcon: {
     width: 42,
     height: 42,
-    borderRadius: 20,
+    borderRadius: BorderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: Spacing.sm,
   },
   statNumber: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-    color: '#333',
+    fontSize: Typography.fontSize.lg,
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.textPrimary,
   },
   statLabel: {
-    fontSize: 11,
-    fontFamily: 'Inter-Medium',
-    color: '#666',
-    marginTop: 4,
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.textSecondary,
+    marginTop: Spacing.xs,
     textAlign: 'center',
   },
   statsHeaderRow: {
@@ -965,14 +924,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   statsTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.textPrimary,
   },
   statsSubtitle: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: '#999',
+    ...ComponentStyles.text.caption,
+    color: Colors.textTertiary,
     textAlign: 'center',
   },
   statItemExpanded: {
@@ -992,9 +950,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   statDescriptionExpanded: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
+    ...ComponentStyles.text.caption,
   },
   statsHeader: {
     backgroundColor: 'white',
@@ -1047,16 +1003,14 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   partnerConnectTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginBottom: 4,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.xs,
   },
   partnerConnectSubtitle: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    lineHeight: 20,
+    ...ComponentStyles.text.caption,
+    lineHeight: Typography.fontSize.sm * Typography.lineHeight.normal,
   },
 });
 
