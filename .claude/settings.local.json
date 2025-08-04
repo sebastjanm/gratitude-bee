@@ -20,7 +20,9 @@
       "Bash(export:*)",
       "Bash(eas build:*)",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:kirillzyusko.github.io)"
+      "WebFetch(domain:kirillzyusko.github.io)",
+      "Bash(npm run lint)",
+      "Bash(npm run:*)"
     ],
     "deny": []
   }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -35,6 +35,7 @@ interface ChatMessage {
   created_at: string;
   sender_id: string;
   uri: string | null;
+  conversation_id?: string;
 }
 
 const formatMessagesForGiftedChat = (
@@ -67,6 +68,10 @@ export default function MessagesScreen() {
   const [participant, setParticipant] = useState<ChatUser | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [isLoadingConversation, setIsLoadingConversation] = useState(true);
+  const [isPartnerTyping, setIsPartnerTyping] = useState(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastTypingStatusRef = useRef(false);
+  const typingDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const myUserId = session?.user?.id;
   const myAvatarUrl = session?.user?.user_metadata?.avatar_url || null;
@@ -166,11 +171,12 @@ export default function MessagesScreen() {
     initialPageParam: undefined as string | undefined,
   });
 
-  // Subscribe to new messages
+  // Subscribe to new messages and typing events
   useEffect(() => {
     if (!conversationId || !myUserId) return;
 
-    const channel = supabase
+    // Messages channel for new messages
+    const messageChannel = supabase
       .channel(`messages:${conversationId}`)
       .on(
         'postgres_changes',
@@ -202,8 +208,54 @@ export default function MessagesScreen() {
       )
       .subscribe();
 
+    // Typing channel for typing indicators
+    const typingChannel = supabase
+      .channel(`typing:${conversationId}`)
+      .on(
+        'broadcast',
+        { event: 'typing' },
+        ({ payload }) => {
+          if (payload.user_id !== myUserId) {
+            setIsPartnerTyping(payload.is_typing);
+            
+            // Clear existing timeout
+            if (typingTimeoutRef.current) {
+              clearTimeout(typingTimeoutRef.current);
+            }
+            
+            // Auto-hide typing indicator after 3 seconds
+            if (payload.is_typing) {
+              typingTimeoutRef.current = setTimeout(() => {
+                setIsPartnerTyping(false);
+              }, 3000) as unknown as NodeJS.Timeout;
+            }
+          }
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(messageChannel);
+      supabase.removeChannel(typingChannel);
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      if (typingDebounceRef.current) {
+        clearTimeout(typingDebounceRef.current);
+      }
+      // Send typing false on unmount
+      if (lastTypingStatusRef.current && conversationId && myUserId) {
+        const typingChannel = supabase.channel(`typing:${conversationId}`);
+        typingChannel.send({
+          type: 'broadcast',
+          event: 'typing',
+          payload: {
+            user_id: myUserId,
+            is_typing: false,
+            timestamp: new Date().toISOString(),
+          },
+        });
+      }
     };
   }, [conversationId, myUserId, queryClient]);
 
@@ -292,6 +344,49 @@ export default function MessagesScreen() {
       fetchNextPage();
     }
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  // Send typing status with debouncing
+  const sendTypingStatus = useCallback((isTyping: boolean) => {
+    if (!conversationId || !myUserId) return;
+    
+    // Only send if status actually changed
+    if (lastTypingStatusRef.current === isTyping) return;
+    lastTypingStatusRef.current = isTyping;
+
+    const typingChannel = supabase.channel(`typing:${conversationId}`);
+    typingChannel.send({
+      type: 'broadcast',
+      event: 'typing',
+      payload: {
+        user_id: myUserId,
+        is_typing: isTyping,
+        timestamp: new Date().toISOString(),
+      },
+    });
+  }, [conversationId, myUserId]);
+
+  // Debounced typing handler
+  const handleTyping = useCallback((text: string) => {
+    // Clear existing timeout
+    if (typingDebounceRef.current) {
+      clearTimeout(typingDebounceRef.current);
+    }
+
+    if (text.length > 0) {
+      // Send typing true immediately if not already typing
+      if (!lastTypingStatusRef.current) {
+        sendTypingStatus(true);
+      }
+      
+      // Set timeout to stop typing after 2 seconds of inactivity
+      typingDebounceRef.current = setTimeout(() => {
+        sendTypingStatus(false);
+      }, 2000) as unknown as NodeJS.Timeout;
+    } else {
+      // Send typing false immediately when text is cleared
+      sendTypingStatus(false);
+    }
+  }, [sendTypingStatus]);
 
   if (isLoadingConversation) {
     return (
@@ -382,8 +477,10 @@ export default function MessagesScreen() {
         minInputToolbarHeight={56}
         keyboardShouldPersistTaps="handled"
         isKeyboardInternallyHandled={false}
+        isTyping={isPartnerTyping}
+        onInputTextChanged={handleTyping}
         listViewProps={{
-          contentContainerStyle: { paddingTop: 10 },
+          style: { paddingTop: 10 },
           showsVerticalScrollIndicator: false,
         }}
         renderDay={(props) => (
