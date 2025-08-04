@@ -711,28 +711,42 @@ export default function MessagesScreen() {
           const isLeft = position === 'left';
           return (
             <View style={{
-              flexDirection: 'row',
-              marginVertical: 4,
-              alignItems: 'flex-end',
+              alignSelf: isLeft ? 'flex-start' : 'flex-end',
+              marginVertical: 2,
+              marginHorizontal: 8,
+              maxWidth: '80%',
             }}>
               <View style={{
-                maxWidth: '80%',
-                backgroundColor: isLeft ? Colors.gray100 : Colors.gray200,
-                borderRadius: BorderRadius.lg,
-                paddingHorizontal: Spacing.md,
-                paddingVertical: Spacing.sm,
-                marginLeft: isLeft ? 10 : 0,
-                marginRight: isLeft ? 0 : 10,
-                borderWidth: isLeft ? 0 : 1,
-                borderColor: isLeft ? 'transparent' : Colors.border,
+                backgroundColor: isLeft ? Colors.white : '#DCF8C6',
+                borderRadius: 8,
+                paddingTop: 8,
+                paddingBottom: 4,
+                paddingLeft: 12,
+                paddingRight: 12,
+                ...Shadows.sm,
+                alignSelf: isLeft ? 'flex-start' : 'flex-end',
               }}>
                 <Text style={{
-                  fontSize: Typography.fontSize.base,
+                  fontSize: 16,
                   fontFamily: Typography.fontFamily.regular,
                   color: Colors.textPrimary,
-                  lineHeight: Typography.fontSize.base * Typography.lineHeight.normal,
+                  lineHeight: 22,
                 }}>
                   {currentMessage?.text}
+                </Text>
+                <Text style={{
+                  fontSize: 11,
+                  color: Colors.textTertiary,
+                  marginTop: 2,
+                  alignSelf: 'flex-end',
+                }}>
+                  {currentMessage?.createdAt && 
+                    new Date(currentMessage.createdAt).toLocaleTimeString('en-US', {
+                      hour: 'numeric',
+                      minute: '2-digit',
+                      hour12: false,
+                    })
+                  }
                 </Text>
               </View>
             </View>
@@ -798,18 +812,18 @@ export default function MessagesScreen() {
           return (
             <View style={{
               alignItems: 'center',
-              marginVertical: Spacing.md,
+              marginVertical: 16,
             }}>
               <View style={{
-                backgroundColor: Colors.gray100,
-                paddingHorizontal: Spacing.md,
-                paddingVertical: Spacing.xs,
-                borderRadius: BorderRadius.full,
+                backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                paddingHorizontal: 12,
+                paddingVertical: 4,
+                borderRadius: 16,
               }}>
                 <Text style={{
-                  fontSize: Typography.fontSize.xs,
-                  fontFamily: Typography.fontFamily.medium,
-                  color: Colors.textTertiary,
+                  fontSize: 13,
+                  fontFamily: Typography.fontFamily.regular,
+                  color: Colors.white,
                 }}>
                   {dateText}
                 </Text>
@@ -848,22 +862,7 @@ export default function MessagesScreen() {
             </TouchableOpacity>
           </View>
         )}
-        renderTime={(props) => (
-          <Text style={{
-            fontSize: 10,
-            color: Colors.textTertiary,
-            fontFamily: Typography.fontFamily.regular,
-            marginHorizontal: 10,
-            marginBottom: 2,
-          }}>
-            {props.currentMessage?.createdAt && 
-              new Date(props.currentMessage.createdAt).toLocaleTimeString('en-US', {
-                hour: 'numeric',
-                minute: '2-digit',
-              })
-            }
-          </Text>
-        )}
+        renderTime={() => null}
       />
 
       {isSending && (
@@ -991,9 +990,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   messagesContainer: {
-    backgroundColor: Colors.background,
-    paddingHorizontal: Spacing.sm,
-    paddingBottom: Spacing.sm,
+    backgroundColor: '#E5DDD5',
+    paddingHorizontal: 0,
+    paddingBottom: 0,
   },
   sendingOverlay: {
     position: 'absolute',
