@@ -572,7 +572,7 @@ export default function HomeScreen() {
       <View style={styles.fixedHeaderContainer}>
         <View style={styles.header}>
           <View style={styles.headerContent}>
-            <Home color="#FF8C42" size={28} />
+            <Home color={Colors.primary} size={28} />
             <Text style={styles.title}>Hi, <Text style={styles.headerName}>{userName}</Text></Text>
           </View>
           <TouchableOpacity style={styles.headerButton} onPress={() => {
@@ -581,7 +581,7 @@ export default function HomeScreen() {
             } catch (error) {
             }
           }}>
-            <HelpCircle color="#666" size={24} />
+            <HelpCircle color={Colors.textSecondary} size={Layout.iconSize.lg} />
           </TouchableOpacity>
         </View>
         <Text style={styles.subtitle}>How are you doing today?</Text>
@@ -609,7 +609,7 @@ export default function HomeScreen() {
             onPress={() => router.push('/(modals)/connect-partner')}
             activeOpacity={0.8}>
             <View style={styles.partnerConnectIcon}>
-              <Users color="#FF8C42" size={24} />
+              <Users color={Colors.primary} size={Layout.iconSize.lg} />
             </View>
             <View style={styles.partnerConnectText}>
               <Text style={styles.partnerConnectTitle}>Connect with Your Partner</Text>
@@ -617,7 +617,7 @@ export default function HomeScreen() {
                 Start sharing appreciation badges together
               </Text>
             </View>
-            <ArrowRight color="#FF8C42" size={20} />
+            <ArrowRight color={Colors.primary} size={Layout.iconSize.md} />
           </TouchableOpacity>
         )}
 
@@ -631,7 +631,7 @@ export default function HomeScreen() {
           <View style={styles.statsContainer}>
             <View style={styles.statsHeaderRow}>
               <Text style={styles.statsTitle}>Today's Snapshot</Text>
-              {isStatsExpanded ? <ChevronUp color="#666" size={20} /> : <ChevronDown color="#666" size={20} />}
+              {isStatsExpanded ? <ChevronUp color={Colors.textSecondary} size={Layout.iconSize.md} /> : <ChevronDown color={Colors.textSecondary} size={Layout.iconSize.md} />}
             </View>
             {renderStats()}
           </View>
@@ -953,18 +953,12 @@ const styles = StyleSheet.create({
     ...ComponentStyles.text.caption,
   },
   statsHeader: {
-    backgroundColor: 'white',
-    marginHorizontal: 20,
-    borderRadius: 20,
-    paddingVertical: 16,
-    paddingHorizontal: 12,
-    marginTop: 20,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    ...ComponentStyles.card,
+    marginHorizontal: Layout.screenPadding,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.lg,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -974,33 +968,27 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   partnerConnectBanner: {
-    backgroundColor: 'white',
-    marginHorizontal: 20,
-    marginBottom: 24,
-    borderRadius: 20,
-    padding: 20,
+    ...ComponentStyles.card,
+    marginHorizontal: Layout.screenPadding,
+    marginBottom: Spacing.lg,
+    padding: Spacing.lg,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
     borderLeftWidth: 4,
-    borderLeftColor: '#FF8C42',
+    borderLeftColor: Colors.primary,
   },
   partnerConnectIcon: {
     width: 48,
     height: 48,
-    borderRadius: 24,
-    backgroundColor: '#FFF8F0',
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.backgroundAlt,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: Spacing.md,
   },
   partnerConnectText: {
     flex: 1,
-    marginRight: 12,
+    marginRight: Spacing.md,
   },
   partnerConnectTitle: {
     fontSize: Typography.fontSize.base,

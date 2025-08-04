@@ -77,9 +77,6 @@ export default function MessagesScreen() {
   const lastTypingStatusRef = useRef(false);
   const typingDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const pulseAnim = useRef(new Animated.Value(0.6)).current;
-  const [isScrolling, setIsScrolling] = useState(false);
-  const [floatingDate, setFloatingDate] = useState<string>('');
-  const scrollingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const myUserId = session?.user?.id;
   const myAvatarUrl = session?.user?.user_metadata?.avatar_url || null;
@@ -341,9 +338,6 @@ export default function MessagesScreen() {
       }
       if (typingDebounceRef.current) {
         clearTimeout(typingDebounceRef.current);
-      }
-      if (scrollingTimeoutRef.current) {
-        clearTimeout(scrollingTimeoutRef.current);
       }
       // Send typing false on unmount
       if (lastTypingStatusRef.current && conversationId && myUserId) {
@@ -611,16 +605,6 @@ export default function MessagesScreen() {
         </View>
       )}
 
-      {isScrolling && floatingDate && (
-        <Animated.View style={[
-          styles.floatingDateBadge,
-          {
-            opacity: isScrolling ? 1 : 0,
-          }
-        ]}>
-          <Text style={styles.floatingDateText}>{floatingDate}</Text>
-        </Animated.View>
-      )}
 
       <GiftedChat
         messages={formattedMessages}
@@ -640,72 +624,14 @@ export default function MessagesScreen() {
         isTyping={isPartnerTyping}
         onInputTextChanged={handleTyping}
         listViewProps={{
-          style: { paddingTop: Spacing.sm },
-          showsVerticalScrollIndicator: false,
-          onScroll: (event: any) => {
-            // Set scrolling state
-            setIsScrolling(true);
-            
-            // Clear existing timeout
-            if (scrollingTimeoutRef.current) {
-              clearTimeout(scrollingTimeoutRef.current);
-            }
-            
-            // Hide floating date after scrolling stops
-            scrollingTimeoutRef.current = setTimeout(() => {
-              setIsScrolling(false);
-            }, 1500) as unknown as NodeJS.Timeout;
-            
-            // Get the topmost visible message to determine date
-            const offsetY = event.nativeEvent.contentOffset.y;
-            const visibleHeight = event.nativeEvent.layoutMeasurement.height;
-            
-            // Find the first visible message
-            if (formattedMessages.length > 0) {
-              // This is a simplified approach - in a real implementation
-              // you'd calculate which message is visible based on item heights
-              const firstVisibleIndex = Math.floor(offsetY / 80); // Approximate message height
-              const visibleMessage = formattedMessages[Math.min(firstVisibleIndex, formattedMessages.length - 1)];
-              
-              if (visibleMessage?.createdAt) {
-                const messageDate = new Date(visibleMessage.createdAt);
-                const today = new Date();
-                const yesterday = new Date(today);
-                yesterday.setDate(yesterday.getDate() - 1);
-                
-                let dateText = '';
-                
-                if (messageDate.toDateString() === today.toDateString()) {
-                  dateText = 'Today';
-                } else if (messageDate.toDateString() === yesterday.toDateString()) {
-                  dateText = 'Yesterday';
-                } else {
-                  dateText = messageDate.toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: messageDate.getFullYear() !== today.getFullYear() ? 'numeric' : undefined,
-                  });
-                }
-                
-                setFloatingDate(dateText);
-              }
-            }
-          },
           scrollEventThrottle: 16,
-        }}
-        textInputStyle={{
-          fontSize: Typography.fontSize.base,
-          fontFamily: Typography.fontFamily.regular,
-          color: Colors.textPrimary,
-          paddingTop: 8,
-          paddingHorizontal: 12,
-          marginLeft: 0,
-          marginRight: 0,
-        }}
+        } as any}
         textInputProps={{
           placeholderTextColor: Colors.textTertiary,
           placeholder: 'Type a message...',
         }}
+        minComposerHeight={40}
+        maxComposerHeight={120}
         renderBubble={(props) => {
           const { currentMessage, position } = props;
           const isLeft = position === 'left';
@@ -787,81 +713,25 @@ export default function MessagesScreen() {
             </View>
           </TouchableOpacity>
         )}
-        renderDay={(props) => {
-          if (!props.currentMessage?.createdAt) return null;
-          
-          const messageDate = new Date(props.currentMessage.createdAt);
-          const today = new Date();
-          const yesterday = new Date(today);
-          yesterday.setDate(yesterday.getDate() - 1);
-          
-          let dateText = '';
-          
-          if (messageDate.toDateString() === today.toDateString()) {
-            dateText = 'Today';
-          } else if (messageDate.toDateString() === yesterday.toDateString()) {
-            dateText = 'Yesterday';
-          } else {
-            dateText = messageDate.toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric',
-              year: messageDate.getFullYear() !== today.getFullYear() ? 'numeric' : undefined,
-            });
+        renderDay={() => null}
+        renderLoadEarlier={(props) => {
+          // Auto-load when this component becomes visible
+          if (hasNextPage && !props.isLoadingEarlier) {
+            // Trigger load earlier automatically
+            setTimeout(() => {
+              props.onLoadEarlier?.();
+            }, 100);
           }
           
-          return (
+          return props.isLoadingEarlier ? (
             <View style={{
               alignItems: 'center',
-              marginVertical: 16,
+              paddingVertical: 20,
             }}>
-              <View style={{
-                backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                paddingHorizontal: 12,
-                paddingVertical: 4,
-                borderRadius: 16,
-              }}>
-                <Text style={{
-                  fontSize: 13,
-                  fontFamily: Typography.fontFamily.regular,
-                  color: Colors.white,
-                }}>
-                  {dateText}
-                </Text>
-              </View>
+              <ActivityIndicator size="small" color={Colors.textTertiary} />
             </View>
-          );
+          ) : null;
         }}
-        renderLoadEarlier={(props) => (
-          <View style={{
-            alignItems: 'center',
-            marginVertical: 20,
-          }}>
-            <TouchableOpacity
-              style={{
-                backgroundColor: Colors.backgroundElevated,
-                paddingHorizontal: Spacing.lg,
-                paddingVertical: Spacing.sm,
-                borderRadius: BorderRadius.full,
-                borderWidth: 1,
-                borderColor: Colors.border,
-                ...Shadows.sm,
-              }}
-              onPress={props.onLoadEarlier}
-              disabled={props.isLoadingEarlier}>
-              {props.isLoadingEarlier ? (
-                <ActivityIndicator size="small" color={Colors.primary} />
-              ) : (
-                <Text style={{
-                  color: Colors.primary,
-                  fontSize: Typography.fontSize.sm,
-                  fontFamily: Typography.fontFamily.medium,
-                }}>
-                  Load earlier messages
-                </Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        )}
         renderTime={() => null}
       />
 
@@ -1029,21 +899,5 @@ const styles = StyleSheet.create({
     ...ComponentStyles.text.caption,
     fontFamily: Typography.fontFamily.medium,
     color: Colors.warning,
-  },
-  floatingDateBadge: {
-    position: 'absolute',
-    top: 70,
-    alignSelf: 'center',
-    backgroundColor: Colors.gray800,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.full,
-    zIndex: 10,
-    ...Shadows.md,
-  },
-  floatingDateText: {
-    fontSize: Typography.fontSize.xs,
-    fontFamily: Typography.fontFamily.medium,
-    color: Colors.white,
   },
 });

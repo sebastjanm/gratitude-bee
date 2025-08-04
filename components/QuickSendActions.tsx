@@ -14,6 +14,7 @@ import {
   Crown,
   TriangleAlert as AlertTriangle,
 } from 'lucide-react-native';
+import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
 
 const { width } = Dimensions.get('window');
 
@@ -85,7 +86,7 @@ export default function QuickSendActions({
           style={styles.hornetImage}
         />
         <Text style={styles.negativeButtonText}>Send Hornet</Text>
-        <AlertTriangle color="#FF4444" size={16} />
+        <AlertTriangle color={Colors.error} size={16} />
       </View>
       <Text style={styles.negativeButtonSubtext}>
         Cancel positive badges for accountability
@@ -120,9 +121,9 @@ export default function QuickSendActions({
           onPress={onShowAppreciationModal}
           activeOpacity={0.8}>
           <Animated.View style={[{ transform: [{ scale: heartAnimation }] }]}>
-            <Heart color="#FF8C42" size={28} fill="#FF8C42" />
+            <Heart color={Colors.primary} size={28} fill={Colors.primary} />
           </Animated.View>
-          <Text style={[styles.levelOneButtonText, { color: '#FF8C42' }]}>
+          <Text style={[styles.levelOneButtonText, { color: Colors.primary }]}>
             Send Appreciation
           </Text>
           <Text style={styles.levelOneButtonSubtext}>
@@ -134,9 +135,9 @@ export default function QuickSendActions({
           onPress={onShowFavorsModal}
           activeOpacity={0.8}>
           <Animated.View style={[{ transform: [{ scale: heartAnimation }] }]}>
-            <HandHeart color="#2C3E50" size={28} />
+            <HandHeart color={Colors.gray800} size={28} />
           </Animated.View>
-          <Text style={[styles.levelOneButtonText, { color: '#2C3E50' }]}>
+          <Text style={[styles.levelOneButtonText, { color: Colors.gray800 }]}>
             Ask for a Favor
           </Text>
           <Text style={styles.levelOneButtonSubtext}>
@@ -161,158 +162,150 @@ export default function QuickSendActions({
 
 const styles = StyleSheet.create({
   quickSendContainer: {
-    marginHorizontal: 20,
-    marginBottom: 24,
+    marginHorizontal: Layout.screenPadding,
+    marginBottom: Spacing.lg,
   },
   levelOneContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 10,
+    gap: Spacing.sm,
   },
   levelOneButton: {
     flex: 1,
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    ...Shadows.sm,
   },
   levelOneButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    marginTop: 12,
-    marginBottom: 4,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semibold,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.xs,
     textAlign: 'center',
   },
   levelOneButtonSubtext: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
+    ...ComponentStyles.text.caption,
+    color: Colors.textSecondary,
     textAlign: 'center',
     height: 32,
   },
   appreciationButton: {
-    borderColor: '#FFE0B2',
+    borderColor: Colors.primary + '30',
   },
   favorsButton: {
-    borderColor: '#A9B4C2',
-    backgroundColor: '#EAF0F6',
+    borderColor: Colors.gray400,
+    backgroundColor: Colors.gray100,
   },
   levelTwoContainer: {},
   divider: {
     height: 1,
-    backgroundColor: '#E0E0E0',
-    marginVertical: 20,
+    backgroundColor: Colors.border,
+    marginVertical: Spacing.lg,
   },
   negativeButton: {
-    backgroundColor: '#FFF5F5',
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: Colors.error + '10',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
     borderWidth: 2,
-    borderColor: '#FFE0E0',
-    marginBottom: 12,
+    borderColor: Colors.error + '20',
+    marginBottom: Spacing.md,
   },
   negativeButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: Spacing.sm,
   },
   hornetImage: {
     width: 24,
     height: 24,
   },
   negativeButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#FF4444',
-    marginHorizontal: 8,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semibold,
+    color: Colors.error,
+    marginHorizontal: Spacing.sm,
   },
   negativeButtonSubtext: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: '#999',
+    ...ComponentStyles.text.caption,
+    color: Colors.textTertiary,
     textAlign: 'center',
   },
   dontPanicButton: {
-    backgroundColor: '#E8F5E9',
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: Colors.success + '10',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
     borderWidth: 2,
-    borderColor: '#A8D8B9',
-    marginBottom: 12,
+    borderColor: Colors.success + '30',
+    marginBottom: Spacing.md,
   },
   dontPanicButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: Spacing.sm,
   },
   dontPanicButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#27AE60',
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semibold,
+    color: Colors.success,
   },
   dontPanicButtonSubtext: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: '#999',
+    ...ComponentStyles.text.caption,
+    color: Colors.textTertiary,
     textAlign: 'center',
   },
   dontPanicImage: {
     width: 24,
     height: 24,
-    marginRight: 8,
+    marginRight: Spacing.sm,
   },
   relationshipWisdomButton: {
-    backgroundColor: '#F8F7FF',
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: '#8B5CF610',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
     borderWidth: 2,
-    borderColor: '#E5E3FF',
-    marginBottom: 12,
+    borderColor: '#8B5CF630',
+    marginBottom: Spacing.md,
   },
   relationshipWisdomButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: Spacing.sm,
   },
   relationshipWisdomButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semibold,
     color: '#8B5CF6',
   },
   relationshipWisdomButtonSubtext: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: '#999',
+    ...ComponentStyles.text.caption,
+    color: Colors.textTertiary,
     textAlign: 'center',
   },
   wisdomImage: {
     width: 24,
     height: 24,
-    marginRight: 8,
+    marginRight: Spacing.sm,
   },
   pingButton: {
-    backgroundColor: '#EFF6FF',
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: Colors.info + '10',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
     borderWidth: 2,
-    borderColor: '#BFDBFE',
-    marginBottom: 12,
+    borderColor: Colors.info + '30',
+    marginBottom: Spacing.md,
   },
   pingButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: Spacing.sm,
   },
   pingIconContainer: {
     marginRight: 8,
@@ -324,19 +317,18 @@ const styles = StyleSheet.create({
     right: -4,
   },
   pingButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#3B82F6',
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semibold,
+    color: Colors.info,
   },
   pingButtonSubtext: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: '#999',
+    ...ComponentStyles.text.caption,
+    color: Colors.textTertiary,
     textAlign: 'center',
   },
   pingImage: {
     width: 24,
     height: 24,
-    marginRight: 8,
+    marginRight: Spacing.sm,
   },
 }); 
