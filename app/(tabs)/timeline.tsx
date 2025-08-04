@@ -19,6 +19,7 @@ import { useSession } from '@/providers/SessionProvider';
 import { supabase } from '@/utils/supabase';
 import { router } from 'expo-router';
 import ReactionModal from '@/components/ReactionModal';
+import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
 
 const { width } = Dimensions.get('window');
 
@@ -53,24 +54,24 @@ interface TimelineEvent {
 
 const filterOptions = [
   { id: 'all', name: 'All Events' },
-  { id: 'received', name: 'I Received' },
-  { id: 'sent', name: 'I Sent' },
+  { id: 'received', name: 'Received' },
+  { id: 'sent', name: 'Sent' },
 ];
 
 const categoryDetails: { [key: string]: { icon: any; color: string } } = {
   // Appreciation categories are still used as fallbacks for older events
-  kindness: { icon: Heart, color: '#FF6B9D' },
-  support: { icon: Star, color: '#4ECDC4' },
-  humor: { icon: Smile, color: '#FFD93D' },
-  adventure: { icon: Compass, color: '#6BCF7F' },
-  words: { icon: MessageCircle, color: '#A8E6CF' },
+  kindness: { icon: Heart, color: Colors.primary },
+  support: { icon: Star, color: Colors.info },
+  humor: { icon: Smile, color: Colors.warning },
+  adventure: { icon: Compass, color: Colors.success },
+  words: { icon: MessageCircle, color: Colors.gray600 },
   // Event type fallbacks for events without dynamic content
-  hornet: { icon: Bug, color: '#FF4444' },
-  favor: { icon: Heart, color: '#8B4513' },
+  hornet: { icon: Bug, color: Colors.error },
+  favor: { icon: Heart, color: Colors.gray700 },
   wisdom: { icon: HelpCircle, color: '#8B5CF6' },
-  ping: { icon: MessageCircle, color: '#3B82F6' },
+  ping: { icon: MessageCircle, color: Colors.info },
   dont_panic: { icon: Heart, color: '#6366F1' },
-  default: { icon: Heart, color: '#ccc' },
+  default: { icon: Heart, color: Colors.gray400 },
 };
 
 const reactionIcons: { [key: string]: string } = {
@@ -429,11 +430,11 @@ export default function TimelineScreen() {
       <View style={styles.fixedHeaderContainer}>
         <View style={styles.header}>
           <View style={styles.headerContent}>
-            <Clock color="#FF8C42" size={28} />
+            <Clock color={Colors.primary} size={28} />
             <Text style={styles.title}>Timeline</Text>
           </View>
           <TouchableOpacity style={styles.headerButton} onPress={() => router.push('/help')}>
-            <HelpCircle color="#666" size={24} />
+            <HelpCircle color={Colors.textSecondary} size={Layout.iconSize.lg} />
           </TouchableOpacity>
         </View>
         <Text style={styles.subtitle}>
@@ -603,51 +604,47 @@ export default function TimelineScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF8F0',
+    backgroundColor: Colors.background,
   },
   fixedHeaderContainer: {
-    backgroundColor: '#FFF8F0',
+    backgroundColor: Colors.background,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-    paddingBottom: 20,
+    borderBottomColor: Colors.border,
+    paddingBottom: Spacing.lg,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 4,
+    paddingHorizontal: Layout.screenPadding,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.xs,
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   title: {
-    fontSize: 24,
-    fontFamily: 'Inter-Bold',
-    color: '#333',
-    marginLeft: 12,
+    ...ComponentStyles.text.h2,
+    marginLeft: Spacing.md,
   },
   headerButton: {
-    padding: 8,
+    padding: Spacing.sm,
   },
   subtitle: {
-    fontSize: 15,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    lineHeight: 22,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    ...ComponentStyles.text.body,
+    color: Colors.textSecondary,
+    paddingHorizontal: Layout.screenPadding,
+    paddingBottom: Spacing.lg,
   },
   simpleFilterContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginHorizontal: 20,
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 8,
-    shadowColor: '#000',
+    marginHorizontal: Layout.screenPadding,
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.sm,
+    shadowColor: Colors.gray900,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -656,34 +653,30 @@ const styles = StyleSheet.create({
   simpleFilterButton: {
     flex: 1,
     paddingVertical: 12,
-    borderRadius: 12,
+    borderRadius: BorderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
   selectedSimpleFilterButton: {
-    backgroundColor: '#FF8C42',
-    shadowColor: '#FF8C42',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: Colors.primary,
+    ...Shadows.md,
   },
   simpleFilterText: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-    color: '#666',
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.semibold,
+    color: Colors.textSecondary,
   },
   selectedSimpleFilterText: {
-    color: 'white',
+    color: Colors.white,
   },
   timeline: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20, // Add space at the top of the timeline
+    paddingHorizontal: Layout.screenPadding,
+    paddingTop: Spacing.lg,
   },
   timelineItem: {
     flexDirection: 'row',
-    marginBottom: 20,
+    marginBottom: Spacing.lg,
   },
   timelineMarker: {
     alignItems: 'center',
@@ -692,7 +685,7 @@ const styles = StyleSheet.create({
   timelineIcon: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: BorderRadius.lg,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1,
@@ -707,17 +700,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   eventCard: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: '#000',
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    shadowColor: Colors.gray900,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
   cardContent: {
-    padding: 5,
+    padding: Spacing.xs,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -726,35 +719,34 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   eventTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semibold,
+    color: Colors.textPrimary,
     flex: 1,
-    marginRight: 4,
+    marginRight: Spacing.xs,
   },
   eventTypeTag: {
 
-    color: '#555',
+    color: Colors.textSecondary,
     paddingHorizontal: 0,
     paddingVertical: 10,
-    borderRadius: 12,
-    fontSize: 10,
-    fontFamily: 'Inter-Regular',
+    borderRadius: BorderRadius.md,
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.regular,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     overflow: 'hidden',
     alignSelf: 'flex-start',
   },
   eventDescription: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
+    ...ComponentStyles.text.body,
+    color: Colors.textSecondary,
     lineHeight: 20,
     marginBottom: 12,
   },
   messageContainer: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 12,
+    backgroundColor: Colors.gray100,
+    borderRadius: BorderRadius.md,
     padding: 12,
     borderLeftWidth: 3,
     borderLeftColor: '#FF8C42',
@@ -777,8 +769,8 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   eventPartner: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.medium,
     marginLeft: 6,
     flexShrink: 1,
   },
@@ -788,20 +780,19 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   pointsContainer: {
-    backgroundColor: '#FFF3E0',
-    borderRadius: 8,
+    backgroundColor: Colors.backgroundAlt,
+    borderRadius: BorderRadius.sm,
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
   pointsText: {
-    fontSize: 12,
-    fontFamily: 'Inter-Bold',
-    color: '#FF8C42',
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.primary,
   },
   eventTime: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: '#999',
+    ...ComponentStyles.text.caption,
+    color: Colors.textTertiary,
   },
   eventSubHeader: {
     flexDirection: 'row',
@@ -810,9 +801,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   messageText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#333',
+    ...ComponentStyles.text.body,
+    color: Colors.textPrimary,
     lineHeight: 20,
     fontStyle: 'italic',
   },
@@ -825,12 +815,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 4,
     paddingHorizontal: 10,
-    borderRadius: 12,
+    borderRadius: BorderRadius.md,
   },
   statusBadgeText: {
     marginLeft: 6,
-    fontSize: 12,
-    fontFamily: 'Inter-SemiBold',
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.semibold,
   },
   actionsContainer: {
     flexDirection: 'row',
@@ -843,17 +833,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 10,
-    borderRadius: 12,
-    shadowColor: '#000',
+    borderRadius: BorderRadius.md,
+    shadowColor: Colors.gray900,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 2,
   },
   actionButtonText: {
-    color: 'white',
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 14,
+    color: Colors.white,
+    fontFamily: Typography.fontFamily.semibold,
+    fontSize: Typography.fontSize.sm,
     marginLeft: 6,
   },
   acceptButton: {
@@ -871,35 +861,34 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   emptyStateText: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#666',
+    fontSize: Typography.fontSize.lg,
+    fontFamily: Typography.fontFamily.semibold,
+    color: Colors.textSecondary,
     marginTop: 16,
   },
   emptyStateSubtext: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#999',
+    ...ComponentStyles.text.body,
+    color: Colors.textTertiary,
     marginTop: 8,
     textAlign: 'center',
   },
   loadMoreButton: {
-    backgroundColor: 'white',
-    borderRadius: 16,
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.lg,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
     marginVertical: 20,
-    shadowColor: '#000',
+    shadowColor: Colors.gray900,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
   loadMoreButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#FF8C42',
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semibold,
+    color: Colors.primary,
   },
   sentColor: {
     color: '#34D399',
@@ -922,30 +911,30 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: '#FFF5F5',
-    borderRadius: 8,
+    backgroundColor: Colors.error + '10',
+    borderRadius: BorderRadius.sm,
     borderWidth: 1,
     borderColor: '#FFE0E0',
   },
   cancelledBadgesText: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    color: '#FF4444',
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.error,
     marginLeft: 6,
   },
   negativeMessageContainer: {
-    backgroundColor: '#FFF5F5',
+    backgroundColor: Colors.error + '10',
     borderLeftColor: '#FF4444',
   },
   negativeStatNumber: {
-    color: '#FF4444',
+    color: Colors.error,
   },
   emojiIcon: {
-    fontSize: 20,
-    color: 'white',
+    fontSize: Typography.fontSize.xl,
+    color: Colors.white,
   },
   reactionIcon: {
-    fontSize: 16,
+    fontSize: Typography.fontSize.base,
     marginLeft: 8,
   }
 });

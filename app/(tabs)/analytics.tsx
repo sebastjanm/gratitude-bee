@@ -15,6 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ChartBar as BarChart3, TrendingUp, Calendar, Award, Heart, Bug, Target, Zap, Clock, Users, Filter, ChevronDown, HelpCircle } from 'lucide-react-native';
 import { supabase } from '@/utils/supabase';
 import { router } from 'expo-router';
+import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
 
 const { width } = Dimensions.get('window');
 
@@ -108,10 +109,10 @@ export default function AnalyticsScreen() {
       const { main_stats, breakdown_title, breakdown_data, category_stats, insights } = data;
       
       setMainStats([
-        { title: 'Total Sent', value: main_stats.total_sent || 0, icon: Heart, color: '#FF8C42' },
-        { title: 'Total Received', value: main_stats.total_received || 0, icon: Award, color: '#4ECDC4' },
-        { title: 'Current Streak', value: `${main_stats.current_streak || 0} days`, subtitle: `Best: ${main_stats.longest_streak || 0} days`, icon: Zap, color: '#FFD93D' },
-        { title: 'Daily Average', value: main_stats.daily_average || 0, icon: TrendingUp, color: '#6BCF7F' },
+        { title: 'Total Sent', value: main_stats.total_sent || 0, icon: Heart, color: Colors.primary },
+        { title: 'Total Received', value: main_stats.total_received || 0, icon: Award, color: Colors.info },
+        { title: 'Current Streak', value: `${main_stats.current_streak || 0} days`, subtitle: `Best: ${main_stats.longest_streak || 0} days`, icon: Zap, color: Colors.warning },
+        { title: 'Daily Average', value: main_stats.daily_average || 0, icon: TrendingUp, color: Colors.success },
       ]);
       
       setBreakdownTitle(breakdown_title || '');
@@ -232,11 +233,11 @@ export default function AnalyticsScreen() {
         </View>
         <View style={styles.chartLegend}>
           <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: '#4ECDC4' }]} />
+            <View style={[styles.legendDot, { backgroundColor: Colors.info }]} />
             <Text style={styles.legendText}>Positive</Text>
           </View>
           <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: '#FF4444' }]} />
+            <View style={[styles.legendDot, { backgroundColor: Colors.error }]} />
             <Text style={styles.legendText}>Hornets</Text>
           </View>
         </View>
@@ -409,11 +410,11 @@ export default function AnalyticsScreen() {
       <View style={styles.fixedHeaderContainer}>
         <View style={styles.header}>
           <View style={styles.headerContent}>
-            <BarChart3 color="#FF8C42" size={28} />
+            <BarChart3 color={Colors.primary} size={28} />
             <Text style={styles.title}>Analytics</Text>
           </View>
           <TouchableOpacity style={styles.headerButton} onPress={() => router.push('/help')}>
-            <HelpCircle color="#666" size={24} />
+            <HelpCircle color={Colors.textSecondary} size={Layout.iconSize.lg} />
           </TouchableOpacity>
         </View>
         <Text style={styles.subtitle}>
@@ -424,7 +425,7 @@ export default function AnalyticsScreen() {
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {loading ? (
-          <ActivityIndicator size="large" color="#FF8C42" style={{ flex: 1, marginTop: 100 }} />
+          <ActivityIndicator size="large" color={Colors.primary} style={{ flex: 1, marginTop: 100 }} />
         ) : (
           <>
             {renderMainStats()}
@@ -443,55 +444,51 @@ export default function AnalyticsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF8F0',
+    backgroundColor: Colors.background,
   },
   fixedHeaderContainer: {
-    backgroundColor: '#FFF8F0',
+    backgroundColor: Colors.background,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-    paddingBottom: 20,
+    borderBottomColor: Colors.border,
+    paddingBottom: Spacing.lg,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 4,
+    paddingHorizontal: Layout.screenPadding,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.xs,
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   title: {
-    fontSize: 24,
-    fontFamily: 'Inter-Bold',
-    color: '#333',
-    marginLeft: 12,
+    ...ComponentStyles.text.h2,
+    marginLeft: Spacing.md,
   },
   headerButton: {
-    padding: 8,
+    padding: Spacing.sm,
   },
   subtitle: {
-    fontSize: 15,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    lineHeight: 22,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    ...ComponentStyles.text.body,
+    color: Colors.textSecondary,
+    paddingHorizontal: Layout.screenPadding,
+    paddingBottom: Spacing.lg,
   },
   content: {
     flex: 1,
-    paddingTop: 24, // Add space at the top of the scrollable content
+    paddingTop: Spacing.lg,
   },
   simpleFilterContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginHorizontal: 20,
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 8,
-    shadowColor: '#000',
+    marginHorizontal: Layout.screenPadding,
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.sm,
+    shadowColor: Colors.gray900,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -499,55 +496,47 @@ const styles = StyleSheet.create({
   },
   simpleFilterButton: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 12,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
   selectedSimpleFilterButton: {
-    backgroundColor: '#FF8C42',
-    shadowColor: '#FF8C42',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: Colors.primary,
+    ...Shadows.md,
   },
   simpleFilterText: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-    color: '#666',
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.semibold,
+    color: Colors.textSecondary,
   },
   selectedSimpleFilterText: {
-    color: 'white',
+    color: Colors.white,
   },
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingHorizontal: 20,
-    marginBottom: 32,
+    paddingHorizontal: Layout.screenPadding,
+    marginBottom: Spacing['2xl'],
     gap: 12,
   },
   statCard: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 16,
-    width: (width - 52) / 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    width: (width - (Layout.screenPadding * 2) - Spacing.md) / 2,
+    ...Shadows.sm,
   },
   statCardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: Spacing.md,
   },
   statIcon: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: BorderRadius.lg,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -559,54 +548,48 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   trendText: {
-    fontSize: 10,
-    fontFamily: 'Inter-Bold',
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.bold,
     marginLeft: 2,
   },
   statValue: {
-    fontSize: 24,
-    fontFamily: 'Inter-Bold',
-    color: '#333',
-    marginBottom: 4,
+    fontSize: Typography.fontSize['2xl'],
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.xs,
   },
   statTitle: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginBottom: 2,
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.semibold,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.xs,
   },
   statSubtitle: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
+    ...ComponentStyles.text.caption,
+    color: Colors.textSecondary,
   },
   section: {
-    marginHorizontal: 20,
-    marginBottom: 32,
+    marginHorizontal: Layout.screenPadding,
+    marginBottom: Spacing['2xl'],
   },
   sectionTitle: {
-    fontSize: 20,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginBottom: 8,
+    fontSize: Typography.fontSize.xl,
+    fontFamily: Typography.fontFamily.semibold,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.sm,
   },
   sectionSubtitle: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    marginBottom: 20,
+    ...ComponentStyles.text.body,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.lg,
   },
   weeklyChart: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
     height: 140,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    marginBottom: Spacing.md,
+    ...Shadows.sm,
   },
   noDataText: {
     flex: 1,
@@ -614,7 +597,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'center',
     fontSize: 16,
     fontFamily: 'Inter-Medium',
-    color: '#999',
+    color: Colors.textTertiary,
   },
   weeklyChartScroll: {
     flex: 1,
@@ -650,14 +633,14 @@ const styles = StyleSheet.create({
   weekLabel: {
     fontSize: 10,
     fontFamily: 'Inter-Medium',
-    color: '#666',
+    color: Colors.textSecondary,
     textAlign: 'center',
     marginBottom: 2,
   },
   weekTotal: {
     fontSize: 12,
     fontFamily: 'Inter-Bold',
-    color: '#333',
+    color: Colors.textPrimary,
   },
   chartLegend: {
     flexDirection: 'row',
@@ -671,19 +654,19 @@ const styles = StyleSheet.create({
   legendDot: {
     width: 8,
     height: 8,
-    borderRadius: 4,
-    marginRight: 6,
+    borderRadius: BorderRadius.xs,
+    marginRight: Spacing.xs,
   },
   legendText: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    color: '#666',
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.textSecondary,
   },
   categoryList: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    shadowColor: Colors.gray900,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -706,13 +689,13 @@ const styles = StyleSheet.create({
   categoryName: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
-    color: '#333',
+    color: Colors.textPrimary,
     flex: 1,
   },
   categoryTotal: {
     fontSize: 16,
     fontFamily: 'Inter-Bold',
-    color: '#333',
+    color: Colors.textPrimary,
   },
   categoryBar: {
     height: 6,
@@ -731,18 +714,18 @@ const styles = StyleSheet.create({
   categoryDetail: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
-    color: '#666',
+    color: Colors.textSecondary,
   },
   insightsList: {
     gap: 16,
   },
   insightCard: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: Colors.gray900,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -763,19 +746,19 @@ const styles = StyleSheet.create({
   insightTitle: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
-    color: '#666',
+    color: Colors.textSecondary,
     marginBottom: 2,
   },
   insightValue: {
     fontSize: 18,
     fontFamily: 'Inter-Bold',
-    color: '#333',
+    color: Colors.textPrimary,
     marginBottom: 2,
   },
   insightDescription: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
-    color: '#999',
+    color: Colors.textTertiary,
   },
   bottomSpacing: {
     height: 40,

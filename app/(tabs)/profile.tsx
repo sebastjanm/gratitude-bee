@@ -25,6 +25,7 @@ import { supabase } from '@/utils/supabase';
 import QRCodeModal from '@/components/QRCodeModal';
 import * as ImagePicker from 'expo-image-picker';
 import Constants from 'expo-constants';
+import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
 
 export default function ProfileScreen() {
   const { session, setSession } = useSession();
@@ -204,11 +205,11 @@ export default function ProfileScreen() {
           <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
         ) : (
           <View style={styles.avatar}>
-            <User color="#FF8C42" size={32} />
+            <User color={Colors.primary} size={32} />
           </View>
         )}
         <View style={styles.partnerStatus}>
-          <Camera color="#4ECDC4" size={16} />
+          <Camera color={Colors.info} size={16} />
         </View>
       </TouchableOpacity>
       <View style={styles.userDetails}>
@@ -294,11 +295,11 @@ export default function ProfileScreen() {
       <View style={styles.fixedHeaderContainer}>
         <View style={styles.header}>
           <View style={styles.headerContent}>
-            <User color="#FF8C42" size={28} />
+            <User color={Colors.primary} size={28} />
             <Text style={styles.title}>Profile</Text>
           </View>
           <TouchableOpacity style={styles.headerButton} onPress={() => router.push('/help')}>
-            <HelpCircleIcon color="#666" size={24} />
+            <HelpCircleIcon color={Colors.textSecondary} size={Layout.iconSize.lg} />
           </TouchableOpacity>
         </View>
         <Text style={styles.subtitle}>Manage your profile and settings</Text>
@@ -444,73 +445,65 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF8F0',
+    backgroundColor: Colors.background,
   },
   fixedHeaderContainer: {
-    backgroundColor: '#FFF8F0',
+    backgroundColor: Colors.background,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-    paddingBottom: 20,
+    borderBottomColor: Colors.border,
+    paddingBottom: Spacing.lg,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 4,
+    paddingHorizontal: Layout.screenPadding,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.xs,
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   title: {
-    fontSize: 24,
-    fontFamily: 'Inter-Bold',
-    color: '#333',
-    marginLeft: 12,
+    ...ComponentStyles.text.h2,
+    marginLeft: Spacing.md,
   },
   headerButton: {
-    padding: 8,
+    padding: Spacing.sm,
   },
   content: {
     flex: 1,
-    paddingTop: 20, // Add space at the top of the scrollable content
+    paddingTop: Spacing.lg,
   },
   userInfoContainer: {
-    backgroundColor: 'white',
-    marginHorizontal: 20,
-    marginBottom: 20,
-    borderRadius: 20,
-    padding: 20,
+    ...ComponentStyles.card,
+    marginHorizontal: Layout.screenPadding,
+    marginBottom: Spacing.lg,
+    padding: Spacing.lg,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
   },
   avatarContainer: {
     position: 'relative',
-    marginRight: 16,
+    marginRight: Spacing.md,
   },
   avatar: {
     width: 64,
     height: 64,
-    borderRadius: 32,
-    backgroundColor: '#FFF3E0',
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.backgroundAlt,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#FF8C42',
+    borderColor: Colors.primary,
   },
   avatarImage: {
     width: 64,
     height: 64,
-    borderRadius: 32,
+    borderRadius: BorderRadius.full,
     borderWidth: 2,
-    borderColor: '#FF8C42',
+    borderColor: Colors.primary,
   },
   partnerStatus: {
     position: 'absolute',
@@ -518,44 +511,35 @@ const styles = StyleSheet.create({
     right: -4,
     width: 24,
     height: 24,
-    borderRadius: 12,
-    backgroundColor: 'white',
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.white,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: 'white',
+    borderColor: Colors.white,
   },
   userDetails: {
     flex: 1,
   },
   userName: {
-    fontSize: 20,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginBottom: 4,
+    fontSize: Typography.fontSize.xl,
+    fontFamily: Typography.fontFamily.semibold,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.xs,
   },
   userSubtitle: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
+    ...ComponentStyles.text.caption,
+    color: Colors.textSecondary,
   },
   statsContainer: {
-    backgroundColor: 'white',
-    marginHorizontal: 20,
-    marginBottom: 20,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    ...ComponentStyles.card,
+    marginHorizontal: Layout.screenPadding,
+    marginBottom: Spacing.lg,
+    padding: Spacing.lg,
   },
   statsTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginBottom: 16,
+    ...ComponentStyles.text.h3,
+    marginBottom: Spacing.md,
   },
   statsGrid: {
     flexDirection: 'row',
@@ -564,53 +548,45 @@ const styles = StyleSheet.create({
   },
   statCard: {
     width: '48%',
-    backgroundColor: '#FFF8F0',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: Colors.backgroundAlt,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: Spacing.md,
     borderWidth: 1,
-    borderColor: '#FFE0B2',
+    borderColor: Colors.primary + '30',
   },
   statNumber: {
-    fontSize: 24,
-    fontFamily: 'Inter-Bold',
-    color: '#FF8C42',
-    marginBottom: 4,
+    fontSize: Typography.fontSize['2xl'],
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.primary,
+    marginBottom: Spacing.xs,
   },
   statLabel: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    color: '#666',
+    ...ComponentStyles.text.caption,
     textAlign: 'center',
   },
   settingsSection: {
-    backgroundColor: 'white',
-    marginHorizontal: 20,
-    marginBottom: 20,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    ...ComponentStyles.card,
+    marginHorizontal: Layout.screenPadding,
+    marginBottom: Spacing.lg,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 12,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semibold,
+    color: Colors.textPrimary,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.md,
   },
   settingsItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: Colors.gray100,
   },
   settingsItemLeft: {
     flexDirection: 'row',
@@ -620,32 +596,29 @@ const styles = StyleSheet.create({
   settingsIcon: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F8F9FA',
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.gray100,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: Spacing.md,
   },
   settingsContent: {
     flex: 1,
   },
   settingsTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: '#333',
-    marginBottom: 2,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.xs,
   },
   settingsSubtitle: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
+    ...ComponentStyles.text.caption,
+    color: Colors.textSecondary,
   },
   subtitle: {
-    fontSize: 15,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    lineHeight: 22,
-    paddingHorizontal: 20,
+    ...ComponentStyles.text.body,
+    color: Colors.textSecondary,
+    paddingHorizontal: Layout.screenPadding,
   },
   footer: {
     paddingVertical: 20,
@@ -655,7 +628,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#EEE',
   },
   footerText: {
-    fontSize: 14,
-    color: '#A0A0A0',
+    ...ComponentStyles.text.caption,
+    color: Colors.textTertiary,
   },
 });

@@ -15,6 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Heart, Star, Smile, Compass, MessageCircle, Award, Bug, X, CircleCheck as CheckCircle, Crown, Gift, Bell, HelpCircle } from 'lucide-react-native';
 import { supabase } from '@/utils/supabase';
 import { router } from 'expo-router';
+import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
 
 const { width } = Dimensions.get('window');
 
@@ -46,12 +47,12 @@ const categories = [
 ];
 
 const statsConfig = [
-  { key: 'appreciations', name: 'Praises', icon: Award, color: '#4ECDC4' },
-  { key: 'favors', name: 'Favors', icon: Gift, color: '#FFD93D' },
+  { key: 'appreciations', name: 'Praises', icon: Award, color: Colors.info },
+  { key: 'favors', name: 'Favors', icon: Gift, color: Colors.warning },
   { key: 'wisdom', name: 'Wisdom', icon: Crown, color: '#9B59B6' },
-  { key: 'pings', name: 'Pings', icon: Bell, color: '#3B82F6' },
+  { key: 'pings', name: 'Pings', icon: Bell, color: Colors.info },
   { key: 'dont_panic', name: "Don't Panic", icon: Heart, color: '#6366F1' },
-  { key: 'hornets', name: 'Hornets', icon: Bug, color: '#FF4444' },
+  { key: 'hornets', name: 'Hornets', icon: Bug, color: Colors.error },
 ];
 
 
@@ -255,24 +256,6 @@ export default function BadgesScreen() {
           );
         })}
       </ScrollView>
-      
-      {/* Scroll indicators */}
-      <View style={styles.scrollIndicators}>
-        <LinearGradient
-          colors={['rgba(255,248,240,0.8)', 'transparent']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.leftScrollIndicator}
-          pointerEvents="none"
-        />
-        <LinearGradient
-          colors={['transparent', 'rgba(255,248,240,0.8)']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.rightScrollIndicator}
-          pointerEvents="none"
-        />
-      </View>
     </View>
   );
 
@@ -345,11 +328,11 @@ export default function BadgesScreen() {
       <View style={styles.fixedHeaderContainer}>
         <View style={styles.header}>
           <View style={styles.headerContent}>
-            <Award color="#FF8C42" size={28} />
+            <Award color={Colors.primary} size={28} />
             <Text style={styles.title}>Your Badges</Text>
           </View>
           <TouchableOpacity style={styles.headerButton} onPress={() => router.push('/help')}>
-            <HelpCircle color="#666" size={24} />
+            <HelpCircle color={Colors.textSecondary} size={Layout.iconSize.lg} />
           </TouchableOpacity>
         </View>
         <Text style={styles.subtitle}>
@@ -361,7 +344,7 @@ export default function BadgesScreen() {
 
       <ScrollView style={styles.badgesList} showsVerticalScrollIndicator={false}>
         {loading ? (
-          <ActivityIndicator size="large" color="#FF8C42" style={{ marginTop: 50 }} />
+          <ActivityIndicator size="large" color={Colors.primary} style={{ marginTop: 50 }} />
         ) : filteredBadges.length > 0 ? (
           filteredBadges.map(renderBadge)
         ) : (
@@ -383,59 +366,53 @@ export default function BadgesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF8F0',
+    backgroundColor: Colors.background,
   },
   fixedHeaderContainer: {
-    backgroundColor: '#FFF8F0',
+    backgroundColor: Colors.background,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-    paddingBottom: 20, // This will create the space
+    borderBottomColor: Colors.border,
+    paddingBottom: Spacing.lg,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 4,
+    paddingHorizontal: Layout.screenPadding,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.xs,
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   title: {
-    fontSize: 24,
-    fontFamily: 'Inter-Bold',
-    color: '#333',
-    marginLeft: 12,
+    ...ComponentStyles.text.h2,
+    marginLeft: Spacing.md,
   },
   headerButton: {
-    padding: 8,
+    padding: Spacing.sm,
   },
   subtitle: {
-    fontSize: 15,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    lineHeight: 22,
-    paddingHorizontal: 20, // Added padding
+    ...ComponentStyles.text.body,
+    color: Colors.textSecondary,
+    paddingHorizontal: Layout.screenPadding,
   },
   statsContainer: {
-    backgroundColor: 'white',
-    marginHorizontal: 20,
-    marginTop: 20, // Added space from header
-    borderRadius: 16,
-    paddingVertical: 16,
+    backgroundColor: Colors.backgroundElevated,
+    marginHorizontal: Layout.screenPadding,
+    marginTop: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+    paddingVertical: Spacing.md,
     paddingHorizontal: 12,
-    shadowColor: '#000',
+    shadowColor: Colors.gray900,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
   statsTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
+    ...ComponentStyles.text.h3,
   },
   statsGrid: {
     flexDirection: 'row',
@@ -451,23 +428,23 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: Spacing.sm,
   },
   statNumber: {
-    fontSize: 20,
-    fontFamily: 'Inter-Bold',
-    color: '#333',
+    fontSize: Typography.fontSize.xl,
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.textPrimary,
   },
   statLabel: {
-    fontSize: 11,
-    fontFamily: 'Inter-Medium',
-    color: '#666',
-    marginTop: 4,
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.textSecondary,
+    marginTop: Spacing.xs,
   },
   categoryFilter: {},
   categoryFilterContent: {
-    paddingHorizontal: 20,
-    paddingVertical: 4,
+    paddingHorizontal: Layout.screenPadding,
+    paddingVertical: Spacing.xs,
   },
   categoryFilterContainer: {
     paddingTop: 20, // This provides space above the filters
@@ -477,14 +454,14 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'white',
-    borderRadius: 12,
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.md,
     width: 88,
     height: 52, // Increased height for better touch target (44pt minimum)
     marginRight: 12,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    shadowColor: '#000',
+    borderColor: Colors.border,
+    shadowColor: Colors.gray900,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
@@ -499,8 +476,8 @@ const styles = StyleSheet.create({
     marginRight: 20,
   },
   selectedCategoryFilter: {
-    backgroundColor: '#FF8C42',
-    borderColor: '#FF8C42',
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
     shadowColor: '#FF8C42',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
@@ -509,10 +486,10 @@ const styles = StyleSheet.create({
     transform: [{ scale: 1.02 }],
   },
   categoryFilterText: {
-    fontSize: 11,
-    fontFamily: 'Inter-SemiBold',
-    color: '#666',
-    marginTop: 3,
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.semibold,
+    color: Colors.textSecondary,
+    marginTop: Spacing.xs,
     textAlign: 'center',
     lineHeight: 13,
     paddingHorizontal: 2,
@@ -520,43 +497,17 @@ const styles = StyleSheet.create({
   selectedCategoryFilterText: {
     color: 'white',
   },
-  scrollIndicators: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    pointerEvents: 'none',
-  },
-  leftScrollIndicator: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: 24,
-    borderTopRightRadius: 12,
-    borderBottomRightRadius: 12,
-  },
-  rightScrollIndicator: {
-    position: 'absolute',
-    right: 0,
-    top: 0,
-    bottom: 0,
-    width: 24,
-    borderTopLeftRadius: 12,
-    borderBottomLeftRadius: 12,
-  },
   badgesList: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20, // Add space at the top of the list
+    paddingHorizontal: Layout.screenPadding,
+    paddingTop: Spacing.lg,
   },
   badgeCard: {
     backgroundColor: 'white',
     borderRadius: 16,
     padding: 16,
-    marginBottom: 16, // Add space between cards
-    shadowColor: '#000',
+    marginBottom: Spacing.md,
+    shadowColor: Colors.gray900,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -573,23 +524,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
-    marginTop: 2,
+    marginTop: Spacing.xs,
   },
   badgeTextContent: {
     flex: 1,
   },
   badgeName: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginBottom: 4,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semibold,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.xs,
   },
   badgeDescription: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
+    ...ComponentStyles.text.body,
+    color: Colors.textSecondary,
     lineHeight: 20,
-    marginBottom: 8,
+    marginBottom: Spacing.sm,
   },
   badgeDate: {
     fontSize: 12,
@@ -599,7 +549,7 @@ const styles = StyleSheet.create({
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 60,
+    paddingVertical: Spacing['3xl'],
   },
   emptyStateText: {
     fontSize: 18,
