@@ -564,7 +564,7 @@ export default function RewardsScreen() {
           <TouchableOpacity
             style={[styles.tab, activeTab === 'points' && styles.activeTab]}
             onPress={() => setActiveTab('points')}>
-            <Gift color={activeTab === 'points' ? Colors.primary : Colors.textSecondary} size={20} />
+            <Gift color={activeTab === 'points' ? Colors.primary : Colors.textSecondary} size={22} />
             <Text style={[styles.tabText, activeTab === 'points' && styles.activeTabText]}>
               Points
             </Text>
@@ -572,7 +572,7 @@ export default function RewardsScreen() {
           <TouchableOpacity
             style={[styles.tab, activeTab === 'badges' && styles.activeTab]}
             onPress={() => setActiveTab('badges')}>
-            <Award color={activeTab === 'badges' ? Colors.primary : Colors.textSecondary} size={20} />
+            <Award color={activeTab === 'badges' ? Colors.primary : Colors.textSecondary} size={22} />
             <Text style={[styles.tabText, activeTab === 'badges' && styles.activeTabText]}>
               Badges
             </Text>
@@ -580,8 +580,9 @@ export default function RewardsScreen() {
           <TouchableOpacity
             style={[styles.tab, activeTab === 'achievements' && styles.activeTab]}
             onPress={() => setActiveTab('achievements')}>
-            <Target color={activeTab === 'achievements' ? Colors.primary : Colors.textSecondary} size={20} />
-            <Text style={[styles.tabText, activeTab === 'achievements' && styles.activeTabText]}>
+            <Target color={activeTab === 'achievements' ? Colors.primary : Colors.textSecondary} size={22} />
+            <Text style={[styles.tabText, activeTab === 'achievements' && styles.activeTabText]}
+              numberOfLines={1}>
               Achievements
             </Text>
           </TouchableOpacity>
@@ -656,21 +657,25 @@ const styles = StyleSheet.create({
   },
   tab: {
     flex: 1,
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.xs,
     marginHorizontal: Spacing.xs,
     borderRadius: BorderRadius.md,
     backgroundColor: Colors.backgroundElevated,
+    minHeight: 56,
   },
   activeTab: {
     backgroundColor: Colors.primary + '15',
   },
   tabText: {
-    ...ComponentStyles.text.body,
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.medium,
     color: Colors.textSecondary,
-    marginLeft: Spacing.sm,
+    marginTop: Spacing.xs,
+    textAlign: 'center',
   },
   activeTabText: {
     color: Colors.primary,
