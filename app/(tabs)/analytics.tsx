@@ -12,7 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChartBar as BarChart3, TrendingUp, Calendar, Award, Heart, Bug, Target, Zap, Clock, Users, Filter, ChevronDown, HelpCircle } from 'lucide-react-native';
+import { ChartBar as BarChart3, TrendingUp, Calendar, Award, Heart, Bug, Target, Zap, Clock, Users, Filter, ChevronDown, HelpCircle, CalendarDays, CalendarRange, Infinity } from 'lucide-react-native';
 import { supabase } from '@/utils/supabase';
 import { router } from 'expo-router';
 import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
@@ -63,10 +63,10 @@ interface Insights {
 }
 
 const periodFilters = [
-  { id: 'today', name: 'Today' },
-  { id: 'week', name: 'This Week' },
-  { id: 'month', name: 'This Month' },
-  { id: 'all', name: 'All Time' },
+  { id: 'today', name: 'Today', icon: Clock },
+  { id: 'week', name: 'Week', icon: CalendarDays },
+  { id: 'month', name: 'Month', icon: CalendarRange },
+  { id: 'all', name: 'All Time', icon: Infinity },
 ];
 
 export default function AnalyticsScreen() {
@@ -125,27 +125,40 @@ export default function AnalyticsScreen() {
   };
 
   const renderSimpleFilters = () => (
-    <View style={styles.simpleFilterContainer}>
-      {periodFilters.map((period) => (
-        <TouchableOpacity
-          key={period.id}
-          style={[
-            styles.simpleFilterButton,
-            selectedPeriod === period.id && styles.selectedSimpleFilterButton,
-          ]}
-          onPress={() => setSelectedPeriod(period.id)}
-          activeOpacity={0.7}
-        >
-          <Text
-            style={[
-              styles.simpleFilterText,
-              selectedPeriod === period.id && styles.selectedSimpleFilterText,
-            ]}
-          >
-            {period.name}
-          </Text>
-        </TouchableOpacity>
-      ))}
+    <View style={styles.filterWrapper}>
+      <View style={styles.simpleFilterContainer}>
+        {periodFilters.map((period, index) => {
+          const IconComponent = period.icon;
+          const isSelected = selectedPeriod === period.id;
+          return (
+            <TouchableOpacity
+              key={period.id}
+              style={[
+                styles.simpleFilterButton,
+                isSelected && styles.selectedSimpleFilterButton,
+                index === 0 && styles.firstFilterButton,
+                index === periodFilters.length - 1 && styles.lastFilterButton,
+              ]}
+              onPress={() => setSelectedPeriod(period.id)}
+              activeOpacity={0.7}
+            >
+              <IconComponent
+                color={isSelected ? Colors.white : Colors.textSecondary}
+                size={16}
+                strokeWidth={isSelected ? 2.5 : 2}
+              />
+              <Text
+                style={[
+                  styles.simpleFilterText,
+                  isSelected && styles.selectedSimpleFilterText,
+                ]}
+              >
+                {period.name}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     </View>
   );
 
@@ -481,34 +494,46 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: Spacing.lg,
   },
+  filterWrapper: {
+    paddingTop: Spacing.xs,
+  },
   simpleFilterContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginHorizontal: Layout.screenPadding,
-    backgroundColor: Colors.backgroundElevated,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.sm,
-    shadowColor: Colors.gray900,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    paddingHorizontal: Layout.screenPadding,
+    gap: Spacing.sm,
   },
   simpleFilterButton: {
     flex: 1,
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.sm,
     borderRadius: BorderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: Colors.backgroundElevated,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    ...Shadows.sm,
+    minHeight: 52,
   },
   selectedSimpleFilterButton: {
     backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
     ...Shadows.md,
   },
+  firstFilterButton: {
+    marginLeft: 0,
+  },
+  lastFilterButton: {
+    marginRight: 0,
+  },
   simpleFilterText: {
-    fontSize: Typography.fontSize.sm,
+    fontSize: Typography.fontSize.xs,
     fontFamily: Typography.fontFamily.semiBold,
     color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 13,
+    paddingHorizontal: 2,
+    marginTop: Spacing.xs,
   },
   selectedSimpleFilterText: {
     color: Colors.white,
@@ -521,11 +546,10 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   statCard: {
-    backgroundColor: Colors.backgroundElevated,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.md,
+    ...ComponentStyles.card,
     width: (width - (Layout.screenPadding * 2) - Spacing.md) / 2,
-    ...Shadows.sm,
+    borderWidth: 2,
+    borderColor: Colors.border,
   },
   statCardHeader: {
     flexDirection: 'row',
@@ -584,19 +608,19 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   weeklyChart: {
-    backgroundColor: Colors.backgroundElevated,
-    borderRadius: BorderRadius.lg,
+    ...ComponentStyles.card,
     padding: Spacing.lg,
     height: 140,
     marginBottom: Spacing.md,
-    ...Shadows.sm,
+    borderWidth: 2,
+    borderColor: Colors.border,
   },
   noDataText: {
     flex: 1,
     textAlign: 'center',
     textAlignVertical: 'center',
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.medium,
     color: Colors.textTertiary,
   },
   weeklyChartScroll: {
@@ -631,15 +655,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF4444',
   },
   weekLabel: {
-    fontSize: 10,
-    fontFamily: 'Inter-Medium',
+    fontSize: Typography.fontSize.xs - 2,
+    fontFamily: Typography.fontFamily.medium,
     color: Colors.textSecondary,
     textAlign: 'center',
     marginBottom: 2,
   },
   weekTotal: {
-    fontSize: 12,
-    fontFamily: 'Inter-Bold',
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.bold,
     color: Colors.textPrimary,
   },
   chartLegend: {
@@ -663,14 +687,10 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   categoryList: {
-    backgroundColor: Colors.backgroundElevated,
-    borderRadius: BorderRadius.lg,
+    ...ComponentStyles.card,
     padding: Spacing.lg,
-    shadowColor: Colors.gray900,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    borderWidth: 2,
+    borderColor: Colors.border,
   },
   categoryItem: {
     marginBottom: 20,
@@ -687,19 +707,19 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   categoryName: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semiBold,
     color: Colors.textPrimary,
     flex: 1,
   },
   categoryTotal: {
-    fontSize: 16,
-    fontFamily: 'Inter-Bold',
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.bold,
     color: Colors.textPrimary,
   },
   categoryBar: {
     height: 6,
-    backgroundColor: '#F0F0F0',
+    backgroundColor: Colors.gray200,
     borderRadius: 3,
     marginBottom: 8,
   },
@@ -712,30 +732,26 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   categoryDetail: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.regular,
     color: Colors.textSecondary,
   },
   insightsList: {
     gap: 16,
   },
   insightCard: {
-    backgroundColor: Colors.backgroundElevated,
-    borderRadius: BorderRadius.lg,
+    ...ComponentStyles.card,
     padding: Spacing.lg,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: Colors.gray900,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    borderWidth: 2,
+    borderColor: Colors.border,
   },
   insightIcon: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: Colors.gray100,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -744,20 +760,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   insightTitle: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.medium,
     color: Colors.textSecondary,
     marginBottom: 2,
   },
   insightValue: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
+    fontSize: Typography.fontSize.lg,
+    fontFamily: Typography.fontFamily.bold,
     color: Colors.textPrimary,
     marginBottom: 2,
   },
   insightDescription: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.regular,
     color: Colors.textTertiary,
   },
   bottomSpacing: {

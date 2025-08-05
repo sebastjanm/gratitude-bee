@@ -14,7 +14,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Heart, Star, Smile, Compass, MessageCircle, Filter, Calendar, Bug, X, CircleCheck as CheckCircle, Crown, Home as HomeIcon, Clock, HelpCircle, ThumbsUp, ThumbsDown, ArrowDownLeft, ArrowUpRight } from 'lucide-react-native';
+import { Heart, Star, Smile, Compass, MessageCircle, Filter, Calendar, Bug, X, CircleCheck as CheckCircle, Crown, Home as HomeIcon, Clock, HelpCircle, ThumbsUp, ThumbsDown, ArrowDownLeft, ArrowUpRight, List, Send, Download } from 'lucide-react-native';
 import { useSession } from '@/providers/SessionProvider';
 import { supabase } from '@/utils/supabase';
 import { router } from 'expo-router';
@@ -53,9 +53,9 @@ interface TimelineEvent {
 }
 
 const filterOptions = [
-  { id: 'all', name: 'All Events' },
-  { id: 'received', name: 'Received' },
-  { id: 'sent', name: 'Sent' },
+  { id: 'all', name: 'All', icon: List },
+  { id: 'received', name: 'Received', icon: Download },
+  { id: 'sent', name: 'Sent', icon: Send },
 ];
 
 const categoryDetails: { [key: string]: { icon: any; color: string } } = {
@@ -353,26 +353,35 @@ export default function TimelineScreen() {
 
   const renderSimpleFilters = () => (
     <View style={styles.simpleFilterContainer}>
-      {filterOptions.map((option) => (
-        <TouchableOpacity
-          key={option.id}
-          style={[
-            styles.simpleFilterButton,
-            filter === option.id && styles.selectedSimpleFilterButton,
-          ]}
-          onPress={() => setFilter(option.id as 'all' | 'sent' | 'received')}
-          activeOpacity={0.7}
-        >
-          <Text
+      {filterOptions.map((option) => {
+        const IconComponent = option.icon;
+        const isSelected = filter === option.id;
+        return (
+          <TouchableOpacity
+            key={option.id}
             style={[
-              styles.simpleFilterText,
-              filter === option.id && styles.selectedSimpleFilterText,
+              styles.simpleFilterButton,
+              isSelected && styles.selectedSimpleFilterButton,
             ]}
+            onPress={() => setFilter(option.id as 'all' | 'sent' | 'received')}
+            activeOpacity={0.7}
           >
-            {option.name}
-          </Text>
-        </TouchableOpacity>
-      ))}
+            <IconComponent
+              color={isSelected ? Colors.white : Colors.textSecondary}
+              size={16}
+              strokeWidth={isSelected ? 2.5 : 2}
+            />
+            <Text
+              style={[
+                styles.simpleFilterText,
+                isSelected && styles.selectedSimpleFilterText,
+              ]}
+            >
+              {option.name}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 
@@ -447,11 +456,21 @@ export default function TimelineScreen() {
         style={styles.timeline} 
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF8C42" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
         }
+        onScroll={({ nativeEvent }) => {
+          const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
+          const paddingToBottom = 20;
+          if (layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom) {
+            if (!loadingMore && hasMore && !loading) {
+              fetchEvents();
+            }
+          }
+        }}
+        scrollEventThrottle={400}
       >
         {loading ? (
-          <ActivityIndicator size="large" color="#FF8C42" style={{ marginTop: 50 }} />
+          <ActivityIndicator size="large" color={Colors.primary} style={{ marginTop: 50 }} />
         ) : filteredEvents.length > 0 ? (
           filteredEvents.map((event, index) => {
             const { partnerName, badgeName, description, timestamp, icon: Icon, color, type, status, eventType, isEmojiIcon, reaction } = event;
@@ -580,13 +599,7 @@ export default function TimelineScreen() {
           </View>
         )}
         
-        {loadingMore && <ActivityIndicator size="small" color="#FF8C42" style={{ marginVertical: 20 }} />}
-        
-        {!loading && hasMore && (
-          <TouchableOpacity style={styles.loadMoreButton} onPress={() => fetchEvents()}>
-            <Text style={styles.loadMoreButtonText}>Load More</Text>
-          </TouchableOpacity>
-        )}
+        {loadingMore && <ActivityIndicator size="small" color={Colors.primary} style={{ marginVertical: 20 }} />}
       </ScrollView>
       <ReactionModal 
         isVisible={isReactionModalVisible}
@@ -639,32 +652,35 @@ const styles = StyleSheet.create({
   },
   simpleFilterContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginHorizontal: Layout.screenPadding,
-    backgroundColor: Colors.backgroundElevated,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.sm,
-    shadowColor: Colors.gray900,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    paddingHorizontal: Layout.screenPadding,
+    gap: Spacing.sm,
   },
   simpleFilterButton: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.sm,
     borderRadius: BorderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: Colors.backgroundElevated,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    minHeight: 52,
+    ...Shadows.sm,
   },
   selectedSimpleFilterButton: {
     backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
     ...Shadows.md,
   },
   simpleFilterText: {
-    fontSize: Typography.fontSize.sm,
+    fontSize: Typography.fontSize.xs,
     fontFamily: Typography.fontFamily.semiBold,
     color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 13,
+    paddingHorizontal: 2,
+    marginTop: Spacing.xs,
   },
   selectedSimpleFilterText: {
     color: Colors.white,
@@ -693,21 +709,16 @@ const styles = StyleSheet.create({
   timelineLine: {
     width: 2,
     flex: 1,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: Colors.border,
     marginTop: 8,
   },
   timelineContent: {
     flex: 1,
   },
   eventCard: {
-    backgroundColor: Colors.backgroundElevated,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.md,
-    shadowColor: Colors.gray900,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    ...ComponentStyles.card,
+    borderWidth: 2,
+    borderColor: Colors.border,
   },
   cardContent: {
     padding: Spacing.xs,
@@ -754,7 +765,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: '#F0F0F0',
+    backgroundColor: Colors.gray200,
     marginHorizontal: 5,
   },
   cardFooter: {
@@ -834,11 +845,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 10,
     borderRadius: BorderRadius.md,
-    shadowColor: Colors.gray900,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 2,
+    ...Shadows.sm,
   },
   actionButtonText: {
     color: Colors.white,
@@ -847,13 +855,16 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   acceptButton: {
-    backgroundColor: '#4CAF50', // Green
+    backgroundColor: Colors.success,
+    borderColor: Colors.success,
   },
   declineButton: {
-    backgroundColor: '#F44336', // Red
+    backgroundColor: Colors.error,
+    borderColor: Colors.error,
   },
   completeButton: {
-    backgroundColor: '#2196F3', // Blue
+    backgroundColor: Colors.info,
+    borderColor: Colors.info,
   },
   emptyState: {
     alignItems: 'center',
@@ -872,38 +883,20 @@ const styles = StyleSheet.create({
     marginTop: 8,
     textAlign: 'center',
   },
-  loadMoreButton: {
-    backgroundColor: Colors.backgroundElevated,
-    borderRadius: BorderRadius.lg,
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 20,
-    shadowColor: Colors.gray900,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  loadMoreButtonText: {
-    fontSize: Typography.fontSize.base,
-    fontFamily: Typography.fontFamily.semiBold,
-    color: Colors.primary,
-  },
   sentColor: {
-    color: '#34D399',
+    color: Colors.success,
   },
   receivedColor: {
-    color: '#2ecc71',
+    color: Colors.primary,
   },
   negativeTimelineIcon: {
     borderWidth: 2,
-    borderColor: '#FF6666',
+    borderColor: Colors.error + '40',
   },
   negativeEventCard: {
     borderLeftWidth: 4,
-    borderLeftColor: '#FF4444',
-    backgroundColor: '#FFFAFA',
+    borderLeftColor: Colors.error,
+    backgroundColor: Colors.error + '05',
   },
   cancelledBadgesInfo: {
     flexDirection: 'row',
@@ -914,7 +907,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.error + '10',
     borderRadius: BorderRadius.sm,
     borderWidth: 1,
-    borderColor: '#FFE0E0',
+    borderColor: Colors.error + '20',
   },
   cancelledBadgesText: {
     fontSize: Typography.fontSize.xs,
@@ -924,7 +917,7 @@ const styles = StyleSheet.create({
   },
   negativeMessageContainer: {
     backgroundColor: Colors.error + '10',
-    borderLeftColor: '#FF4444',
+    borderLeftColor: Colors.error,
   },
   negativeStatNumber: {
     color: Colors.error,
