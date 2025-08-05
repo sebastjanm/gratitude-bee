@@ -175,7 +175,7 @@ export default function MoreScreen() {
       icon: BarChart3,
       color: Colors.info,
       items: [
-        { title: 'Relationship Analytics', subtitle: 'View stats and insights', route: '/more/analytics' },
+        { title: 'Relationship Analytics', subtitle: 'View stats and insights', route: '/(more)/analytics' },
       ],
     },
     {
@@ -184,10 +184,10 @@ export default function MoreScreen() {
       icon: Settings,
       color: Colors.warning,
       items: [
-        { title: 'Daily Reminders', subtitle: 'Set appreciation reminders', icon: Bell, route: '/more/reminders' },
-        { title: 'Nudge Settings', subtitle: 'Random partner reminders', icon: Heart, route: '/more/nudges' },
-        { title: 'Language Settings', subtitle: currentLanguage, icon: Target, route: '/more/language' },
-        { title: 'Change Password', subtitle: 'Update your password', icon: Lock, route: '/more/security' },
+        { title: 'Daily Reminders', subtitle: 'Set appreciation reminders', icon: Bell, route: '/(more)/reminders' },
+        { title: 'Nudge Settings', subtitle: 'Random partner reminders', icon: Heart, route: '/(more)/nudges' },
+        { title: 'Language Settings', subtitle: currentLanguage, icon: Target, route: '/(more)/language' },
+        { title: 'Change Password', subtitle: 'Update your password', icon: Lock, route: '/(more)/security' },
       ],
     },
     {
@@ -205,8 +205,8 @@ export default function MoreScreen() {
       icon: HelpCircle,
       color: Colors.gray600,
       items: [
-        { title: 'FAQ', subtitle: 'Common questions', icon: HelpCircleIcon, action: () => router.push('/more/faq') },
-        { title: 'Video Guides', subtitle: 'Watch how-to videos', icon: Video, route: '/more/video-guides' },
+        { title: 'FAQ', subtitle: 'Common questions', icon: HelpCircleIcon, action: () => router.push('/(more)/faq') },
+        { title: 'Video Guides', subtitle: 'Watch how-to videos', icon: Video, route: '/(more)/video-guides' },
         { title: 'Contact Us', subtitle: 'Get help or report issues', icon: Mail, action: handleContactUs },
       ],
     },
@@ -216,9 +216,9 @@ export default function MoreScreen() {
       icon: Info,
       color: Colors.gray500,
       items: [
-        { title: 'Terms of Service', icon: FileText, action: () => router.push('/terms') },
-        { title: 'Privacy Policy', icon: Shield, action: () => router.push('/privacy') },
-        { title: 'Impressum', icon: Info, action: () => router.push('/impressum') },
+        { title: 'Terms of Service', icon: FileText, action: () => router.push('/(more)/terms') },
+        { title: 'Privacy Policy', icon: Shield, action: () => router.push('/(more)/privacy') },
+        { title: 'Impressum', icon: Info, action: () => router.push('/(more)/impressum') },
         { title: 'Version', subtitle: `${appVersion} (Build ${buildNumber})`, icon: Info },
       ],
     },
@@ -280,18 +280,17 @@ export default function MoreScreen() {
 
   return (
     <View style={[styles.container, {
-      paddingTop: insets.top,
       paddingBottom: insets.bottom,
       paddingLeft: insets.left,
       paddingRight: insets.right,
     }]}>
-      <View style={styles.fixedHeaderContainer}>
+      <View style={[styles.fixedHeaderContainer, { paddingTop: insets.top }]}>
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <Settings color={Colors.primary} size={28} />
             <Text style={styles.title}>More</Text>
           </View>
-          <TouchableOpacity style={styles.headerButton} onPress={() => router.push('/help')}>
+          <TouchableOpacity style={styles.headerButton} onPress={() => router.push('/(more)/help')}>
             <HelpCircle color={Colors.textSecondary} size={Layout.iconSize.lg} />
           </TouchableOpacity>
         </View>
@@ -299,7 +298,7 @@ export default function MoreScreen() {
           Settings, tools, and information
         </Text>
         
-        <TouchableOpacity style={styles.profileCard} onPress={() => router.push('/more/profile')}>
+        <TouchableOpacity style={styles.profileCard} onPress={() => router.push('/(more)/profile')}>
           <View style={styles.profileInfo}>
             {avatarUrl ? (
               <Image source={{ uri: avatarUrl }} style={styles.avatar} />

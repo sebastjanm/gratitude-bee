@@ -9,9 +9,10 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import {
-  ChevronLeft,
+  ArrowLeft,
   Play,
   Clock,
+  Video,
 } from 'lucide-react-native';
 import VideoPlayerModal from '@/components/VideoPlayerModal';
 import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
@@ -83,12 +84,18 @@ export default function VideoGuidesScreen() {
       paddingTop: insets.top,
       paddingBottom: insets.bottom,
     }]}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <ChevronLeft color={Colors.textPrimary} size={24} />
-        </TouchableOpacity>
-        <Text style={styles.title}>Video Guides</Text>
-        <View style={{ width: 40 }} />
+      <View style={styles.fixedHeaderContainer}>
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+              <ArrowLeft color={Colors.textSecondary} size={Layout.iconSize.lg} />
+            </TouchableOpacity>
+            <Video color={Colors.primary} size={Layout.iconSize.xl} />
+            <Text style={styles.title}>Video Guides</Text>
+          </View>
+          <View />
+        </View>
+        <Text style={styles.subtitle}>Learn through visual tutorials</Text>
       </View>
 
       <ScrollView 
@@ -96,9 +103,6 @@ export default function VideoGuidesScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.contentContainer}
       >
-        <Text style={styles.subtitle}>
-          Quick video tutorials to help you get the most out of Gratitude Bee
-        </Text>
 
         {videoGuides.map((video) => (
           <TouchableOpacity
@@ -140,33 +144,42 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  fixedHeaderContainer: {
+    backgroundColor: Colors.background,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    paddingBottom: Spacing.md,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Layout.screenPadding,
     paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   backButton: {
     padding: Spacing.sm,
     margin: -Spacing.sm,
+    marginRight: Spacing.md,
   },
   title: {
     ...ComponentStyles.text.h2,
+    marginLeft: Spacing.md,
+  },
+  subtitle: {
+    ...ComponentStyles.text.body,
+    color: Colors.textSecondary,
+    paddingHorizontal: Layout.screenPadding,
   },
   content: {
     flex: 1,
   },
   contentContainer: {
     paddingTop: Spacing.lg,
-  },
-  subtitle: {
-    ...ComponentStyles.text.body,
-    color: Colors.textSecondary,
-    paddingHorizontal: Layout.screenPadding,
-    marginBottom: Spacing.lg,
   },
   
   // Video Cards

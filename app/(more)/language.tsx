@@ -10,9 +10,10 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import {
-  ChevronLeft,
+  ArrowLeft,
   Check,
   Globe,
+  Languages,
 } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
@@ -131,12 +132,18 @@ export default function LanguageScreen() {
       paddingTop: insets.top,
       paddingBottom: insets.bottom,
     }]}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <ChevronLeft color={Colors.textPrimary} size={24} />
-        </TouchableOpacity>
-        <Text style={styles.title}>Language Settings</Text>
-        <View style={{ width: 40 }} />
+      <View style={styles.fixedHeaderContainer}>
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+              <ArrowLeft color={Colors.textSecondary} size={Layout.iconSize.lg} />
+            </TouchableOpacity>
+            <Languages color={Colors.primary} size={Layout.iconSize.xl} />
+            <Text style={styles.title}>Language Settings</Text>
+          </View>
+          <View />
+        </View>
+        <Text style={styles.subtitle}>Choose your preferred language</Text>
       </View>
 
       <ScrollView 
@@ -166,21 +173,36 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  fixedHeaderContainer: {
+    backgroundColor: Colors.background,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    paddingBottom: Spacing.md,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Layout.screenPadding,
     paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   backButton: {
     padding: Spacing.sm,
     margin: -Spacing.sm,
+    marginRight: Spacing.md,
   },
   title: {
     ...ComponentStyles.text.h2,
+    marginLeft: Spacing.md,
+  },
+  subtitle: {
+    ...ComponentStyles.text.body,
+    color: Colors.textSecondary,
+    paddingHorizontal: Layout.screenPadding,
   },
   content: {
     flex: 1,

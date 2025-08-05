@@ -32,7 +32,11 @@
       "Bash(git push:*)",
       "Bash(git rm:*)",
       "Bash(touch:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(for file in video-guides.tsx language.tsx nudges.tsx reminders.tsx)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(true)",
+      "Bash(done)"
     ],
     "deny": []
   },
@@ -42,6 +46,17 @@
       "Do not add '🤖 Generated with [Claude Code](https://claude.ai/code)' to commit messages",
       "Do not add 'Co-Authored-By: Claude <noreply@anthropic.com>' to commit messages",
       "Keep commit messages clean and professional without attribution lines"
+    ]
+  },
+  "developmentGuidelines": {
+    "rules": [
+      "Always follow official Expo documentation and best practices",
+      "Always follow official Expo Router navigation patterns and conventions",
+      "Always follow official React Native patterns and conventions",
+      "Use Expo Router's file-based routing system correctly",
+      "Use proper navigation patterns (Stack, Tabs, Drawer) as documented by Expo",
+      "Avoid custom navigation hacks - use official Expo Router APIs",
+      "When in doubt, check official documentation at docs.expo.dev and reactnative.dev"
     ]
   }
 }
