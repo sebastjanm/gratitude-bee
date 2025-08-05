@@ -14,6 +14,7 @@ import {
 import { X, HandHeart, Coffee, ShoppingCart, Car, Home as HomeIcon, Utensils, Gift, Plus, Coins } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '@/utils/supabase';
+import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
 
 const { width } = Dimensions.get('window');
 
@@ -27,7 +28,7 @@ interface FavorOption {
 }
 
 const categoryDetails = {
-  all: { name: 'All Favors', icon: HandHeart, color: '#FF8C42' },
+  all: { name: 'All Favors', icon: HandHeart, color: Colors.primary },
   food: { name: 'Food & Drinks', icon: Coffee, color: '#8B4513' },
   errands: { name: 'Errands', icon: ShoppingCart, color: '#4ECDC4' },
   help: { name: 'Home Help', icon: HomeIcon, color: '#FFEAA7' },
@@ -64,14 +65,20 @@ export default function FavorsModal({
 
   const fetchFavorTemplates = async () => {
     setLoading(true);
-    const { data, error } = await supabase.from('favor_templates').select('*');
-    if (error) {
-      Alert.alert('Error', 'Could not fetch favor options.');
-      console.error(error);
-    } else {
-      setFavorTemplates(data as FavorOption[]);
+    try {
+      const { data, error } = await supabase.from('favor_templates').select('*');
+      if (error) {
+        Alert.alert('Error', 'Could not fetch favor options.');
+        console.error('Error fetching favor templates:', error);
+      } else {
+        setFavorTemplates(data || []);
+      }
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      Alert.alert('Error', 'An unexpected error occurred.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const filteredFavors = favorTemplates.filter(favor => 
@@ -131,7 +138,7 @@ export default function FavorsModal({
               onPress={() => setSelectedCategory(id)}
               activeOpacity={0.7}>
               <IconComponent
-                color={isSelected ? 'white' : '#666'}
+                color={isSelected ? Colors.white : Colors.textSecondary}
                 size={16}
                 strokeWidth={isSelected ? 2.5 : 2}
               />
@@ -140,42 +147,24 @@ export default function FavorsModal({
                   styles.categoryFilterText,
                   isSelected && styles.selectedCategoryFilterText,
                 ]}
-                numberOfLines={1}>
+                numberOfLines={2}>
                 {name}
               </Text>
             </TouchableOpacity>
           );
         })}
       </ScrollView>
-      
-      {/* Scroll indicators */}
-      <View style={styles.scrollIndicators}>
-        <LinearGradient
-          colors={['rgba(255,248,240,0.8)', 'transparent']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.leftScrollIndicator}
-          pointerEvents="none"
-        />
-        <LinearGradient
-          colors={['transparent', 'rgba(255,248,240,0.8)']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.rightScrollIndicator}
-          pointerEvents="none"
-        />
-      </View>
     </View>
   );
 
   const renderFavorsList = () => (
-    <ScrollView style={styles.favorsList} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.favorsList} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20, flexGrow: 1 }}>
       {/* Custom Favor Button */}
       <TouchableOpacity
         style={styles.customFavorButton}
         onPress={() => setShowCustomFavor(true)}>
         <View style={styles.customFavorIcon}>
-          <Plus color="#FF8C42" size={24} />
+          <Plus color={Colors.primary} size={24} />
         </View>
         <View style={styles.customFavorContent}>
           <Text style={styles.customFavorTitle}>Create Custom Favor</Text>
@@ -188,7 +177,7 @@ export default function FavorsModal({
       {/* Predefined Favors */}
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#FF8C42" />
+          <ActivityIndicator size="large" color={Colors.primary} />
           <Text style={styles.loadingText}>Loading favors...</Text>
         </View>
       ) : filteredFavors.length === 0 ? (
@@ -197,7 +186,7 @@ export default function FavorsModal({
         </View>
       ) : (
         filteredFavors.map((favor) => {
-          const categoryColor = categoryDetails[favor.category_id]?.color || '#FF8C42';
+          const categoryColor = categoryDetails[favor.category_id]?.color || Colors.primary;
           const isSelected = selectedFavor?.id === favor.id;
           return (
             <TouchableOpacity
@@ -213,11 +202,11 @@ export default function FavorsModal({
                   <Text style={styles.favorEmoji}>{favor.icon}</Text>
                 </View>
                 <View style={styles.favorInfo}>
-                  <Text style={styles.favorTitle}>{favor.title}</Text>
-                  <Text style={styles.favorDescription}>{favor.description}</Text>
+                  <Text style={styles.favorTitle} numberOfLines={1}>{favor.title}</Text>
+                  <Text style={styles.favorDescription} numberOfLines={2}>{favor.description}</Text>
                 </View>
                 <View style={styles.favorPoints}>
-                  <Coins color="#FFD700" size={16} />
+                  <Coins color={Colors.warning} size={16} />
                   <Text style={styles.favorPointsText}>{favor.points}</Text>
                 </View>
               </View>
@@ -269,7 +258,7 @@ export default function FavorsModal({
                 customFavorPoints === points && styles.selectedPointsOption,
               ]}
               onPress={() => setCustomFavorPoints(points)}>
-              <Coins color={customFavorPoints === points ? 'white' : '#FFD700'} size={16} />
+              <Coins color={customFavorPoints === points ? Colors.white : Colors.warning} size={16} />
               <Text style={[
                 styles.pointsOptionText,
                 customFavorPoints === points && styles.selectedPointsOptionText,
@@ -302,7 +291,7 @@ export default function FavorsModal({
         ]}
         onPress={handleSendCustomFavor}
         disabled={!customFavorTitle.trim()}>
-        <HandHeart color="white" size={20} />
+        <HandHeart color={Colors.white} size={20} />
         <Text style={styles.sendCustomButtonText}>
           Request Favor ({customFavorPoints} points)
         </Text>
@@ -316,7 +305,7 @@ export default function FavorsModal({
         {showCustomFavor ? (
           renderCustomFavorForm()
         ) : (
-          <>
+          <View style={{ flex: 1 }}>
             <View style={styles.header}>
               <View style={styles.headerContent}>
                 <Text style={styles.headerTitle}>Request a Favor</Text>
@@ -325,7 +314,7 @@ export default function FavorsModal({
                 </Text>
               </View>
               <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-                <X color="#666" size={24} />
+                <X color={Colors.textSecondary} size={24} />
               </TouchableOpacity>
             </View>
 
@@ -345,16 +334,16 @@ export default function FavorsModal({
                 <Text style={styles.characterCount}>{customMessage.length}/100</Text>
               </View>
             )}
-          </>
+          </View>
         )}
 
         {selectedFavor && !showCustomFavor && (
           <View style={styles.fixedSendButtonContainer}>
             <TouchableOpacity
-              style={[styles.fixedSendButton, { backgroundColor: categoryDetails[selectedFavor.category_id]?.color || '#FF8C42' }]}
+              style={[styles.fixedSendButton, { backgroundColor: categoryDetails[selectedFavor.category_id]?.color || Colors.primary }]}
               onPress={handleSendFavor}
               activeOpacity={0.8}>
-              <HandHeart color="white" size={20} />
+              <HandHeart color={Colors.white} size={20} />
               <Text style={styles.fixedSendButtonText}>
                 Send request
               </Text>
@@ -369,74 +358,74 @@ export default function FavorsModal({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF8F0',
+    backgroundColor: Colors.background,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 24,
+    paddingHorizontal: Layout.screenPadding,
+    paddingTop: 60, // Keep fixed for modal
+    paddingBottom: Spacing.xl,
   },
   headerContent: {
     flex: 1,
-    marginRight: 16,
+    marginRight: Spacing.md,
   },
   closeButton: {
-    padding: 8,
-    marginRight: -8, // Align icon better with edge
+    padding: Spacing.sm,
+    marginRight: -Spacing.sm, // Align icon better with edge
   },
   headerTitle: {
-    fontSize: 26,
-    fontFamily: 'Inter-Bold',
-    color: '#333',
-    marginBottom: 8,
+    fontSize: Typography.fontSize['2xl'],
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.sm,
   },
   headerSubtitle: {
-    fontSize: 15,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    lineHeight: 22,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.textSecondary,
+    lineHeight: Typography.lineHeight.relaxed,
+    marginRight: Spacing.md,
   },
   categoryFilterContainer: {
-    paddingBottom: 20,
+    paddingBottom: Spacing.lg,
     borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
+    borderTopColor: Colors.border,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: Colors.border,
     position: 'relative',
   },
   categoryFilter: {
-    paddingTop: 20,
+    paddingTop: Spacing.lg,
   },
   categoryFilterContent: {
-    paddingHorizontal: 20,
-    paddingVertical: 4,
+    paddingHorizontal: Layout.screenPadding,
+    paddingVertical: Spacing.xs,
   },
   categoryFilterItem: {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'white',
-    borderRadius: 12,
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.md,
     width: 88,
-    height: 52, // Increased height for better touch target (44pt minimum)
-    marginRight: 12,
+    minHeight: 60, // Increased for better text visibility
+    marginRight: Spacing.md,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    shadowColor: '#000',
+    borderColor: Colors.border,
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 1,
-    // Minimum 44pt touch target as per Apple HIG
-    minHeight: 44,
+    paddingVertical: Spacing.sm
   },
   selectedCategoryFilter: {
-    backgroundColor: '#FF8C42',
-    borderColor: '#FF8C42',
-    shadowColor: '#FF8C42',
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -444,259 +433,237 @@ const styles = StyleSheet.create({
     transform: [{ scale: 1.02 }],
   },
   categoryFilterText: {
-    fontSize: 11,
-    fontFamily: 'Inter-SemiBold',
-    color: '#666',
-    marginTop: 3,
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 13,
-    paddingHorizontal: 2,
+    lineHeight: Typography.lineHeight.tight,
+    paddingHorizontal: Spacing.xs,
   },
   selectedCategoryFilterText: {
-    color: 'white',
-  },
-  scrollIndicators: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    pointerEvents: 'none',
-  },
-  leftScrollIndicator: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: 24,
-    borderTopRightRadius: 12,
-    borderBottomRightRadius: 12,
-  },
-  rightScrollIndicator: {
-    position: 'absolute',
-    right: 0,
-    top: 0,
-    bottom: 0,
-    width: 24,
-    borderTopLeftRadius: 12,
-    borderBottomLeftRadius: 12,
+    color: Colors.white,
   },
   favorsList: {
-    flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: Layout.screenPadding,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: Spacing.lg,
   },
   loadingText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: '#666',
-    marginTop: 10,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.textSecondary,
+    marginTop: Spacing.sm,
   },
   noFavorsContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: Spacing.lg,
   },
   noFavorsText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: '#666',
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.textSecondary,
   },
   customFavorButton: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#FFE0B2',
+    borderColor: Colors.primary + '30',
     borderStyle: 'dashed',
-    minHeight: 76, // Reduced but still comfortable
+    minHeight: 76,
   },
   customFavorIcon: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: '#FFF3E0',
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.backgroundAlt,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: Spacing.md,
   },
   customFavorContent: {
     flex: 1,
+    marginRight: Spacing.sm,
   },
   customFavorTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#FF8C42',
-    marginBottom: 2,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.primary,
+    marginBottom: Spacing.xs,
   },
   customFavorDescription: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.textSecondary,
   },
   favorCard: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    marginBottom: Spacing.md,
     borderWidth: 2,
     borderColor: 'transparent',
-    shadowColor: '#000',
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
-    minHeight: 76, // Reduced but still comfortable
+    overflow: 'visible', // Ensure content is not clipped
   },
   selectedFavorCard: {
-    borderColor: '#FF8C42',
-    backgroundColor: '#FFF8F0',
+    borderColor: Colors.primary,
+    backgroundColor: Colors.background,
   },
   favorCardHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-    minHeight: 44, // Apple HIG minimum
+    alignItems: 'flex-start',
+    flex: 1,
   },
   favorIcon: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: BorderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: Spacing.md,
+    flexShrink: 0,
   },
   favorEmoji: {
-    fontSize: 24,
+    fontSize: Typography.fontSize.xl,
   },
   favorInfo: {
     flex: 1,
+    marginRight: Spacing.sm,
+    justifyContent: 'center',
   },
   favorTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginBottom: 2,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.xs,
   },
   favorDescription: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    lineHeight: 18,
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.textSecondary,
+    lineHeight: Typography.lineHeight.relaxed,
+    marginTop: 2,
   },
   favorPoints: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF3E0',
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 12,
+    backgroundColor: Colors.backgroundAlt,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.md,
     minHeight: 24,
     minWidth: 32,
     justifyContent: 'center',
+    flexShrink: 0,
+    alignSelf: 'flex-start',
   },
   favorPointsText: {
-    fontSize: 12,
-    fontFamily: 'Inter-Bold',
-    color: '#FF8C42',
-    marginLeft: 2,
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.primary,
+    marginLeft: Spacing.xs,
   },
   selectedIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: Spacing.sm,
   },
   selectedDot: {
     width: 8,
     height: 8,
-    borderRadius: 4,
-    marginRight: 6,
+    borderRadius: BorderRadius.sm,
+    marginRight: Spacing.sm,
   },
   selectedText: {
-    fontSize: 12,
-    fontFamily: 'Inter-SemiBold',
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.semiBold,
   },
   messageSection: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: Layout.screenPadding,
+    paddingVertical: Spacing.md,
     borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
+    borderTopColor: Colors.border,
   },
   messageLabel: {
-    fontSize: 13,
-    fontFamily: 'Inter-Medium',
-    color: '#333',
-    marginBottom: 6,
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.sm,
   },
   messageInput: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 10,
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#333',
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.sm,
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.textPrimary,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    marginBottom: 3,
-    minHeight: 44, // Apple HIG minimum
+    borderColor: Colors.border,
+    marginBottom: Spacing.xs,
+    minHeight: 44, // Apple HIG minimum touch target
   },
   characterCount: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: '#999',
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.textTertiary,
     textAlign: 'right',
   },
   customFavorForm: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: Layout.screenPadding,
   },
   customFormHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: Spacing.xl,
   },
   backButton: {
-    padding: 8,
-    marginRight: 16,
+    padding: Spacing.sm,
+    marginRight: Spacing.md,
+    marginLeft: -Spacing.sm,
   },
   backButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: '#666',
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.textSecondary,
   },
   customFormTitle: {
-    fontSize: 20,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
+    ...ComponentStyles.text.h3,
   },
   formSection: {
-    marginBottom: 24,
+    marginBottom: Spacing.xl,
   },
   formLabel: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginBottom: 8,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.sm,
   },
   textInput: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#333',
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.lg,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.textPrimary,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    marginBottom: 4,
+    borderColor: Colors.border,
+    marginBottom: Spacing.xs,
   },
   multilineInput: {
     height: 80,
@@ -705,71 +672,72 @@ const styles = StyleSheet.create({
   pointsSelector: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
   },
   pointsOption: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'white',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    minHeight: 44, // Apple HIG minimum touch target
+    borderColor: Colors.border,
+    minHeight: 44, // Apple HIG minimum touch target touch target
     minWidth: 56,  // Slightly wider for better visual balance
+    marginRight: Spacing.sm,
+    marginBottom: Spacing.sm,
   },
   selectedPointsOption: {
-    backgroundColor: '#FF8C42',
-    borderColor: '#FF8C42',
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
   pointsOptionText: {
-    fontSize: 13,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginLeft: 3,
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.textPrimary,
+    marginLeft: Spacing.xs,
   },
   selectedPointsOptionText: {
-    color: 'white',
+    color: Colors.white,
   },
   sendCustomButton: {
-    backgroundColor: '#FF8C42',
-    borderRadius: 16,
-    paddingVertical: 16,
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.lg,
+    paddingVertical: Spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 'auto',
-    marginBottom: 40,
+    marginBottom: Spacing.xl,
   },
   disabledButton: {
-    backgroundColor: '#CCC',
+    backgroundColor: Colors.gray400,
   },
   sendCustomButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: 'white',
-    marginLeft: 8,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.white,
+    marginLeft: Spacing.sm,
   },
   fixedSendButtonContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    paddingBottom: 40,
+    paddingHorizontal: Layout.screenPadding,
+    paddingVertical: Spacing.lg,
+    paddingBottom: Spacing.xl,
     borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
+    borderTopColor: Colors.border,
   },
   fixedSendButton: {
-    borderRadius: 16,
-    paddingVertical: 16,
+    borderRadius: BorderRadius.lg,
+    paddingVertical: Spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
   fixedSendButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: 'white',
-    marginLeft: 8,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.white,
+    marginLeft: Spacing.sm,
   },
 });

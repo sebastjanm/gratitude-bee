@@ -79,11 +79,11 @@ export const Typography = {
     '4xl': 36,
   },
   
-  // Line Heights - Optimal readability
+  // Line Heights - Optimal readability (actual pixel values for React Native)
   lineHeight: {
-    tight: 1.25,
-    normal: 1.5,
-    relaxed: 1.75,
+    tight: 18,    // For xs/sm fonts (~1.25x)
+    normal: 24,   // For base/lg fonts (~1.5x)
+    relaxed: 28,  // For xl/2xl fonts (~1.75x)
   },
   
   // Letter Spacing
@@ -230,31 +230,31 @@ export const ComponentStyles = {
       fontSize: Typography.fontSize['3xl'],
       fontFamily: Typography.fontFamily.bold,
       color: Colors.textPrimary,
-      lineHeight: Typography.fontSize['3xl'] * Typography.lineHeight.tight,
+      lineHeight: 38, // 30px * 1.25
     },
     h2: {
       fontSize: Typography.fontSize['2xl'],
       fontFamily: Typography.fontFamily.semiBold,
       color: Colors.textPrimary,
-      lineHeight: Typography.fontSize['2xl'] * Typography.lineHeight.tight,
+      lineHeight: 30, // 24px * 1.25
     },
     h3: {
       fontSize: Typography.fontSize.xl,
       fontFamily: Typography.fontFamily.semiBold,
       color: Colors.textPrimary,
-      lineHeight: Typography.fontSize.xl * Typography.lineHeight.normal,
+      lineHeight: Typography.lineHeight.normal, // 24px
     },
     body: {
       fontSize: Typography.fontSize.base,
       fontFamily: Typography.fontFamily.regular,
       color: Colors.textPrimary,
-      lineHeight: Typography.fontSize.base * Typography.lineHeight.normal,
+      lineHeight: Typography.lineHeight.normal, // 24px
     },
     caption: {
       fontSize: Typography.fontSize.sm,
       fontFamily: Typography.fontFamily.regular,
       color: Colors.textSecondary,
-      lineHeight: Typography.fontSize.sm * Typography.lineHeight.normal,
+      lineHeight: Typography.lineHeight.tight, // 18px
     },
   },
   

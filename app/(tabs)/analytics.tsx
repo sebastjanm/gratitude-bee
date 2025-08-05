@@ -654,7 +654,7 @@ const styles = StyleSheet.create({
   legendDot: {
     width: 8,
     height: 8,
-    borderRadius: BorderRadius.xs,
+    borderRadius: BorderRadius.full,
     marginRight: Spacing.xs,
   },
   legendText: {
