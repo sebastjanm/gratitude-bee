@@ -95,18 +95,6 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="badges"
-          options={{
-            href: null, // Hide from tab bar
-          }}
-        />
-        <Tabs.Screen
-          name="analytics"
-          options={{
-            href: null, // Hide from tab bar
-          }}
-        />
-        <Tabs.Screen
           name="more"
           options={{
             title: 'More',
