@@ -103,10 +103,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="analytics"
           options={{
-            title: 'Analytics',
-            tabBarIcon: ({ color, size, focused }) => (
-              <AnimatedIcon icon={BarChart2} color={color} size={size} focused={focused} />
-            ),
+            href: null, // Hide from tab bar
           }}
         />
         <Tabs.Screen

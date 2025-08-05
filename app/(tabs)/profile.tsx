@@ -23,6 +23,7 @@ import { User, HelpCircle, Bell, Heart, Target, Calendar, Share2, CircleHelp as 
 import { useSession } from '@/providers/SessionProvider';
 import { supabase } from '@/utils/supabase';
 import QRCodeModal from '@/components/QRCodeModal';
+import ProfileAnalytics from '@/components/ProfileAnalytics';
 import * as ImagePicker from 'expo-image-picker';
 import Constants from 'expo-constants';
 import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
@@ -307,6 +308,8 @@ export default function ProfileScreen() {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {renderUserInfo()}
         {renderStats()}
+        
+        {session && <ProfileAnalytics userId={session.user.id} />}
 
         {renderSettingsSection(
           'Connection',
