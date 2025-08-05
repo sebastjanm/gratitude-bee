@@ -6,6 +6,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { ArrowLeft, Info } from 'lucide-react-native';
+import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
 
 export default function ImpressumScreen() {
   const insets = useSafeAreaInsets();
@@ -21,9 +22,9 @@ export default function ImpressumScreen() {
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-              <ArrowLeft color="#333" size={24} />
+              <ArrowLeft color={Colors.textSecondary} size={Layout.iconSize.lg} />
             </TouchableOpacity>
-            <Info color="#FF8C42" size={28} />
+            <Info color={Colors.primary} size={Layout.iconSize.xl} />
             <Text style={styles.title}>Impressum</Text>
           </View>
           {/* Empty view for spacing, consistent with profile header structure */}
@@ -145,109 +146,97 @@ export default function ImpressumScreen() {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#FFF8F0'
+    backgroundColor: Colors.background
   },
   fixedHeaderContainer: {
-    backgroundColor: '#FFF8F0',
+    backgroundColor: Colors.background,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-    paddingBottom: 20,
+    borderBottomColor: Colors.border,
+    paddingBottom: Spacing.lg,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 4,
+    paddingHorizontal: Layout.screenPadding,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.xs,
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  backButton: { padding: 8, marginRight: 8, marginLeft: -8 },
-  title: { fontSize: 24, fontFamily: 'Inter-Bold', color: '#333', marginLeft: 12 },
+  backButton: { padding: Spacing.sm, marginRight: Spacing.sm, marginLeft: -Spacing.sm },
+  title: { ...ComponentStyles.text.h2, marginLeft: Spacing.md },
   subtitle: {
-    fontSize: 15,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    lineHeight: 22,
-    paddingHorizontal: 20,
+    ...ComponentStyles.text.body,
+    color: Colors.textSecondary,
+    paddingHorizontal: Layout.screenPadding,
   },
   content: { 
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: Layout.screenPadding,
   },
   lastUpdated: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#999',
-    marginTop: 20,
-    marginBottom: 10,
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.textTertiary,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.md,
     fontStyle: 'italic',
   },
   section: { 
-    marginBottom: 24 
+    marginBottom: Spacing.lg 
   },
   sectionTitle: { 
-    fontSize: 18, 
-    fontFamily: 'Inter-SemiBold', 
-    color: '#333', 
-    marginBottom: 12 
+    ...ComponentStyles.text.h3,
+    marginBottom: Spacing.md 
   },
   sectionText: { 
-    fontSize: 16, 
-    fontFamily: 'Inter-Regular', 
-    color: '#666', 
-    lineHeight: 24,
-    marginBottom: 8,
+    ...ComponentStyles.text.body,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.sm,
   },
   companyName: {
-    fontSize: 20,
-    fontFamily: 'Inter-SemiBold',
-    color: '#FF8C42',
-    marginBottom: 8,
+    fontSize: Typography.fontSize.xl,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.primary,
+    marginBottom: Spacing.sm,
   },
   contactLabel: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginTop: 8,
-    marginBottom: 2,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.textPrimary,
+    marginTop: Spacing.sm,
+    marginBottom: Spacing.xs,
   },
   contactValue: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    marginBottom: 4,
+    ...ComponentStyles.text.body,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.xs,
   },
   contactInfo: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    lineHeight: 24,
-    marginBottom: 2,
+    ...ComponentStyles.text.body,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.xs,
   },
   linkText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#FF8C42',
-    lineHeight: 24,
-    marginBottom: 8,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.primary,
+    lineHeight: Typography.fontSize.base * Typography.lineHeight.normal,
+    marginBottom: Spacing.sm,
     textDecorationLine: 'underline',
   },
   footer: {
-    backgroundColor: '#FFF3E0',
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 20,
-    marginBottom: 40,
+    backgroundColor: Colors.primaryLight + '20',
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing['2xl'],
   },
   footerText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    lineHeight: 20,
+    ...ComponentStyles.text.caption,
     textAlign: 'center',
   },
 }); 

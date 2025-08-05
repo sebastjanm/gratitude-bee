@@ -507,7 +507,7 @@ const styles = StyleSheet.create({
   },
   simpleFilterText: {
     fontSize: Typography.fontSize.sm,
-    fontFamily: Typography.fontFamily.semibold,
+    fontFamily: Typography.fontFamily.semiBold,
     color: Colors.textSecondary,
   },
   selectedSimpleFilterText: {
@@ -560,7 +560,7 @@ const styles = StyleSheet.create({
   },
   statTitle: {
     fontSize: Typography.fontSize.sm,
-    fontFamily: Typography.fontFamily.semibold,
+    fontFamily: Typography.fontFamily.semiBold,
     color: Colors.textPrimary,
     marginBottom: Spacing.xs,
   },
@@ -574,7 +574,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: Typography.fontSize.xl,
-    fontFamily: Typography.fontFamily.semibold,
+    fontFamily: Typography.fontFamily.semiBold,
     color: Colors.textPrimary,
     marginBottom: Spacing.sm,
   },

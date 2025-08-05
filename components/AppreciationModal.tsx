@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
   },
   badgeTitle: {
     fontSize: Typography.fontSize.base,
-    fontFamily: Typography.fontFamily.semibold,
+    fontFamily: Typography.fontFamily.semiBold,
     color: Colors.textPrimary,
     marginBottom: Spacing.xs,
   },
@@ -481,7 +481,7 @@ const styles = StyleSheet.create({
   },
   selectedText: {
     fontSize: Typography.fontSize.xs,
-    fontFamily: Typography.fontFamily.semibold,
+    fontFamily: Typography.fontFamily.semiBold,
     marginLeft: Spacing.xs,
   },
   sendButtonContainer: {

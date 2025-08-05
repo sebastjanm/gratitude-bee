@@ -663,7 +663,7 @@ const styles = StyleSheet.create({
   },
   simpleFilterText: {
     fontSize: Typography.fontSize.sm,
-    fontFamily: Typography.fontFamily.semibold,
+    fontFamily: Typography.fontFamily.semiBold,
     color: Colors.textSecondary,
   },
   selectedSimpleFilterText: {
@@ -720,7 +720,7 @@ const styles = StyleSheet.create({
   },
   eventTitle: {
     fontSize: Typography.fontSize.base,
-    fontFamily: Typography.fontFamily.semibold,
+    fontFamily: Typography.fontFamily.semiBold,
     color: Colors.textPrimary,
     flex: 1,
     marginRight: Spacing.xs,
@@ -820,7 +820,7 @@ const styles = StyleSheet.create({
   statusBadgeText: {
     marginLeft: 6,
     fontSize: Typography.fontSize.xs,
-    fontFamily: Typography.fontFamily.semibold,
+    fontFamily: Typography.fontFamily.semiBold,
   },
   actionsContainer: {
     flexDirection: 'row',
@@ -842,7 +842,7 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     color: Colors.white,
-    fontFamily: Typography.fontFamily.semibold,
+    fontFamily: Typography.fontFamily.semiBold,
     fontSize: Typography.fontSize.sm,
     marginLeft: 6,
   },
@@ -862,7 +862,7 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: Typography.fontSize.lg,
-    fontFamily: Typography.fontFamily.semibold,
+    fontFamily: Typography.fontFamily.semiBold,
     color: Colors.textSecondary,
     marginTop: 16,
   },
@@ -887,7 +887,7 @@ const styles = StyleSheet.create({
   },
   loadMoreButtonText: {
     fontSize: Typography.fontSize.base,
-    fontFamily: Typography.fontFamily.semibold,
+    fontFamily: Typography.fontFamily.semiBold,
     color: Colors.primary,
   },
   sentColor: {

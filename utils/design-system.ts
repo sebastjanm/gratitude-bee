@@ -40,9 +40,10 @@ export const Colors = {
   info: '#0284C7',       // Blue for information
   
   // Background Colors
-  background: '#FFFFFF',          // Pure white for clarity
+  background: '#FFF8F0',          // Warm cream background
   backgroundSecondary: '#FAFAFA', // Subtle gray
-  backgroundElevated: '#FFFFFF',  // Cards and modals
+  backgroundElevated: '#FFFFFF',  // Cards and modals (keep white for contrast)
+  backgroundAlt: '#F5F5F5',       // Alternative background
   
   // Text Colors - High contrast for readability
   textPrimary: '#1A1A1A',    // Almost black

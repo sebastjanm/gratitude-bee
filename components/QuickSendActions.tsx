@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
   },
   levelOneButtonText: {
     fontSize: Typography.fontSize.base,
-    fontFamily: Typography.fontFamily.semibold,
+    fontFamily: Typography.fontFamily.semiBold,
     marginTop: Spacing.md,
     marginBottom: Spacing.xs,
     textAlign: 'center',
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
   },
   negativeButtonText: {
     fontSize: Typography.fontSize.base,
-    fontFamily: Typography.fontFamily.semibold,
+    fontFamily: Typography.fontFamily.semiBold,
     color: Colors.error,
     marginHorizontal: Spacing.sm,
   },
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
   },
   dontPanicButtonText: {
     fontSize: Typography.fontSize.base,
-    fontFamily: Typography.fontFamily.semibold,
+    fontFamily: Typography.fontFamily.semiBold,
     color: Colors.success,
   },
   dontPanicButtonSubtext: {
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
   },
   relationshipWisdomButtonText: {
     fontSize: Typography.fontSize.base,
-    fontFamily: Typography.fontFamily.semibold,
+    fontFamily: Typography.fontFamily.semiBold,
     color: '#8B5CF6',
   },
   relationshipWisdomButtonSubtext: {
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
   },
   pingButtonText: {
     fontSize: Typography.fontSize.base,
-    fontFamily: Typography.fontFamily.semibold,
+    fontFamily: Typography.fontFamily.semiBold,
     color: Colors.info,
   },
   pingButtonSubtext: {

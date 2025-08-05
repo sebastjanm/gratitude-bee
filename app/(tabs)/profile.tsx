@@ -288,7 +288,6 @@ export default function ProfileScreen() {
   return (
     <View style={[styles.container, {
       paddingTop: insets.top,
-      paddingBottom: insets.bottom,
       paddingLeft: insets.left,
       paddingRight: insets.right,
     }]}>
@@ -435,7 +434,7 @@ export default function ProfileScreen() {
         inviteCode={inviteCode}
         inviteLink={`https://gratitudebee.app/invite/${inviteCode}`}
       />
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, Spacing.sm) }]}>
         <Text style={styles.footerText}>Version: {appVersion} (Build {buildNumber})</Text>
       </View>
     </View>
@@ -523,7 +522,7 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: Typography.fontSize.xl,
-    fontFamily: Typography.fontFamily.semibold,
+    fontFamily: Typography.fontFamily.semiBold,
     color: Colors.textPrimary,
     marginBottom: Spacing.xs,
   },
@@ -573,7 +572,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: Typography.fontSize.base,
-    fontFamily: Typography.fontFamily.semibold,
+    fontFamily: Typography.fontFamily.semiBold,
     color: Colors.textPrimary,
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.lg,
@@ -621,11 +620,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: Layout.screenPadding,
   },
   footer: {
-    paddingVertical: 20,
+    paddingVertical: Spacing.sm,
     alignItems: 'center',
     justifyContent: 'center',
     borderTopWidth: 1,
-    borderTopColor: '#EEE',
+    borderTopColor: Colors.border,
   },
   footerText: {
     ...ComponentStyles.text.caption,

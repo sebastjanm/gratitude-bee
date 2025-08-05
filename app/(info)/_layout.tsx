@@ -1,4 +1,5 @@
 import { Stack } from 'expo-router';
+import { Colors } from '@/utils/design-system';
 
 export default function InfoLayout() {
   return (
@@ -7,7 +8,7 @@ export default function InfoLayout() {
         presentation: 'modal',
         headerShown: false,
         contentStyle: {
-          backgroundColor: '#FFF8F0',
+          backgroundColor: Colors.background,
         },
       }}
     />

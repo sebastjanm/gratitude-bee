@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { ArrowLeft, HelpCircle, Video as VideoIcon, MessageSquare, Users, Heart, Settings, Gift, Play, X, ChevronRight, LucideIcon } from 'lucide-react-native';
 import VideoPlayerModal from '@/components/VideoPlayerModal';
+import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
 
 
 const { width } = Dimensions.get('window');
@@ -188,7 +189,7 @@ export default function HelpScreen() {
               <Text style={styles.categoryDescription}>{category.description}</Text>
               <View style={styles.categoryFooter}>
                 <Text style={styles.faqCount}>{category.faqs.length} FAQs</Text>
-                <ChevronRight color="#666" size={16} />
+                <ChevronRight color={Colors.textSecondary} size={Layout.iconSize.sm} />
               </View>
             </TouchableOpacity>
           );
@@ -200,7 +201,7 @@ export default function HelpScreen() {
   const renderVideoGuides = () => (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
-        <VideoIcon color="#FF6B9D" size={20} />
+        <VideoIcon color={Colors.primary} size={Layout.iconSize.md} />
         <Text style={styles.sectionTitle}>Quick Guides</Text>
       </View>
       {videoGuides.map((video) => (
@@ -212,7 +213,7 @@ export default function HelpScreen() {
         >
           <View style={styles.videoThumbnailContainer}>
             <View style={styles.playButton}>
-              <Play color="white" size={20} fill="white" />
+              <Play color={Colors.white} size={Layout.iconSize.md} fill={Colors.white} />
             </View>
             <Text style={styles.videoDuration}>{video.duration}</Text>
           </View>
@@ -236,11 +237,11 @@ export default function HelpScreen() {
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <TouchableOpacity onPress={() => selectedFAQCategory ? setSelectedFAQCategory(null) : router.back()} style={styles.backButton}>
-              <ArrowLeft color="#333" size={24} />
+              <ArrowLeft color={Colors.textSecondary} size={Layout.iconSize.lg} />
             </TouchableOpacity>
             {selectedFAQCategory ? 
-              React.createElement(selectedFAQCategory.icon, { color: selectedFAQCategory.color, size: 28 }) : 
-              <HelpCircle color="#FF8C42" size={28} />
+              React.createElement(selectedFAQCategory.icon, { color: selectedFAQCategory.color, size: Layout.iconSize.xl }) : 
+              <HelpCircle color={Colors.primary} size={Layout.iconSize.xl} />
             }
             <Text style={styles.title}>{selectedFAQCategory ? selectedFAQCategory.title : 'Help Center'}</Text>
           </View>
@@ -281,39 +282,37 @@ export default function HelpScreen() {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#FFF8F0'
+    backgroundColor: Colors.background
   },
   fixedHeaderContainer: {
-    backgroundColor: '#FFF8F0',
+    backgroundColor: Colors.background,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-    paddingBottom: 20,
+    borderBottomColor: Colors.border,
+    paddingBottom: Spacing.lg,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 4,
+    paddingHorizontal: Layout.screenPadding,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.xs,
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  backButton: { padding: 8, marginRight: 8, marginLeft: -8 },
-  title: { fontSize: 24, fontFamily: 'Inter-Bold', color: '#333', marginLeft: 12 },
+  backButton: { padding: Spacing.sm, marginRight: Spacing.sm, marginLeft: -Spacing.sm },
+  title: { ...ComponentStyles.text.h2, marginLeft: Spacing.md },
   subtitle: {
-    fontSize: 15,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    lineHeight: 22,
-    paddingHorizontal: 20,
+    ...ComponentStyles.text.body,
+    color: Colors.textSecondary,
+    paddingHorizontal: Layout.screenPadding,
   },
   content: { flex: 1 },
-  section: { marginHorizontal: 20, marginTop: 20, marginBottom: 10 },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
-  sectionTitle: { fontSize: 18, fontFamily: 'Inter-SemiBold', color: '#333', marginLeft: 12 },
+  section: { marginHorizontal: Layout.screenPadding, marginTop: Spacing.lg, marginBottom: Spacing.md },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.md },
+  sectionTitle: { ...ComponentStyles.text.h3, marginLeft: Spacing.md },
   
   // FAQ Categories
   categoryGrid: {
@@ -322,38 +321,32 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   categoryCard: {
-    width: (width - 60) / 2,
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
+    width: (width - (Layout.screenPadding * 2) - Spacing.md) / 2,
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
     borderWidth: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    ...Shadows.sm,
   },
   categoryIcon: {
     width: 44,
     height: 44,
-    borderRadius: 22,
+    borderRadius: BorderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: Spacing.md,
   },
   categoryTitle: {
-    fontSize: 15,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginBottom: 4,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.xs,
   },
   categoryDescription: {
-    fontSize: 13,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    lineHeight: 18,
-    marginBottom: 12,
+    ...ComponentStyles.text.caption,
+    lineHeight: Typography.fontSize.sm * Typography.lineHeight.normal,
+    marginBottom: Spacing.md,
   },
   categoryFooter: {
     flexDirection: 'row',
@@ -361,51 +354,41 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   faqCount: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    color: '#999',
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.textTertiary,
   },
   
   // FAQ Detail View
   faqItem: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+    ...Shadows.sm,
   },
   faqQuestion: { 
-    fontSize: 16, 
-    fontFamily: 'Inter-SemiBold', 
-    color: '#333', 
-    marginBottom: 8 
+    fontSize: Typography.fontSize.base, 
+    fontFamily: Typography.fontFamily.semiBold, 
+    color: Colors.textPrimary, 
+    marginBottom: Spacing.sm 
   },
   faqAnswer: { 
-    fontSize: 15, 
-    fontFamily: 'Inter-Regular', 
-    color: '#666', 
-    lineHeight: 22 
+    ...ComponentStyles.text.body,
+    color: Colors.textSecondary,
   },
   
   // Video Guides
   videoCard: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.lg,
+    marginBottom: Spacing.md,
+    ...Shadows.md,
     overflow: 'hidden',
   },
   videoThumbnailContainer: {
     height: 180,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Colors.gray100,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
@@ -413,37 +396,35 @@ const styles = StyleSheet.create({
   playButton: {
     width: 60,
     height: 60,
-    borderRadius: 30,
+    borderRadius: BorderRadius.full,
     backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   videoDuration: {
     position: 'absolute',
-    bottom: 8,
-    right: 8,
+    bottom: Spacing.sm,
+    right: Spacing.sm,
     backgroundColor: 'rgba(0,0,0,0.7)',
-    color: 'white',
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+    color: Colors.white,
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.medium,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.sm,
   },
   videoInfo: {
-    padding: 16,
+    padding: Spacing.md,
   },
   videoTitle: { 
-    fontSize: 16, 
-    fontFamily: 'Inter-SemiBold', 
-    color: '#333', 
-    marginBottom: 6 
+    fontSize: Typography.fontSize.base, 
+    fontFamily: Typography.fontFamily.semiBold, 
+    color: Colors.textPrimary, 
+    marginBottom: Spacing.xs 
   },
   videoDescription: { 
-    fontSize: 14, 
-    fontFamily: 'Inter-Regular', 
-    color: '#666',
-    lineHeight: 20,
+    ...ComponentStyles.text.body,
+    color: Colors.textSecondary,
   },
   
   // Video Modal - REMOVED as it's now in a separate component

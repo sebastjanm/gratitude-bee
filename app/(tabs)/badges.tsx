@@ -487,7 +487,7 @@ const styles = StyleSheet.create({
   },
   categoryFilterText: {
     fontSize: Typography.fontSize.xs,
-    fontFamily: Typography.fontFamily.semibold,
+    fontFamily: Typography.fontFamily.semiBold,
     color: Colors.textSecondary,
     marginTop: Spacing.xs,
     textAlign: 'center',
@@ -531,7 +531,7 @@ const styles = StyleSheet.create({
   },
   badgeName: {
     fontSize: Typography.fontSize.base,
-    fontFamily: Typography.fontFamily.semibold,
+    fontFamily: Typography.fontFamily.semiBold,
     color: Colors.textPrimary,
     marginBottom: Spacing.xs,
   },
