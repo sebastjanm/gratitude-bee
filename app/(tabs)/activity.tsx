@@ -19,6 +19,7 @@ import { useSession } from '@/providers/SessionProvider';
 import { supabase } from '@/utils/supabase';
 import { router } from 'expo-router';
 import ReactionModal from '@/components/ReactionModal';
+import ActivitySummary from '@/components/ActivitySummary';
 import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
 
 const { width } = Dimensions.get('window');
@@ -154,6 +155,11 @@ export default function TimelineScreen() {
   const [isReactionModalVisible, setReactionModalVisible] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [currentReactionOptions, setCurrentReactionOptions] = useState({});
+  const [summaryData, setSummaryData] = useState({
+    weeklyStats: { sent: 0, received: 0, streak: 0 },
+    insights: [] as string[],
+    balance: { ratio: 0.5, status: 'balanced' as const }
+  });
 
   const formatEventType = (type: string) => {
     if (!type) return '';
@@ -267,8 +273,98 @@ export default function TimelineScreen() {
     
     if (isInitialFetch) {
       setLoading(false);
+      calculateSummaryData();
     } else {
       setLoadingMore(false);
+    }
+  };
+
+  const calculateSummaryData = async () => {
+    if (!session) return;
+
+    try {
+      // Calculate weekly stats
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      
+      const [sentEvents, receivedEvents] = await Promise.all([
+        supabase
+          .from('events')
+          .select('id, created_at')
+          .eq('sender_id', session.user.id)
+          .eq('event_type', 'APPRECIATION')
+          .gte('created_at', weekAgo.toISOString()),
+        supabase
+          .from('events')
+          .select('id, created_at')
+          .eq('receiver_id', session.user.id)
+          .eq('event_type', 'APPRECIATION')
+          .gte('created_at', weekAgo.toISOString())
+      ]);
+
+      const sent = sentEvents.data?.length || 0;
+      const received = receivedEvents.data?.length || 0;
+      
+      // Calculate streak (simplified)
+      const { data: recentEvents } = await supabase
+        .from('events')
+        .select('created_at')
+        .eq('sender_id', session.user.id)
+        .order('created_at', { ascending: false })
+        .limit(30);
+      
+      let streak = 0;
+      if (recentEvents && recentEvents.length > 0) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        for (let i = 0; i < 30; i++) {
+          const checkDate = new Date(today);
+          checkDate.setDate(checkDate.getDate() - i);
+          const hasEvent = recentEvents.some(event => {
+            const eventDate = new Date(event.created_at);
+            return eventDate.toDateString() === checkDate.toDateString();
+          });
+          
+          if (hasEvent) {
+            streak++;
+          } else if (i > 0) {
+            break;
+          }
+        }
+      }
+      
+      // Calculate balance
+      const balance = sent > 0 ? received / sent : received > 0 ? 0 : 0.5;
+      let status: 'balanced' | 'giving_more' | 'receiving_more' = 'balanced';
+      if (balance < 0.7) status = 'giving_more';
+      else if (balance > 1.3) status = 'receiving_more';
+      
+      // Generate insights
+      const insights: string[] = [];
+      if (streak >= 7) {
+        insights.push(`Amazing! You're on a ${streak}-day streak 🔥`);
+      } else if (streak === 0) {
+        insights.push("Start your appreciation streak today!");
+      }
+      
+      if (status === 'giving_more') {
+        insights.push("You're very generous! Consider asking for some favors too");
+      } else if (status === 'receiving_more') {
+        insights.push("Your partner is showering you with love! Time to give back?");
+      }
+      
+      if (sent === 0 && received === 0) {
+        insights.push("Break the ice with a simple appreciation!");
+      }
+      
+      setSummaryData({
+        weeklyStats: { sent, received, streak },
+        insights,
+        balance: { ratio: balance, status }
+      });
+    } catch (error) {
+      console.error('Error calculating summary:', error);
     }
   };
   
@@ -440,7 +536,7 @@ export default function TimelineScreen() {
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <Clock color={Colors.primary} size={28} />
-            <Text style={styles.title}>Timeline</Text>
+            <Text style={styles.title}>Activity</Text>
           </View>
           <TouchableOpacity style={styles.headerButton} onPress={() => router.push('/help')}>
             <HelpCircle color={Colors.textSecondary} size={Layout.iconSize.lg} />
@@ -469,6 +565,16 @@ export default function TimelineScreen() {
         }}
         scrollEventThrottle={400}
       >
+        {!loading && filter === 'all' && (
+          <ActivitySummary 
+            data={summaryData}
+            onInsightPress={(insight) => {
+              // Handle insight tap - could navigate or show tips
+              console.log('Insight tapped:', insight);
+            }}
+          />
+        )}
+        
         {loading ? (
           <ActivityIndicator size="large" color={Colors.primary} style={{ marginTop: 50 }} />
         ) : filteredEvents.length > 0 ? (
