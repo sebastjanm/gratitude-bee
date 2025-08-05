@@ -5,9 +5,9 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  TextInput,
   Alert,
   Image,
+  Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -19,7 +19,6 @@ import {
   Wrench,
   HelpCircle, 
   Info,
-  Search,
   ChevronRight,
   LogOut,
   Shield,
@@ -28,12 +27,17 @@ import {
   Smartphone,
   Heart,
   Calendar,
-  CircleHelp as HelpCircleIcon
+  Mail,
+  Video,
+  Settings,
+  CircleHelp as HelpCircleIcon,
+  Lock
 } from 'lucide-react-native';
 import { useSession } from '@/providers/SessionProvider';
 import { supabase } from '@/utils/supabase';
 import Constants from 'expo-constants';
 import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface MenuSection {
   id: string;
@@ -55,10 +59,10 @@ interface MenuItem {
 export default function MoreScreen() {
   const { session, setSession } = useSession();
   const insets = useSafeAreaInsets();
-  const [searchQuery, setSearchQuery] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [partnerName, setPartnerName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [currentLanguage, setCurrentLanguage] = useState('English');
 
   const appVersion = Constants.expoConfig?.version ?? 'N/A';
   const buildNumber = Constants.nativeBuildVersion ?? 'N/A';
@@ -67,6 +71,7 @@ export default function MoreScreen() {
     if (session) {
       fetchUserInfo();
     }
+    loadCurrentLanguage();
   }, [session]);
 
   const fetchUserInfo = async () => {
@@ -96,6 +101,35 @@ export default function MoreScreen() {
     }
   };
 
+  const loadCurrentLanguage = async () => {
+    try {
+      const savedLanguage = await AsyncStorage.getItem('app_language');
+      if (savedLanguage) {
+        // Find the language object that matches the saved code
+        const languageData = [
+          { code: 'en', name: 'English' },
+          { code: 'es', name: 'Spanish' },
+          { code: 'fr', name: 'French' },
+          { code: 'de', name: 'German' },
+          { code: 'it', name: 'Italian' },
+          { code: 'pt', name: 'Portuguese' },
+          { code: 'nl', name: 'Dutch' },
+          { code: 'pl', name: 'Polish' },
+          { code: 'ru', name: 'Russian' },
+          { code: 'ja', name: 'Japanese' },
+          { code: 'zh', name: 'Chinese' },
+          { code: 'ko', name: 'Korean' },
+        ];
+        const language = languageData.find(lang => lang.code === savedLanguage);
+        if (language) {
+          setCurrentLanguage(language.name);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading language:', error);
+    }
+  };
+
   const handleSignOut = async () => {
     Alert.alert(
       'Sign Out',
@@ -115,81 +149,70 @@ export default function MoreScreen() {
     );
   };
 
+  const handleContactUs = async () => {
+    const email = 'info@gratitudebee.com';
+    const subject = 'Support Request - Gratitude Bee App';
+    const body = `Hi Gratitude Bee Team,\n\nI need help with:\n\n[Please describe your issue or question here]\n\nApp Version: ${appVersion}\nBuild: ${buildNumber}\nUser: ${displayName || 'Not set'}`;
+    
+    const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    
+    try {
+      const canOpen = await Linking.canOpenURL(mailtoUrl);
+      if (canOpen) {
+        await Linking.openURL(mailtoUrl);
+      } else {
+        Alert.alert('No Email App', 'Please install an email app to contact support.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Unable to open email app. Please email us at info@gratitudebee.com');
+    }
+  };
+
   const menuSections: MenuSection[] = [
     {
-      id: 'account',
-      title: 'Account & Profile',
-      icon: User,
-      color: Colors.primary,
-      items: [
-        { title: 'Edit Profile', subtitle: 'Update your information', route: '/more/profile' },
-        { title: 'Partner Connection', subtitle: partnerName || 'Not connected', route: '/more/partner' },
-        { title: 'Security Settings', subtitle: 'Password and privacy', route: '/more/security' },
-      ],
-    },
-    {
       id: 'analytics',
-      title: 'Analytics & Progress',
+      title: 'Analytics',
       icon: BarChart3,
       color: Colors.info,
       items: [
-        { title: 'Relationship Analytics', subtitle: 'View detailed stats', route: '/more/analytics' },
-        { title: 'Activity Insights', subtitle: 'Your patterns and trends', route: '/more/insights' },
-        { title: 'Achievement Progress', subtitle: 'Track your milestones', route: '/more/achievements' },
-        { title: 'Export Reports', subtitle: 'Download your data', route: '/more/export' },
+        { title: 'Relationship Analytics', subtitle: 'View stats and insights', route: '/more/analytics' },
       ],
     },
     {
-      id: 'notifications',
-      title: 'Notifications & Reminders',
-      icon: Bell,
+      id: 'settings',
+      title: 'Settings',
+      icon: Settings,
       color: Colors.warning,
       items: [
-        { title: 'Push Notifications', subtitle: 'Manage alerts', route: '/more/notifications' },
-        { title: 'Daily Reminders', subtitle: 'Set appreciation reminders', route: '/more/reminders' },
-        { title: 'Nudge Settings', subtitle: 'Random partner reminders', route: '/more/nudges' },
-        { title: 'Quiet Hours', subtitle: 'Do not disturb times', route: '/more/quiet-hours' },
-      ],
-    },
-    {
-      id: 'goals',
-      title: 'Goals & Preferences',
-      icon: Target,
-      color: Colors.success,
-      items: [
-        { title: 'Weekly Goals', subtitle: 'Set your targets', route: '/more/goals' },
-        { title: 'Favorite Categories', subtitle: 'Customize quick actions', route: '/more/categories' },
-        { title: 'Display Preferences', subtitle: 'Theme and appearance', route: '/more/display' },
-        { title: 'Language Settings', subtitle: 'English', route: '/more/language' },
+        { title: 'Daily Reminders', subtitle: 'Set appreciation reminders', icon: Bell, route: '/more/reminders' },
+        { title: 'Nudge Settings', subtitle: 'Random partner reminders', icon: Heart, route: '/more/nudges' },
+        { title: 'Language Settings', subtitle: currentLanguage, icon: Target, route: '/more/language' },
+        { title: 'Change Password', subtitle: 'Update your password', icon: Lock, route: '/more/security' },
       ],
     },
     {
       id: 'tools',
-      title: 'Tools & Features',
+      title: 'Tools',
       icon: Wrench,
       color: '#8B5CF6',
       items: [
         { title: 'Invite Partner', subtitle: 'Send connection request', icon: Smartphone, action: () => router.push('/connect-partner') },
-        { title: 'Export Memory Book', subtitle: 'Create shareable timeline', icon: Share2, route: '/more/export-book' },
-        { title: 'Share Achievements', subtitle: 'Show your progress', route: '/more/share' },
-        { title: 'Backup Data', subtitle: 'Save your memories', route: '/more/backup' },
       ],
     },
     {
       id: 'help',
-      title: 'Help & Support',
+      title: 'Help',
       icon: HelpCircle,
       color: Colors.gray600,
       items: [
-        { title: 'FAQ & Tutorials', subtitle: 'Common questions', icon: HelpCircleIcon, action: () => router.push('/help') },
-        { title: 'Video Guides', subtitle: 'Watch how-to videos', route: '/more/videos' },
-        { title: 'Contact Support', subtitle: 'Get help from team', route: '/more/contact' },
-        { title: 'Report Issue', subtitle: 'Help us improve', route: '/more/report' },
+        { title: 'FAQ', subtitle: 'Common questions', icon: HelpCircleIcon, action: () => router.push('/more/faq') },
+        { title: 'Video Guides', subtitle: 'Watch how-to videos', icon: Video, route: '/more/video-guides' },
+        { title: 'Contact Us', subtitle: 'Get help or report issues', icon: Mail, action: handleContactUs },
       ],
     },
     {
       id: 'about',
-      title: 'About & Legal',
+      title: 'Legal',
       icon: Info,
       color: Colors.gray500,
       items: [
@@ -201,15 +224,6 @@ export default function MoreScreen() {
     },
   ];
 
-  const filteredSections = searchQuery
-    ? menuSections.map(section => ({
-        ...section,
-        items: section.items.filter(item =>
-          item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (item.subtitle && item.subtitle.toLowerCase().includes(searchQuery.toLowerCase()))
-        ),
-      })).filter(section => section.items.length > 0)
-    : menuSections;
 
   const renderMenuItem = (item: MenuItem, isLast: boolean) => {
     const hasAction = item.route || item.action;
@@ -271,45 +285,40 @@ export default function MoreScreen() {
       paddingLeft: insets.left,
       paddingRight: insets.right,
     }]}>
-      <View style={styles.header}>
-        <Text style={styles.title}>More</Text>
-        <TouchableOpacity onPress={() => router.push('/help')} style={styles.helpButton}>
-          <HelpCircle color={Colors.textSecondary} size={Layout.iconSize.lg} />
+      <View style={styles.fixedHeaderContainer}>
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <Settings color={Colors.primary} size={28} />
+            <Text style={styles.title}>More</Text>
+          </View>
+          <TouchableOpacity style={styles.headerButton} onPress={() => router.push('/help')}>
+            <HelpCircle color={Colors.textSecondary} size={Layout.iconSize.lg} />
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.subtitle}>
+          Settings, tools, and information
+        </Text>
+        
+        <TouchableOpacity style={styles.profileCard} onPress={() => router.push('/more/profile')}>
+          <View style={styles.profileInfo}>
+            {avatarUrl ? (
+              <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+            ) : (
+              <View style={[styles.avatar, styles.avatarPlaceholder]}>
+                <User color={Colors.textSecondary} size={24} />
+              </View>
+            )}
+            <View style={styles.profileText}>
+              <Text style={styles.profileName}>{displayName}</Text>
+              <Text style={styles.profileStatus}>View and edit profile</Text>
+            </View>
+          </View>
+          <ChevronRight color={Colors.textTertiary} size={20} />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.searchContainer}>
-        <Search color={Colors.textTertiary} size={20} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search settings..."
-          placeholderTextColor={Colors.textTertiary}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-      </View>
-
-      <TouchableOpacity style={styles.profileCard} onPress={() => router.push('/more/profile')}>
-        <View style={styles.profileInfo}>
-          {avatarUrl ? (
-            <Image source={{ uri: avatarUrl }} style={styles.avatar} />
-          ) : (
-            <View style={[styles.avatar, styles.avatarPlaceholder]}>
-              <User color={Colors.textSecondary} size={24} />
-            </View>
-          )}
-          <View style={styles.profileText}>
-            <Text style={styles.profileName}>{displayName}</Text>
-            <Text style={styles.profileStatus}>
-              {partnerName ? `Connected to ${partnerName} ❤️` : 'Not connected'}
-            </Text>
-          </View>
-        </View>
-        <ChevronRight color={Colors.textTertiary} size={20} />
-      </TouchableOpacity>
-
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {filteredSections.map(renderSection)}
+        {menuSections.map(renderSection)}
         
         <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
           <LogOut color={Colors.error} size={20} />
@@ -335,29 +344,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: Layout.screenPadding,
     paddingTop: Spacing.lg,
-    paddingBottom: Spacing.md,
+    paddingBottom: Spacing.xs,
   },
   title: {
-    ...ComponentStyles.text.h1,
+    ...ComponentStyles.text.h2,
+    marginLeft: Spacing.md,
   },
   helpButton: {
     padding: Spacing.sm,
   },
-  searchContainer: {
+  headerButton: {
+    padding: Spacing.sm,
+  },
+  headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.backgroundElevated,
-    marginHorizontal: Layout.screenPadding,
-    marginBottom: Spacing.md,
-    paddingHorizontal: Spacing.md,
-    borderRadius: BorderRadius.md,
-    height: 44,
   },
-  searchInput: {
-    flex: 1,
-    marginLeft: Spacing.sm,
+  subtitle: {
     ...ComponentStyles.text.body,
-    color: Colors.textPrimary,
+    color: Colors.textSecondary,
+    paddingHorizontal: Layout.screenPadding,
+    paddingBottom: Spacing.md,
+  },
+  fixedHeaderContainer: {
+    backgroundColor: Colors.background,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  profileSection: {
+    marginBottom: Spacing.lg,
   },
   profileCard: {
     flexDirection: 'row',
@@ -365,7 +380,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: Colors.backgroundElevated,
     marginHorizontal: Layout.screenPadding,
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.md,
+    marginTop: Spacing.sm,
     padding: Spacing.md,
     borderRadius: BorderRadius.lg,
     ...Shadows.sm,
@@ -395,8 +411,32 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginTop: Spacing.xs,
   },
+  securityCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.backgroundElevated,
+    marginHorizontal: Layout.screenPadding,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    ...Shadows.sm,
+  },
+  securityIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.warning + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.md,
+  },
+  securityText: {
+    ...ComponentStyles.text.body,
+    fontFamily: Typography.fontFamily.medium,
+    flex: 1,
+  },
   content: {
     flex: 1,
+    paddingTop: Spacing.lg,
   },
   section: {
     marginBottom: Spacing.xl,
