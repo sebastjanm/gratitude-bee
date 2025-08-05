@@ -55,10 +55,10 @@ const badgeCategoryConfig: Omit<BadgeCategory, 'count'>[] = [
 ];
 
 const statsConfig = [
-  { key: 'sent_today', name: 'Sent Today', icon: ArrowUpCircle, color: Colors.success, description: 'Appreciations you sent today.' },
-  { key: 'received_today', name: 'Received Today', icon: ArrowDownCircle, color: Colors.primary, description: 'Appreciations you received today.' },
-  { key: 'favor_points', name: 'Favor Points', icon: Gift, color: Colors.warning, description: 'Use these to ask for special favors.' },
-  { key: 'appreciation_points', name: 'Appreciation', icon: Award, color: Colors.info, description: 'Your total positive karma.' },
+  { key: 'sent_today', name: 'Sent', icon: ArrowUpCircle, color: Colors.success, description: 'Appreciations you sent today.' },
+  { key: 'received_today', name: 'Received', icon: ArrowDownCircle, color: Colors.primary, description: 'Appreciations you received today.' },
+  { key: 'favor_points', name: 'Favor', icon: Gift, color: Colors.warning, description: 'Use these points to ask for special favors.' },
+  { key: 'appreciation_points', name: 'Appreciation', icon: Award, color: Colors.info, description: 'Your total positive karma points.' },
 ];
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -175,14 +175,14 @@ export default function HomeScreen() {
       Animated.loop(
         Animated.sequence([
           Animated.timing(heartAnimation, {
-            toValue: 1.1,
-            duration: 1000,
+            toValue: 1.3,
+            duration: 800,
             easing: Easing.inOut(Easing.ease),
             useNativeDriver: true,
           }),
           Animated.timing(heartAnimation, {
             toValue: 1,
-            duration: 1000,
+            duration: 800,
             easing: Easing.inOut(Easing.ease),
             useNativeDriver: true,
           }),
@@ -649,11 +649,7 @@ export default function HomeScreen() {
           heartAnimation={heartAnimation}
         />
         
-        <View style={{ height: 24 }} />
-        
         <TodayTip />
-
-        <View style={{ height: 24 }} />
 
         <View style={styles.specialActions}>
           <NegativeBadgeModal
@@ -662,11 +658,6 @@ export default function HomeScreen() {
             onSend={handleSendHornet}
           />
           
-          <DontPanicModal
-            visible={showDontPanicModal}
-            onClose={() => setShowDontPanicModal(false)}
-            onSend={handleSendDontPanic}
-          />
           
           <AppreciationModal
             visible={showAppreciationModal}
@@ -887,6 +878,8 @@ const styles = StyleSheet.create({
     marginTop: Spacing.sm,
     marginBottom: Spacing.sm,
     overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: Colors.info + '30',
   },
   statsGrid: {
     flexDirection: 'row',
@@ -964,7 +957,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   specialActions: {
-    marginTop: 20,
+    marginTop: 8,
     marginBottom: 24,
   },
   partnerConnectBanner: {

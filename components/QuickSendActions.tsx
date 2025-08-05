@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import {
   Heart,
-  HandHeart,
+  Handshake,
   Crown,
   TriangleAlert as AlertTriangle,
 } from 'lucide-react-native';
@@ -124,10 +124,10 @@ export default function QuickSendActions({
             <Heart color={Colors.primary} size={28} fill={Colors.primary} />
           </Animated.View>
           <Text style={[styles.levelOneButtonText, { color: Colors.primary }]}>
-            Send Appreciation
+           Send Appreciation
           </Text>
           <Text style={styles.levelOneButtonSubtext}>
-            Select from various appreciation categories
+          Choose a way to say thanks
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -135,13 +135,13 @@ export default function QuickSendActions({
           onPress={onShowFavorsModal}
           activeOpacity={0.8}>
           <Animated.View style={[{ transform: [{ scale: heartAnimation }] }]}>
-            <HandHeart color={Colors.gray800} size={28} />
+            <Handshake color={Colors.gray800} size={28} />
           </Animated.View>
           <Text style={[styles.levelOneButtonText, { color: Colors.gray800 }]}>
-            Ask for a Favor
+          Ask for{'\n'}a Favor
           </Text>
           <Text style={styles.levelOneButtonSubtext}>
-            Ask for help using your earned points
+          Use your points to request help
           </Text>
         </TouchableOpacity>
       </View>
@@ -156,6 +156,7 @@ export default function QuickSendActions({
         {renderSendPingButton()}
         {renderNegativeBadgeButton()}
       </View>
+      <View style={styles.divider} />
     </View>
   );
 }
@@ -163,7 +164,6 @@ export default function QuickSendActions({
 const styles = StyleSheet.create({
   quickSendContainer: {
     marginHorizontal: Layout.screenPadding,
-    marginBottom: Spacing.lg,
   },
   levelOneContainer: {
     flexDirection: 'row',
@@ -191,20 +191,20 @@ const styles = StyleSheet.create({
     ...ComponentStyles.text.caption,
     color: Colors.textSecondary,
     textAlign: 'center',
-    height: 32,
   },
   appreciationButton: {
     borderColor: Colors.primary + '30',
   },
   favorsButton: {
-    borderColor: Colors.gray400,
+    borderColor: Colors.gray400 + '30',
     backgroundColor: Colors.gray100,
   },
   levelTwoContainer: {},
   divider: {
     height: 1,
     backgroundColor: Colors.border,
-    marginVertical: Spacing.lg,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.md,
   },
   negativeButton: {
     backgroundColor: Colors.error + '10',
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     borderWidth: 2,
     borderColor: Colors.error + '20',
-    marginBottom: Spacing.md,
+    
   },
   negativeButtonContent: {
     flexDirection: 'row',

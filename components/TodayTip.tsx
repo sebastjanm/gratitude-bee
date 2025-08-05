@@ -3,6 +3,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Colors, Typography, Spacing, BorderRadius, Layout } from '@/utils/design-system';
 
 export default function TodayTip() {
   return (
@@ -18,24 +19,23 @@ export default function TodayTip() {
 
 const styles = StyleSheet.create({
   todayTip: {
-    backgroundColor: '#E8F5E8',
-    marginHorizontal: 20,
-    marginBottom: 24,
-    borderRadius: 16,
-    padding: 20,
+    backgroundColor: Colors.success + '10', // Light green background
+    marginHorizontal: Layout.screenPadding,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
     borderLeftWidth: 4,
-    borderLeftColor: '#6BCF7F',
+    borderLeftColor: Colors.success,
   },
   tipTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginBottom: 8,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.sm,
   },
   tipText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    lineHeight: 20,
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.textSecondary,
+    lineHeight: Typography.lineHeight.tight,
   },
 }); 
