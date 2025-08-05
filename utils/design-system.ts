@@ -270,6 +270,22 @@ export const ComponentStyles = {
     fontFamily: Typography.fontFamily.regular,
     color: Colors.textPrimary,
   },
+  
+  // Modal Headers
+  modal: {
+    headerTitle: {
+      fontSize: Typography.fontSize['2xl'],
+      fontFamily: Typography.fontFamily.bold,
+      color: Colors.textPrimary,
+      marginBottom: Spacing.xs,
+    },
+    headerSubtitle: {
+      fontSize: Typography.fontSize.base,
+      fontFamily: Typography.fontFamily.regular,
+      color: Colors.textSecondary,
+      lineHeight: Typography.lineHeight.tight,
+    },
+  },
 } as const;
 
 // Accessibility

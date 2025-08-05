@@ -2,6 +2,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, Linking } from 'react-native';
 import { X, Camera, Smartphone } from 'lucide-react-native';
+import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
 
 interface QRScannerModalProps {
   visible: boolean;
@@ -22,12 +23,12 @@ export default function QRScannerModal({ visible, onClose, onCodeScanned }: QRSc
       onRequestClose={onClose}>
       <View style={styles.container}>
         <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-          <X color="#666" size={24} />
+          <X color={Colors.textSecondary} size={24} />
         </TouchableOpacity>
         
         <View style={styles.content}>
           <View style={styles.iconContainer}>
-            <Smartphone color="#FF8C42" size={64} />
+            <Smartphone color={Colors.primary} size={64} />
           </View>
           
           <Text style={styles.title}>Use Your Phone's Camera</Text>
@@ -73,13 +74,13 @@ export default function QRScannerModal({ visible, onClose, onCodeScanned }: QRSc
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF8F0',
+    backgroundColor: Colors.background,
   },
   closeButton: {
     position: 'absolute',
     top: 60,
-    right: 20,
-    padding: 8,
+    right: Layout.screenPadding,
+    padding: Spacing.sm,
     zIndex: 1,
   },
   content: {
@@ -92,19 +93,16 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   title: {
-    fontSize: 24,
-    fontFamily: 'Inter-Bold',
+    ...ComponentStyles.modal.headerTitle,
     textAlign: 'center',
-    marginBottom: 16,
-    color: '#333',
+    marginBottom: Spacing.md,
   },
   description: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
+    ...ComponentStyles.modal.headerSubtitle,
+    fontSize: Typography.fontSize.base,
     textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 32,
+    lineHeight: Typography.lineHeight.normal,
+    marginBottom: Spacing.xl,
   },
   stepsContainer: {
     alignSelf: 'stretch',
@@ -118,35 +116,35 @@ const styles = StyleSheet.create({
   stepNumber: {
     width: 32,
     height: 32,
-    borderRadius: 16,
-    backgroundColor: '#FF8C42',
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: Spacing.md,
   },
   stepNumberText: {
-    color: 'white',
-    fontSize: 16,
-    fontFamily: 'Inter-Bold',
+    color: Colors.white,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.bold,
   },
   stepText: {
     flex: 1,
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#333',
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.textPrimary,
   },
   primaryButton: {
-    backgroundColor: '#FF8C42',
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 32,
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.xl,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: Spacing.sm,
   },
   primaryButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
+    color: Colors.white,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semiBold,
   },
 }); 

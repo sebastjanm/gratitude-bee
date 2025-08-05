@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Modal, TouchableOpacity, Share, Alert } from 'r
 import * as Clipboard from 'expo-clipboard';
 import { X, Copy, Share2 } from 'lucide-react-native';
 import QRCode from 'react-native-qrcode-svg';
+import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
 
 interface QRCodeModalProps {
   visible: boolean;
@@ -43,7 +44,7 @@ export default function QRCodeModal({ visible, onClose, inviteCode, inviteLink }
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <X color="#666" size={24} />
+            <X color={Colors.textSecondary} size={24} />
           </TouchableOpacity>
 
           <Text style={styles.modalTitle}>Your Invite QR Code</Text>
@@ -62,7 +63,7 @@ export default function QRCodeModal({ visible, onClose, inviteCode, inviteLink }
           <View style={styles.codeBox}>
             <Text style={styles.codeText}>{inviteCode}</Text>
             <TouchableOpacity onPress={handleCopyCode}>
-              <Copy color="#FF8C42" size={20} />
+              <Copy color={Colors.primary} size={20} />
             </TouchableOpacity>
           </View>
 
@@ -84,94 +85,76 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
   },
   modalView: {
-    margin: 20,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 35,
+    margin: Spacing.lg,
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.xl,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+    ...Shadows.lg,
     width: '90%',
   },
   closeButton: {
     position: 'absolute',
-    top: 15,
-    right: 15,
-    padding: 8,
+    top: Spacing.md,
+    right: Spacing.md,
+    padding: Spacing.sm,
   },
   modalTitle: {
-    fontSize: 22,
-    fontFamily: 'Inter-Bold',
-    marginBottom: 8,
+    ...ComponentStyles.modal.headerTitle,
     textAlign: 'center',
+    marginBottom: Spacing.xs,
   },
   modalSubtitle: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
+    ...ComponentStyles.modal.headerSubtitle,
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: Spacing.lg,
   },
   qrContainer: {
-    marginBottom: 24,
-    padding: 10,
-    backgroundColor: 'white',
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    marginBottom: Spacing.lg,
+    padding: Spacing.md,
+    backgroundColor: Colors.white,
+    borderRadius: BorderRadius.md,
+    ...Shadows.md,
   },
   codeLabel: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#666',
-    marginBottom: 8,
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.sm,
   },
   codeBox: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFF8F0',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.md,
     borderWidth: 1,
-    borderColor: '#FFE0B2',
+    borderColor: Colors.primaryLight,
     width: '100%',
-    marginBottom: 24,
+    marginBottom: Spacing.lg,
   },
   codeText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Bold',
-    color: '#FF8C42',
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.primary,
     letterSpacing: 2,
   },
   shareButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#4ECDC4',
-    borderRadius: 12,
-    paddingVertical: 16,
+    backgroundColor: Colors.success,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.md,
     width: '100%',
-    shadowColor: '#4ECDC4',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    ...Shadows.md,
   },
   shareButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    marginLeft: 8,
+    color: Colors.white,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semiBold,
+    marginLeft: Spacing.sm,
   }
 }); 

@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { X, CheckCircle } from 'lucide-react-native';
 import { supabase } from '@/utils/supabase'; // Assuming supabase client is here
+import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
 
 const { width } = Dimensions.get('window');
 
@@ -127,7 +128,7 @@ export default function RelationshipWisdomModal({
         <ScrollView style={styles.contentWrapper} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
             <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-              <X color="#666" size={24} />
+              <X color={Colors.textSecondary} size={24} />
             </TouchableOpacity>
             <View style={styles.heroIcon}>
               <Image source={require('../assets/images/owl.png')} style={styles.heroImage} />
@@ -174,7 +175,7 @@ export default function RelationshipWisdomModal({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF8F0',
+    backgroundColor: Colors.background,
   },
   centered: {
     flex: 1,
@@ -183,28 +184,28 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#666',
+    marginTop: Spacing.md,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.textSecondary,
   },
   contentWrapper: {
     flex: 1,
   },
   header: {
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: Layout.screenPadding,
     paddingTop: 72,
-    paddingBottom: 24,
+    paddingBottom: Spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-    backgroundColor: '#FFF8F0',
+    borderBottomColor: Colors.border,
+    backgroundColor: Colors.background,
   },
   closeButton: {
     position: 'absolute',
     top: 60,
-    right: 20,
-    padding: 8,
+    right: Layout.screenPadding,
+    padding: Spacing.sm,
   },
   heroIcon: {
     width: 64,
@@ -221,39 +222,30 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   heroTitle: {
-    fontSize: 24,
-    fontFamily: 'Inter-Bold',
-    color: '#333',
-    marginBottom: 8,
+    ...ComponentStyles.modal.headerTitle,
     textAlign: 'center',
   },
   heroSubtitle: {
-    fontSize: 15,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
+    ...ComponentStyles.modal.headerSubtitle,
     textAlign: 'center',
-    lineHeight: 22,
+    paddingHorizontal: Spacing.lg,
   },
   wisdomSection: {
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    marginBottom: 32,
+    paddingHorizontal: Layout.screenPadding,
+    paddingTop: Spacing.lg,
+    marginBottom: Spacing.xl,
   },
   wisdomGrid: {
     gap: 16,
   },
   wisdomCard: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
     borderWidth: 2,
     borderColor: 'transparent',
     borderLeftWidth: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    ...Shadows.md,
   },
   selectedWisdomCard: {
     borderColor: '#8B5CF6',
@@ -279,16 +271,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   wisdomTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginBottom: 4,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.xs,
   },
   wisdomDescription: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    lineHeight: 20,
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.textSecondary,
+    lineHeight: Typography.lineHeight.tight,
   },
   selectedIndicator: {
     flexDirection: 'row',
@@ -296,29 +288,29 @@ const styles = StyleSheet.create({
     marginLeft: 64, // Align with text (icon width 48 + margin 16)
   },
   selectedText: {
-    fontSize: 12,
-    fontFamily: 'Inter-SemiBold',
-    marginLeft: 4,
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.semiBold,
+    marginLeft: Spacing.xs,
   },
   tipSection: {
-    backgroundColor: '#F3F4F6',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 32,
+    backgroundColor: Colors.gray100,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.lg,
+    marginBottom: Spacing.xl,
     borderLeftWidth: 4,
     borderLeftColor: '#8B5CF6',
   },
   tipTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginBottom: 8,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.sm,
   },
   tipText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    lineHeight: 20,
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.textSecondary,
+    lineHeight: Typography.lineHeight.tight,
   },
   buttonImage: {
     width: 24,
@@ -331,33 +323,25 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#FFF8F0',
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    paddingBottom: 40,
+    backgroundColor: Colors.background,
+    paddingHorizontal: Layout.screenPadding,
+    paddingVertical: Spacing.lg,
+    paddingBottom: Spacing.xl,
     borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 8,
+    borderTopColor: Colors.border,
+    ...Shadows.lg,
   },
   fixedSendButton: {
-    borderRadius: 16,
-    paddingVertical: 16,
+    borderRadius: BorderRadius.lg,
+    paddingVertical: Spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    ...Shadows.lg,
   },
   fixedSendButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: 'white',
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.white,
   },
 });

@@ -302,13 +302,11 @@ const styles = StyleSheet.create({
     marginRight: -Spacing.sm,
   },
   headerTitle: {
-    ...ComponentStyles.text.h1,
-    marginBottom: Spacing.sm,
+    ...ComponentStyles.modal.headerTitle,
   },
   headerSubtitle: {
-    ...ComponentStyles.text.body,
-    color: Colors.textSecondary,
-    lineHeight: Typography.lineHeight.relaxed,
+    ...ComponentStyles.modal.headerSubtitle,
+    marginRight: Spacing.md,
   },
   categorySelection: {
     flex: 1,

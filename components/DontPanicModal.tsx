@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { X, Phone, MessageSquare, Clock, CircleCheck as CheckCircle, Shell } from 'lucide-react-native';
 import { supabase } from '@/utils/supabase';
+import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
 
 const { width } = Dimensions.get('window');
 
@@ -93,7 +94,7 @@ export default function DontPanicModal({
         <ScrollView style={styles.contentWrapper} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
             <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-              <X color="#666" size={24} />
+              <X color={Colors.textSecondary} size={24} />
             </TouchableOpacity>
             <View style={styles.heroIcon}>
               <Image source={require('../assets/images/dont-panic.png')} style={styles.heroImage} />
@@ -194,24 +195,24 @@ export default function DontPanicModal({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF8F0',
+    backgroundColor: Colors.background,
   },
   contentWrapper: {
     flex: 1,
   },
   header: {
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: Layout.screenPadding,
     paddingTop: 72,
-    paddingBottom: 24,
+    paddingBottom: Spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: Colors.border,
   },
   closeButton: {
     position: 'absolute',
     top: 60,
-    right: 20,
-    padding: 8,
+    right: Layout.screenPadding,
+    padding: Spacing.sm,
   },
   heroIcon: {
     width: 64,
@@ -228,43 +229,36 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   heroTitle: {
-    fontSize: 24,
-    fontFamily: 'Inter-Bold',
-    color: '#333',
-    marginBottom: 8,
+    ...ComponentStyles.modal.headerTitle,
     textAlign: 'center',
   },
   heroSubtitle: {
-    fontSize: 15,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
+    ...ComponentStyles.modal.headerSubtitle,
     textAlign: 'center',
-    lineHeight: 22,
+    paddingHorizontal: Spacing.lg,
   },
   errorText: {
     textAlign: 'center',
-    color: 'red',
-    marginVertical: 20,
-    fontFamily: 'Inter-Regular',
+    color: Colors.error,
+    marginVertical: Spacing.lg,
+    fontFamily: Typography.fontFamily.regular,
   },
   content: {
-    paddingHorizontal: 20,
-    paddingTop: 24,
+    paddingHorizontal: Layout.screenPadding,
+    paddingTop: Spacing.lg,
   },
   triggerSection: {
     marginBottom: 32,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginBottom: 8,
+    ...ComponentStyles.text.h3,
+    marginBottom: Spacing.sm,
   },
   sectionSubtitle: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    marginBottom: 16,
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.md,
   },
   triggerGrid: {
     flexDirection: 'row',
@@ -272,16 +266,12 @@ const styles = StyleSheet.create({
   },
   triggerCard: {
     flex: 1,
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
-    marginHorizontal: 4,
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginHorizontal: Spacing.xs,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    ...Shadows.sm,
   },
   triggerIcon: {
     width: 40,
@@ -292,9 +282,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   triggerText: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    color: '#333',
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.textPrimary,
     textAlign: 'center',
   },
   optionsSection: {
@@ -304,21 +294,17 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   optionCard: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
     borderWidth: 2,
     borderColor: 'transparent',
     borderLeftWidth: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    ...Shadows.md,
   },
   selectedOptionCard: {
-    borderColor: '#6366F1',
-    backgroundColor: '#6366F1' + '1A',
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primary + '1A',
   },
   optionCardContent: {
     flexDirection: 'row',
@@ -340,16 +326,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   optionTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginBottom: 4,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.xs,
   },
   optionMessage: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    lineHeight: 20,
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.textSecondary,
+    lineHeight: Typography.lineHeight.tight,
     fontStyle: 'italic',
   },
   selectedIndicator: {
@@ -358,63 +344,55 @@ const styles = StyleSheet.create({
     marginLeft: 64, // Align with text
   },
   selectedText: {
-    fontSize: 12,
-    fontFamily: 'Inter-SemiBold',
-    marginLeft: 4,
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.semiBold,
+    marginLeft: Spacing.xs,
   },
   tipSection: {
-    backgroundColor: '#F0F9FF',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 32,
+    backgroundColor: Colors.info + '10',
+    borderRadius: BorderRadius.md,
+    padding: Spacing.lg,
+    marginBottom: Spacing.xl,
     borderLeftWidth: 4,
-    borderLeftColor: '#6366F1',
+    borderLeftColor: Colors.info,
   },
   tipTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginBottom: 8,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.sm,
   },
   tipText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    lineHeight: 20,
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.textSecondary,
+    lineHeight: Typography.lineHeight.tight,
   },
   fixedSendButtonContainer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#FFF8F0',
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    paddingBottom: 40,
+    backgroundColor: Colors.background,
+    paddingHorizontal: Layout.screenPadding,
+    paddingVertical: Spacing.lg,
+    paddingBottom: Spacing.xl,
     borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 8,
+    borderTopColor: Colors.border,
+    ...Shadows.lg,
   },
   fixedSendButton: {
-    borderRadius: 16,
-    paddingVertical: 16,
+    borderRadius: BorderRadius.lg,
+    paddingVertical: Spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    ...Shadows.lg,
   },
   fixedSendButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: 'white',
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.white,
   },
   buttonImage: {
     width: 24,

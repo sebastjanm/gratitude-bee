@@ -22,8 +22,20 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:kirillzyusko.github.io)",
       "Bash(npm run lint)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(grep:*)",
+      "WebFetch(domain:reactnative.dev)",
+      "Bash(ls:*)",
+      "Bash(find:*)"
     ],
     "deny": []
+  },
+  "commitMessages": {
+    "excludeAttribution": true,
+    "rules": [
+      "Do not add '🤖 Generated with [Claude Code](https://claude.ai/code)' to commit messages",
+      "Do not add 'Co-Authored-By: Claude <noreply@anthropic.com>' to commit messages",
+      "Keep commit messages clean and professional without attribution lines"
+    ]
   }
 }

@@ -5,6 +5,7 @@ import React from 'react';
 import { View, Text, Modal, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { supabase } from '@/utils/supabase';
 import { useSession } from '@/providers/SessionProvider';
+import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
 
 interface ReactionModalProps {
   isVisible: boolean;
@@ -54,7 +55,7 @@ const ReactionModal: React.FC<ReactionModalProps> = ({ isVisible, onClose, event
         <View style={styles.modalView}>
           <Text style={styles.modalText}>React to this message</Text>
           {loading ? (
-            <ActivityIndicator size="large" color="#FF8C42" />
+            <ActivityIndicator size="large" color={Colors.primary} />
           ) : (
             <View style={styles.reactionsContainer}>
               {Object.entries(reactionOptions).map(([key, emoji]) => (
@@ -85,25 +86,19 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   modalView: {
-    margin: 20,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 35,
+    margin: Spacing.lg,
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.xl,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+    ...Shadows.lg,
   },
   modalText: {
-    marginBottom: 15,
+    marginBottom: Spacing.md,
     textAlign: 'center',
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
+    fontSize: Typography.fontSize.lg,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.textPrimary,
   },
   reactionsContainer: {
     flexDirection: 'row',
@@ -111,22 +106,24 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   reactionButton: {
-    margin: 10,
-    padding: 10,
+    margin: Spacing.md,
+    padding: Spacing.md,
   },
   reactionEmoji: {
     fontSize: 30,
   },
   closeButton: {
-    marginTop: 20,
-    backgroundColor: '#FF8C42',
-    borderRadius: 20,
-    padding: 10,
-    elevation: 2,
+    marginTop: Spacing.lg,
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.xl,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    ...Shadows.sm,
   },
   closeButtonText: {
-    color: 'white',
-    fontFamily: 'Inter-Bold',
+    color: Colors.white,
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.base,
     textAlign: 'center',
   },
 });

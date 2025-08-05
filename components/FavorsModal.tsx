@@ -365,8 +365,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     paddingHorizontal: Layout.screenPadding,
-    paddingTop: 60, // Keep fixed for modal
-    paddingBottom: Spacing.xl,
+    paddingTop: 50, // Reduced for more space
+    paddingBottom: Spacing.md,
   },
   headerContent: {
     flex: 1,
@@ -377,20 +377,14 @@ const styles = StyleSheet.create({
     marginRight: -Spacing.sm, // Align icon better with edge
   },
   headerTitle: {
-    fontSize: Typography.fontSize['2xl'],
-    fontFamily: Typography.fontFamily.bold,
-    color: Colors.textPrimary,
-    marginBottom: Spacing.sm,
+    ...ComponentStyles.modal.headerTitle,
   },
   headerSubtitle: {
-    fontSize: Typography.fontSize.base,
-    fontFamily: Typography.fontFamily.regular,
-    color: Colors.textSecondary,
-    lineHeight: Typography.lineHeight.relaxed,
+    ...ComponentStyles.modal.headerSubtitle,
     marginRight: Spacing.md,
   },
   categoryFilterContainer: {
-    paddingBottom: Spacing.lg,
+    paddingBottom: Spacing.md,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
     borderBottomWidth: 1,
@@ -398,7 +392,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   categoryFilter: {
-    paddingTop: Spacing.lg,
+    paddingTop: Spacing.md,
   },
   categoryFilterContent: {
     paddingHorizontal: Layout.screenPadding,
@@ -509,8 +503,8 @@ const styles = StyleSheet.create({
   favorCard: {
     backgroundColor: Colors.backgroundElevated,
     borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    marginBottom: Spacing.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
     borderWidth: 2,
     borderColor: 'transparent',
     shadowColor: Colors.black,
@@ -547,7 +541,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   favorTitle: {
-    fontSize: Typography.fontSize.base,
+    fontSize: Typography.fontSize.lg,
     fontFamily: Typography.fontFamily.semiBold,
     color: Colors.textPrimary,
     marginBottom: Spacing.xs,
@@ -556,7 +550,7 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.sm,
     fontFamily: Typography.fontFamily.regular,
     color: Colors.textSecondary,
-    lineHeight: Typography.lineHeight.relaxed,
+    lineHeight: Typography.lineHeight.tight,
     marginTop: 2,
   },
   favorPoints: {
@@ -595,7 +589,7 @@ const styles = StyleSheet.create({
   },
   messageSection: {
     paddingHorizontal: Layout.screenPadding,
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.sm,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
   },
@@ -603,7 +597,7 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.sm,
     fontFamily: Typography.fontFamily.medium,
     color: Colors.textPrimary,
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.xs,
   },
   messageInput: {
     backgroundColor: Colors.backgroundElevated,

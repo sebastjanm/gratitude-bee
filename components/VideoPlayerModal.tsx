@@ -7,6 +7,7 @@ import { View, Text, StyleSheet, Modal, TouchableOpacity, Dimensions } from 'rea
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X } from 'lucide-react-native';
 import { VideoView, useVideoPlayer } from 'expo-video';
+import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
 
 const { width } = Dimensions.get('window');
 
@@ -56,7 +57,7 @@ export default function VideoPlayerModal({ video, visible, onClose }: VideoPlaye
         <View style={styles.header}>
           <Text style={styles.headerTitle} numberOfLines={1}>{video.title}</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <X color="#333" size={28} />
+            <X color={Colors.textPrimary} size={28} />
           </TouchableOpacity>
         </View>
 
@@ -76,50 +77,48 @@ export default function VideoPlayerModal({ video, visible, onClose }: VideoPlaye
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF8F0',
+    backgroundColor: Colors.background,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: Layout.screenPadding,
+    paddingVertical: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-    backgroundColor: 'white',
+    borderBottomColor: Colors.border,
+    backgroundColor: Colors.backgroundElevated,
   },
   headerTitle: {
     flex: 1,
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginRight: 16,
+    fontSize: Typography.fontSize.lg,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.textPrimary,
+    marginRight: Spacing.md,
   },
   closeButton: {
-    padding: 8,
+    padding: Spacing.sm,
   },
   videoContainer: {
     width: width,
     height: width * (9 / 16), // 16:9 aspect ratio
-    backgroundColor: '#000',
+    backgroundColor: Colors.black,
   },
   videoPlayer: {
     flex: 1,
   },
   infoContainer: {
-    padding: 20,
+    padding: Layout.screenPadding,
     flex: 1,
   },
   videoTitle: {
-    fontSize: 22,
-    fontFamily: 'Inter-Bold',
-    color: '#333',
-    marginBottom: 12,
+    ...ComponentStyles.modal.headerTitle,
+    marginBottom: Spacing.md,
   },
   videoDescription: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    lineHeight: 24,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.textSecondary,
+    lineHeight: Typography.lineHeight.normal,
   },
 }); 
