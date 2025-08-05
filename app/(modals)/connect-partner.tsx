@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,13 +8,31 @@ import {
   Alert,
   SafeAreaView,
   ActivityIndicator,
+  ScrollView,
+  Share,
+  Platform,
+  Image,
+  Animated,
 } from 'react-native';
 import { router } from 'expo-router';
-import { Heart, QrCode, Users, CircleCheck as CheckCircle, ArrowRight, X } from 'lucide-react-native';
+import { 
+  Heart, 
+  QrCode, 
+  Users, 
+  CheckCircle2, 
+  ArrowRight, 
+  X,
+  Copy,
+  Share2,
+  Link2,
+  Sparkles,
+  User
+} from 'lucide-react-native';
 import { supabase } from '@/utils/supabase';
 import { useSession } from '@/providers/SessionProvider';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCodeModal from '@/components/QRCodeModal';
+import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
+import * as Clipboard from 'expo-clipboard';
 
 export default function ConnectPartnerModal() {
   const { session } = useSession();
@@ -25,14 +43,39 @@ export default function ConnectPartnerModal() {
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [partnerName, setPartnerName] = useState('');
   const [isQRModalVisible, setQRModalVisible] = useState(false);
+  const [checkingConnection, setCheckingConnection] = useState(true);
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const [partnerAvatar, setPartnerAvatar] = useState<string | null>(null);
+  const [userName, setUserName] = useState('');
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    // Start pulse animation for the heart
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.3,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
 
   useEffect(() => {
     const fetchProfile = async () => {
       if (session) {
         setLoadingProfile(true);
+        setCheckingConnection(true);
+        
         const { data, error } = await supabase
           .from('users')
-          .select('invite_code, partner_id')
+          .select('invite_code, partner_id, display_name, avatar_url')
           .eq('id', session.user.id)
           .single();
 
@@ -40,25 +83,46 @@ export default function ConnectPartnerModal() {
           Alert.alert('Error', 'Could not fetch your profile.');
         } else if (data) {
           setInviteCode(data.invite_code);
+          setUserName(data.display_name || session.user.user_metadata.display_name || 'You');
+          setUserAvatar(data.avatar_url);
+          
           if (data.partner_id) {
             const { data: partnerData } = await supabase
               .from('users')
-              .select('display_name')
+              .select('display_name, avatar_url')
               .eq('id', data.partner_id)
               .single();
             if (partnerData) {
               setPartnerName(partnerData.display_name);
+              setPartnerAvatar(partnerData.avatar_url);
               setIsConnected(true);
             }
           }
         }
       }
       setLoadingProfile(false);
+      setCheckingConnection(false);
     };
     fetchProfile();
   }, [session]);
 
   const inviteLink = `https://gratitudebee.app/invite/${inviteCode}`;
+
+  const handleCopyCode = async () => {
+    await Clipboard.setStringAsync(inviteCode);
+    Alert.alert('Copied!', 'Invite code copied to clipboard');
+  };
+
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        message: `Join me on Gratitude Bee! Use my invite code: ${inviteCode}\n\nOr click this link: ${inviteLink}`,
+        title: 'Join me on Gratitude Bee',
+      });
+    } catch (error) {
+      Alert.alert('Error', 'Unable to share');
+    }
+  };
 
   const handleConnectWithCode = async (codeToConnect?: string) => {
     const finalCode = codeToConnect || partnerCode;
@@ -103,81 +167,165 @@ export default function ConnectPartnerModal() {
     router.back();
   };
 
+  // Show loading state while checking connection
+  if (checkingConnection) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+            <X color={Colors.textSecondary} size={24} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Connect with Partner</Text>
+          <View style={styles.headerRight} />
+        </View>
+        
+        <View style={styles.loadingContainer}>
+          <View style={styles.loadingIcon}>
+            <Users color={Colors.primary} size={40} />
+          </View>
+          <ActivityIndicator size="large" color={Colors.primary} style={styles.loadingSpinner} />
+          <Text style={styles.loadingText}>Checking connection status...</Text>
+          <Text style={styles.loadingSubtext}>Please wait a moment</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   if (isConnected) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.content}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.successContainer}>
-            <View style={styles.successIcon}>
-              <CheckCircle color="#4ECDC4" size={48} />
+            <View style={styles.successIconWrapper}>
+              <View style={styles.successIcon}>
+                <CheckCircle2 color={Colors.success} size={64} />
+              </View>
+              <View style={styles.sparkle1}>
+                <Sparkles color={Colors.warning} size={16} />
+              </View>
+              <View style={styles.sparkle2}>
+                <Sparkles color={Colors.primary} size={20} />
+              </View>
+              <View style={styles.sparkle3}>
+                <Sparkles color={Colors.info} size={14} />
+              </View>
             </View>
-            <Text style={styles.successTitle}>Already Connected!</Text>
+            
+            <Text style={styles.successTitle}>Connected!</Text>
             <Text style={styles.successSubtitle}>
-              You and {partnerName} are linked together
+              You're sharing appreciation with {partnerName}
             </Text>
-            <View style={styles.partnerInfo}>
-              <Users color="#4ECDC4" size={24} />
-              <Text style={styles.partnerText}>{session?.user.user_metadata.display_name} & {partnerName}</Text>
+            
+            <View style={styles.avatarsContainer}>
+              <View style={styles.avatarWrapper}>
+                {userAvatar ? (
+                  <Image source={{ uri: userAvatar }} style={styles.connectedAvatar} />
+                ) : (
+                  <View style={[styles.connectedAvatar, styles.avatarPlaceholder]}>
+                    <User color={Colors.textSecondary} size={32} />
+                  </View>
+                )}
+                <Text style={styles.avatarName}>{userName}</Text>
+              </View>
+              
+              <Animated.View style={[styles.heartConnector, { transform: [{ scale: pulseAnim }] }]}>
+                <Heart color={Colors.primary} size={24} fill={Colors.primary} />
+              </Animated.View>
+              
+              <View style={styles.avatarWrapper}>
+                {partnerAvatar ? (
+                  <Image source={{ uri: partnerAvatar }} style={styles.connectedAvatar} />
+                ) : (
+                  <View style={[styles.connectedAvatar, styles.avatarPlaceholder]}>
+                    <User color={Colors.textSecondary} size={32} />
+                  </View>
+                )}
+                <Text style={styles.avatarName}>{partnerName}</Text>
+              </View>
             </View>
-            <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
-              <Text style={styles.closeButtonText}>Close</Text>
+            
+            <TouchableOpacity style={styles.doneButton} onPress={handleClose}>
+              <Text style={styles.doneButtonText}>Done</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </ScrollView>
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <QRCodeModal
-          visible={isQRModalVisible}
-          onClose={() => setQRModalVisible(false)}
-          inviteCode={inviteCode}
-          inviteLink={inviteLink}
-        />
-        
-        <View style={styles.header}>
-          <View style={styles.headerTop}>
-            <View style={styles.headerLeft} />
-            <Text style={styles.headerTitle}>Connect Partner</Text>
-            <TouchableOpacity onPress={handleClose} style={styles.headerClose}>
-              <X color="#666" size={24} />
-            </TouchableOpacity>
+      <QRCodeModal
+        visible={isQRModalVisible}
+        onClose={() => setQRModalVisible(false)}
+        inviteCode={inviteCode}
+        inviteLink={inviteLink}
+      />
+      
+      <View style={styles.header}>
+        <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+          <X color={Colors.textSecondary} size={24} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Connect with Partner</Text>
+        <View style={styles.headerRight} />
+      </View>
+
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.heroSection}>
+          <View style={styles.heroIcon}>
+            <Heart color={Colors.primary} size={40} />
           </View>
-          <Text style={styles.subtitle}>
-            Share appreciation badges with your partner
+          <Text style={styles.heroTitle}>Share the Love</Text>
+          <Text style={styles.heroSubtitle}>
+            Connect with your partner to start sending appreciation badges and building your relationship
           </Text>
         </View>
         
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Your Invite Code</Text>
-          <Text style={styles.sectionSubtitle}>
-            Share this code with your partner
-          </Text>
-
-          <View style={styles.codeDisplay}>
-            <Text style={styles.codeText}>{loadingProfile ? 'Loading...' : inviteCode}</Text>
+          <View style={styles.sectionHeader}>
+            <Link2 color={Colors.primary} size={20} />
+            <Text style={styles.sectionTitle}>Your Invite Code</Text>
+          </View>
+          
+          <View style={styles.codeCard}>
+            {loadingProfile ? (
+              <ActivityIndicator size="large" color={Colors.primary} />
+            ) : (
+              <>
+                <Text style={styles.codeText}>{inviteCode}</Text>
+                <Text style={styles.codeHint}>Share this code with your partner</Text>
+              </>
+            )}
           </View>
 
-          <TouchableOpacity 
-            style={[styles.qrButton, loadingProfile && styles.qrButtonDisabled]} 
-            onPress={() => {
-              if (!inviteCode) {
-                Alert.alert('Loading', 'Please wait while we load your invite code...');
-                return;
-              }
-              setQRModalVisible(true);
-            }}
-            disabled={loadingProfile}>
-            {loadingProfile ? (
-              <ActivityIndicator size="small" color="#FF8C42" />
-            ) : (
-              <QrCode color="#FF8C42" size={24} />
-            )}
-            <Text style={styles.qrButtonText}>{loadingProfile ? 'Loading...' : 'Show QR Code'}</Text>
-          </TouchableOpacity>
+          <View style={styles.actionButtons}>
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.copyButton]} 
+              onPress={handleCopyCode}
+              disabled={loadingProfile}
+            >
+              <Copy color={Colors.primary} size={20} />
+              <Text style={styles.copyButtonText}>Copy</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.shareButton]} 
+              onPress={handleShare}
+              disabled={loadingProfile}
+            >
+              <Share2 color={Colors.white} size={20} />
+              <Text style={styles.shareButtonText}>Share</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.qrButton]} 
+              onPress={() => setQRModalVisible(true)}
+              disabled={loadingProfile}
+            >
+              <QrCode color={Colors.warning} size={20} />
+              <Text style={styles.qrButtonText}>QR</Text>
+            </TouchableOpacity>
+          </View>
         </View>
         
         <View style={styles.divider}>
@@ -187,30 +335,39 @@ export default function ConnectPartnerModal() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Enter Partner's Code</Text>
-          
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter invite code"
-              value={partnerCode}
-              onChangeText={setPartnerCode}
-              autoCapitalize="characters"
-              autoCorrect={false}
-            />
+          <View style={styles.sectionHeader}>
+            <Users color={Colors.info} size={20} />
+            <Text style={styles.sectionTitle}>Enter Partner's Code</Text>
           </View>
+          
+          <TextInput
+            style={styles.input}
+            placeholder="Enter invite code"
+            placeholderTextColor={Colors.textTertiary}
+            value={partnerCode}
+            onChangeText={setPartnerCode}
+            autoCapitalize="characters"
+            autoCorrect={false}
+          />
           
           <TouchableOpacity
             style={[styles.connectButton, loading && styles.disabledButton]}
             onPress={() => handleConnectWithCode()}
-            disabled={loading}>
-            <Text style={styles.connectButtonText}>
-              {loading ? 'Connecting...' : 'Connect'}
-            </Text>
-            <ArrowRight color="white" size={20} />
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator size="small" color={Colors.white} />
+            ) : (
+              <>
+                <Text style={styles.connectButtonText}>Connect Now</Text>
+                <ArrowRight color={Colors.white} size={20} />
+              </>
+            )}
           </TouchableOpacity>
         </View>
-      </View>
+
+        <View style={styles.bottomSpacing} />
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -218,220 +375,317 @@ export default function ConnectPartnerModal() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF8F0',
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: 40,
+    backgroundColor: Colors.background,
   },
   header: {
-    marginBottom: 32,
-  },
-  headerTop: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    paddingHorizontal: Layout.screenPadding,
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
   },
-  headerLeft: {
-    width: 40,
+  closeButton: {
+    padding: Spacing.sm,
+    margin: -Spacing.sm,
   },
   headerTitle: {
-    fontSize: 20,
-    fontFamily: 'Inter-Bold',
-    color: '#333',
+    ...ComponentStyles.text.h2,
+    flex: 1,
     textAlign: 'center',
+  },
+  headerRight: {
+    width: 40,
+  },
+  content: {
     flex: 1,
   },
-  headerClose: {
-    width: 40,
-    alignItems: 'flex-end',
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    padding: Layout.screenPadding,
   },
-  subtitle: {
-    fontSize: 15,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
+  
+  // Hero Section
+  heroSection: {
+    alignItems: 'center',
+    paddingTop: Spacing.xl,
+    paddingBottom: Spacing.xl,
+  },
+  heroIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: Colors.primary + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing.lg,
+  },
+  heroTitle: {
+    ...ComponentStyles.text.h1,
+    marginBottom: Spacing.sm,
+  },
+  heroSubtitle: {
+    ...ComponentStyles.text.body,
+    color: Colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 22,
+    paddingHorizontal: Spacing.xl,
+    lineHeight: Typography.fontSize.base * 1.5,
   },
+  
+  // Sections
   section: {
-    marginBottom: 32,
+    marginBottom: Spacing.xl,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+    paddingHorizontal: Layout.screenPadding,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginBottom: 8,
+    ...ComponentStyles.text.h3,
+    marginLeft: Spacing.sm,
   },
-  sectionSubtitle: {
-    fontSize: 15,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    marginBottom: 20,
-    lineHeight: 22,
-  },
-  codeDisplay: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    paddingVertical: 20,
-    paddingHorizontal: 24,
+  
+  // Code Card
+  codeCard: {
+    backgroundColor: Colors.backgroundElevated,
+    marginHorizontal: Layout.screenPadding,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.xl,
     alignItems: 'center',
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    ...Shadows.md,
+    borderWidth: 2,
+    borderColor: Colors.primary + '30',
+    minHeight: 100,
+    justifyContent: 'center',
   },
   codeText: {
-    fontSize: 24,
-    fontFamily: 'Inter-Bold',
-    color: '#FF8C42',
-    letterSpacing: 2,
+    fontSize: Typography.fontSize.xl,
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.primary,
+    letterSpacing: 4,
+    marginBottom: Spacing.sm,
   },
-  qrButton: {
+  codeHint: {
+    ...ComponentStyles.text.caption,
+    color: Colors.textSecondary,
+  },
+  
+  // Action Buttons
+  actionButtons: {
+    flexDirection: 'row',
+    marginTop: Spacing.md,
+    paddingHorizontal: Layout.screenPadding,
+    gap: Spacing.sm,
+  },
+  actionButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'white',
-    borderRadius: 16,
-    paddingVertical: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    gap: Spacing.xs,
+    ...Shadows.sm,
   },
-  qrButtonDisabled: {
-    opacity: 0.6,
+  copyButton: {
+    backgroundColor: Colors.backgroundElevated,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+  },
+  copyButtonText: {
+    ...ComponentStyles.text.button,
+    color: Colors.primary,
+  },
+  shareButton: {
+    backgroundColor: Colors.primary,
+  },
+  shareButtonText: {
+    ...ComponentStyles.text.button,
+    color: Colors.white,
+  },
+  qrButton: {
+    backgroundColor: Colors.backgroundElevated,
+    borderWidth: 2,
+    borderColor: Colors.warning,
   },
   qrButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#666',
-    marginLeft: 8,
+    ...ComponentStyles.text.button,
+    color: Colors.warning,
   },
+  
+  // Divider
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 24,
+    marginVertical: Spacing.xl,
+    paddingHorizontal: Layout.screenPadding,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: Colors.border,
   },
   dividerText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#999',
-    marginHorizontal: 16,
+    ...ComponentStyles.text.caption,
+    color: Colors.textTertiary,
+    marginHorizontal: Spacing.md,
   },
-  inputContainer: {
-    marginBottom: 20,
-  },
+  
+  // Input
   input: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#333',
+    backgroundColor: Colors.backgroundElevated,
+    marginHorizontal: Layout.screenPadding,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.textPrimary,
     textAlign: 'center',
-    letterSpacing: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    letterSpacing: 2,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    ...Shadows.sm,
   },
+  
+  // Connect Button
   connectButton: {
-    backgroundColor: '#FF8C42',
-    borderRadius: 16,
-    paddingVertical: 16,
+    backgroundColor: Colors.info,
+    marginHorizontal: Layout.screenPadding,
+    marginTop: Spacing.md,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#FF8C42',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    gap: Spacing.sm,
+    ...Shadows.md,
   },
   disabledButton: {
-    backgroundColor: '#CCC',
+    backgroundColor: Colors.gray400,
     shadowOpacity: 0,
-    elevation: 0,
   },
   connectButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: 'white',
-    marginRight: 8,
+    ...ComponentStyles.text.button,
+    color: Colors.white,
   },
+  
+  // Success State
   successContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: Layout.screenPadding,
+  },
+  successIconWrapper: {
+    position: 'relative',
+    marginBottom: Spacing.xl,
   },
   successIcon: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: Colors.success + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sparkle1: {
+    position: 'absolute',
+    top: -10,
+    right: 10,
+  },
+  sparkle2: {
+    position: 'absolute',
+    bottom: 0,
+    left: -10,
+  },
+  sparkle3: {
+    position: 'absolute',
+    top: 20,
+    left: 0,
+  },
+  successTitle: {
+    ...ComponentStyles.text.h1,
+    marginBottom: Spacing.sm,
+  },
+  successSubtitle: {
+    ...ComponentStyles.text.body,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.xl,
+  },
+  avatarsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
+  },
+  avatarWrapper: {
+    alignItems: 'center',
+  },
+  connectedAvatar: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'white',
+    marginBottom: Spacing.sm,
+  },
+  avatarPlaceholder: {
+    backgroundColor: Colors.gray200,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 24,
-    shadowColor: '#4ECDC4',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
   },
-  successTitle: {
-    fontSize: 28,
-    fontFamily: 'Inter-Bold',
-    color: '#333',
-    marginBottom: 8,
+  avatarName: {
+    ...ComponentStyles.text.body,
+    fontFamily: Typography.fontFamily.medium,
   },
-  successSubtitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    textAlign: 'center',
-    marginBottom: 32,
-    lineHeight: 22,
+  heartConnector: {
+    marginHorizontal: Spacing.lg,
+    marginBottom: 24, // Align with avatar bottom
   },
-  partnerInfo: {
-    flexDirection: 'row',
+  doneButton: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: Spacing.xl * 2,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    ...Shadows.sm,
+  },
+  doneButtonText: {
+    ...ComponentStyles.text.button,
+    color: Colors.white,
+  },
+  bottomSpacing: {
+    height: Spacing.xl,
+  },
+  
+  // Loading State
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'white',
-    borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    paddingHorizontal: Layout.screenPadding,
   },
-  partnerText: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#333',
-    marginLeft: 12,
+  loadingIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: Colors.primary + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing.lg,
   },
-  closeButton: {
-    marginTop: 32,
-    paddingVertical: 12,
-    paddingHorizontal: 32,
+  loadingSpinner: {
+    marginBottom: Spacing.lg,
   },
-  closeButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#FF8C42',
+  loadingText: {
+    ...ComponentStyles.text.h3,
+    marginBottom: Spacing.xs,
+  },
+  loadingSubtext: {
+    ...ComponentStyles.text.body,
+    color: Colors.textSecondary,
   },
 });
