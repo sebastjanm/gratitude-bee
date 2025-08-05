@@ -27,7 +27,10 @@
       "WebFetch(domain:reactnative.dev)",
       "Bash(ls:*)",
       "Bash(find:*)",
-      "Bash(kill:*)"
+      "Bash(kill:*)",
+      "Bash(git tag:*)",
+      "Bash(git push:*)",
+      "Bash(git rm:*)"
     ],
     "deny": []
   },
