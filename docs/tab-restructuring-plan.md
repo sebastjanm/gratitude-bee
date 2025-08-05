@@ -237,6 +237,171 @@ const tabConfig = USE_NEW_TAB_STRUCTURE ? newTabs : oldTabs;
 - No changes to existing tables
 - All changes are additive
 
+## Phase 7: Menu/Settings Restructure
+
+### 7.1 Overview
+Replace Profile tab with a better organized Menu/Settings tab using a settings icon (⚙️).
+
+### 7.2 Visual Mockup
+```
+┌─────────────────────────────────┐
+│ Menu                        🔍   │ ← Search icon
+├─────────────────────────────────┤
+│ ┌─────────────────────────────┐ │
+│ │ 👤 John Doe                 │ │ ← Quick profile card
+│ │ Connected to: Jane          │ │
+│ │ 🔥 15 day streak           │ │
+│ └─────────────────────────────┘ │
+├─────────────────────────────────┤
+│ 👤 Account & Profile         >  │
+├─────────────────────────────────┤
+│ 📊 Analytics & Progress      >  │
+├─────────────────────────────────┤
+│ 🔔 Notifications & Reminders >  │
+├─────────────────────────────────┤
+│ 🎯 Goals & Preferences       >  │
+├─────────────────────────────────┤
+│ 🛠️ Tools & Features          >  │
+├─────────────────────────────────┤
+│ ❓ Help & Support            >  │
+├─────────────────────────────────┤
+│ ℹ️ About & Legal             >  │
+└─────────────────────────────────┘
+
+Bottom Tab Bar:
+[🏠 Home] [💬 Chat] [🏆 Rewards] [📊 Activity] [⚙️ Menu]
+```
+
+### 7.3 Detailed Structure
+```
+Menu/Settings Screen
+├── Quick Access Bar (Horizontal scroll)
+│   ├── My Profile (avatar + name)
+│   ├── Partner Status
+│   └── Quick Stats
+│
+├── Main Sections (Vertical list)
+│   ├── Account & Profile
+│   │   ├── Edit Profile
+│   │   ├── Avatar & Display Name
+│   │   ├── Partner Connection
+│   │   └── Security Settings
+│   │
+│   ├── Analytics & Progress
+│   │   ├── Relationship Analytics (expandable)
+│   │   ├── Activity Insights
+│   │   ├── Achievement Progress
+│   │   └── Export Reports
+│   │
+│   ├── Notifications & Reminders
+│   │   ├── Push Notifications
+│   │   ├── Daily Reminders
+│   │   ├── Nudge Settings
+│   │   └── Quiet Hours
+│   │
+│   ├── Goals & Preferences
+│   │   ├── Weekly Goals
+│   │   ├── Favorite Categories
+│   │   ├── Display Preferences
+│   │   └── Language Settings
+│   │
+│   ├── Tools & Features
+│   │   ├── Invite Partner
+│   │   ├── Export Memory Book
+│   │   ├── Share Achievements
+│   │   └── Backup Data
+│   │
+│   ├── Help & Support
+│   │   ├── FAQ & Tutorials
+│   │   ├── Video Guides
+│   │   ├── Contact Support
+│   │   └── Report Issue
+│   │
+│   └── About & Legal
+│       ├── Terms of Service
+│       ├── Privacy Policy
+│       ├── Impressum
+│       ├── Licenses
+│       └── Version Info
+```
+
+### 7.4 Benefits
+- Better organization of features
+- Room for growth
+- Clearer navigation
+- Search functionality
+- Consistent with modern app patterns
+- Improved discoverability
+- Scalable architecture
+
+### 7.5 Implementation Steps
+
+1. **Update Tab Navigation**
+   ```typescript
+   // app/(tabs)/_layout.tsx
+   import { Settings } from 'lucide-react-native';
+   
+   <Tabs.Screen
+     name="menu"
+     options={{
+       title: 'Menu',
+       tabBarIcon: ({ color, size, focused }) => (
+         <AnimatedIcon icon={Settings} color={color} size={size} focused={focused} />
+       ),
+     }}
+   />
+   ```
+
+2. **Create Menu Screen**
+   ```typescript
+   // app/(tabs)/menu.tsx
+   const menuSections = [
+     {
+       id: 'account',
+       title: 'Account & Profile',
+       icon: User,
+       color: Colors.primary,
+       items: [
+         { title: 'Edit Profile', route: '/menu/profile' },
+         { title: 'Partner Connection', route: '/menu/partner' },
+         { title: 'Security', route: '/menu/security' },
+       ]
+     },
+     // ... other sections
+   ];
+   ```
+
+3. **Design Principles**
+   - Card-based layout with shadows
+   - Each section has icon, title, and chevron
+   - Tap to navigate to sub-screens
+   - Consistent spacing and typography
+   - Search bar with filter functionality
+
+4. **Migration Path**
+   - Rename profile.tsx to menu.tsx
+   - Update all navigation references
+   - Create sub-screens for each section
+   - Move existing profile components to appropriate sub-screens
+   - Add search functionality
+
+### 7.6 Alternative Approaches Considered
+
+1. **Three-Dot Menu (●●●) in Header**
+   - Pros: More space in tab bar
+   - Cons: Less discoverable
+
+2. **Hamburger Menu (☰) Pattern**
+   - Pros: Familiar pattern
+   - Cons: Outdated, poor discoverability
+
+3. **Keep Profile + Add Settings**
+   - Pros: Separation of concerns
+   - Cons: Two similar tabs
+
+### 7.7 Technical Implementation Details
+See comprehensive plan in `/docs/menu-restructure-plan.md`
+
 ## Technical Considerations
 
 ### Performance
