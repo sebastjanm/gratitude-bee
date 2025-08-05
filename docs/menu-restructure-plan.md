@@ -16,10 +16,9 @@ Transform the Profile tab into a Settings/Menu tab with better organization and 
 
 ```
 Settings/Menu Screen
-├── Quick Access Bar (Horizontal scroll)
-│   ├── My Profile (avatar + name)
-│   ├── Partner Status
-│   └── Quick Stats
+├── Quick Profile Card
+│   ├── Avatar + Display Name
+│   └── Partner Connection Status
 │
 ├── Main Sections (Vertical list)
 │   ├── Account & Profile

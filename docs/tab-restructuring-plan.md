@@ -240,17 +240,16 @@ const tabConfig = USE_NEW_TAB_STRUCTURE ? newTabs : oldTabs;
 ## Phase 7: Menu/Settings Restructure
 
 ### 7.1 Overview
-Replace Profile tab with a better organized Menu/Settings tab using a settings icon (⚙️).
+Replace Profile tab with a "More" tab using a hamburger menu icon (☰).
 
 ### 7.2 Visual Mockup
 ```
 ┌─────────────────────────────────┐
-│ Menu                        🔍   │ ← Search icon
+│ More                        🔍   │ ← Search icon
 ├─────────────────────────────────┤
 │ ┌─────────────────────────────┐ │
 │ │ 👤 John Doe                 │ │ ← Quick profile card
-│ │ Connected to: Jane          │ │
-│ │ 🔥 15 day streak           │ │
+│ │ Connected to: Jane ❤️       │ │
 │ └─────────────────────────────┘ │
 ├─────────────────────────────────┤
 │ 👤 Account & Profile         >  │
@@ -269,16 +268,15 @@ Replace Profile tab with a better organized Menu/Settings tab using a settings i
 └─────────────────────────────────┘
 
 Bottom Tab Bar:
-[🏠 Home] [💬 Chat] [🏆 Rewards] [📊 Activity] [⚙️ Menu]
+[🏠 Home] [💬 Chat] [🏆 Rewards] [📊 Activity] [☰ More]
 ```
 
 ### 7.3 Detailed Structure
 ```
 Menu/Settings Screen
-├── Quick Access Bar (Horizontal scroll)
-│   ├── My Profile (avatar + name)
-│   ├── Partner Status
-│   └── Quick Stats
+├── Quick Profile Card
+│   ├── Avatar + Display Name
+│   └── Partner Connection Status
 │
 ├── Main Sections (Vertical list)
 │   ├── Account & Profile
@@ -339,14 +337,14 @@ Menu/Settings Screen
 1. **Update Tab Navigation**
    ```typescript
    // app/(tabs)/_layout.tsx
-   import { Settings } from 'lucide-react-native';
+   import { Menu } from 'lucide-react-native';
    
    <Tabs.Screen
-     name="menu"
+     name="more"
      options={{
-       title: 'Menu',
+       title: 'More',
        tabBarIcon: ({ color, size, focused }) => (
-         <AnimatedIcon icon={Settings} color={color} size={size} focused={focused} />
+         <AnimatedIcon icon={Menu} color={color} size={size} focused={focused} />
        ),
      }}
    />

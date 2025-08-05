@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Tabs } from 'expo-router';
-import { Home, BarChart2, Award, Trophy, Activity, User, MessageCircle } from 'lucide-react-native';
+import { Home, BarChart2, Award, Trophy, Activity, User, MessageCircle, Menu } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Animated, Easing, Platform } from 'react-native';
 import { NotificationProvider } from '@/providers/NotificationProvider';
@@ -107,12 +107,18 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name="more"
+          options={{
+            title: 'More',
+            tabBarIcon: ({ color, size, focused }) => (
+              <AnimatedIcon icon={Menu} color={color} size={size} focused={focused} />
+            ),
+          }}
+        />
+        <Tabs.Screen
           name="profile"
           options={{
-            title: 'Profile',
-            tabBarIcon: ({ color, size, focused }) => (
-              <AnimatedIcon icon={User} color={color} size={size} focused={focused} />
-            ),
+            href: null, // Hide from tab bar - redirects to more
           }}
         />
       </Tabs>
