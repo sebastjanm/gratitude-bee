@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Tabs } from 'expo-router';
-import { Home, BarChart2, Award, Activity, User, MessageCircle } from 'lucide-react-native';
+import { Home, BarChart2, Award, Trophy, Activity, User, MessageCircle } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Animated, Easing, Platform } from 'react-native';
 import { NotificationProvider } from '@/providers/NotificationProvider';
@@ -77,6 +77,15 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name="rewards"
+          options={{
+            title: 'Rewards',
+            tabBarIcon: ({ color, size, focused }) => (
+              <AnimatedIcon icon={Trophy} color={color} size={size} focused={focused} />
+            ),
+          }}
+        />
+        <Tabs.Screen
           name="activity"
           options={{
             title: 'Activity',
@@ -88,10 +97,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="badges"
           options={{
-            title: 'Badges',
-            tabBarIcon: ({ color, size, focused }) => (
-              <AnimatedIcon icon={Award} color={color} size={size} focused={focused} />
-            ),
+            href: null, // Hide from tab bar
           }}
         />
         <Tabs.Screen
