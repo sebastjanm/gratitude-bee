@@ -200,7 +200,7 @@ export default function NegativeBadgeModal({
               activeOpacity={0.8}>
               <Image source={require('../assets/images/hornet.png')} style={styles.buttonImage} />
               <Text style={styles.fixedSendButtonText}>
-                Send Hornet ({selectedOption.count})
+                Send "{selectedOption.title}" -{selectedOption.count}
               </Text>
             </TouchableOpacity>
           </View>

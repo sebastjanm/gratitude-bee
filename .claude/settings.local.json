@@ -26,7 +26,8 @@
       "Bash(grep:*)",
       "WebFetch(domain:reactnative.dev)",
       "Bash(ls:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(kill:*)"
     ],
     "deny": []
   },

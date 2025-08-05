@@ -658,6 +658,11 @@ export default function HomeScreen() {
             onSend={handleSendHornet}
           />
           
+          <DontPanicModal
+            visible={showDontPanicModal}
+            onClose={() => setShowDontPanicModal(false)}
+            onSend={handleSendDontPanic}
+          />
           
           <AppreciationModal
             visible={showAppreciationModal}

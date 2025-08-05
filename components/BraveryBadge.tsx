@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Award } from 'lucide-react-native';
-import * as Haptics from 'expo-haptics';
 
 const BraveryBadge = () => {
   return (

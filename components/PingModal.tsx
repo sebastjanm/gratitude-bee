@@ -155,7 +155,7 @@ export default function PingModal({
               activeOpacity={0.8}>
               <Image source={require('../assets/images/ping.png')} style={styles.buttonImage} />
               <Text style={styles.fixedSendButtonText}>
-                Send Ping
+                Send "{selectedPing.title}"
               </Text>
             </TouchableOpacity>
           </View>
