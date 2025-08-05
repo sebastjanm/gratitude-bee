@@ -345,7 +345,6 @@ const styles = StyleSheet.create({
   },
   categoryDescription: {
     ...ComponentStyles.text.caption,
-    lineHeight: Typography.fontSize.sm * Typography.lineHeight.normal,
     marginBottom: Spacing.md,
   },
   categoryFooter: {
