@@ -47,14 +47,14 @@ Favors have a multi-step lifecycle to ensure fairness and clarity for both partn
 *   **Action 1: Request (by User A)**
     *   User A requests a favor from User B. The app checks if User A has enough points to "afford" the favor.
     *   **Notification:** User B receives a push notification: *"[User A's Name] has requested a favor: 'Bring Me Coffee'."*
-    *   **Point Logic:** No points are transferred yet. An event is created with a `PENDING` status. The points are effectively held in escrow until the favor is completed.
+    *   **Point Logic:** No points are transferred yet. An event of type `FAVOR_REQUEST` is created with a `PENDING` status.
 
 *   **Action 2: Response (by User B)**
-    *   User B can either `ACCEPT` or `DECLINE` the favor request.
-    *   **Notification:** User A receives a push notification informing them of the decision: *"Your favor request 'Bring Me Coffee' was accepted!"* or *"...was declined."*
+    *   User B can either accept or decline the favor request.
+    *   **Notification:** User A receives a push notification informing them of the decision.
     *   **Point Logic:** 
-        *   If accepted, the event status is updated to `ACCEPTED`.
-        *   If declined, the event status is updated to `DECLINED`.
+        *   If accepted, a new event of type `FAVOR_ACCEPTED` is created with status `ACCEPTED`.
+        *   If declined, a new event of type `FAVOR_DECLINED` is created with status `DECLINED`.
         *   No points are transferred at this stage.
 
 *   **Action 3: Confirmation (by User A)**
@@ -62,9 +62,9 @@ Favors have a multi-step lifecycle to ensure fairness and clarity for both partn
     *   **Trigger:** User A clicks the "Mark as Complete" button.
     *   **Notification:** User B receives a final confirmation: *"Your favor 'Bring Me Coffee' was marked complete. You earned 5 points!"*
     *   **Point Logic:**
-        *   The event status is updated to `COMPLETED`.
+        *   A new event of type `FAVOR_COMPLETED` is created with status `COMPLETED`.
         *   The specified points are now officially transferred from User A's balance to User B's balance in the `wallets` table.
-*   **Data Stored in Event:** `category_id`, `favor_id`, `title`, `description`, `points`, `icon`, `points_icon`, `notification_text`, `status` (`PENDING`, `ACCEPTED`, `DECLINED`, `COMPLETED`).
+*   **Data Stored in Event:** Template data from `favor_templates` including `category_id`, `title`, `description`, `points`, `icon`, `points_icon`, `notification_text`.
 
 ### 3.3. Hornet Events
 *   **Action:** User A sends a Hornet to User B.
@@ -73,22 +73,22 @@ Favors have a multi-step lifecycle to ensure fairness and clarity for both partn
 *   **Point Logic:**
     *   The negative point value of the Hornet is added to User B's **Hornet Stings** balance.
     *   This action also triggers the cancellation of a corresponding number of positive badges, which will be handled by application logic (not a direct database transaction).
-*   **Data Stored in Event:** `hornet_id`, `title`, `severity`, `points`.
+*   **Data Stored in Event:** Template data from `hornet_templates` including `title`, `description`, `severity`, `points`.
 
 ### 3.4. Ping Events
 Pings are conditional and only award points upon a specific response.
 
 *   **Action 1: Send Ping**
     *   User A sends a Ping to User B.
-    *   **Notification:** User B receives a high-priority push notification: *"[User A's Name] is pinging you: 'URGENT: Are you safe?'"*
-    *   **Point Logic:** No points are exchanged. An event is created with a `pending_response` status.
+    *   **Notification:** User B receives a high-priority push notification with the ping message.
+    *   **Point Logic:** No points are exchanged. An event of type `PING` is created.
 *   **Action 2: Respond to Ping**
     *   User B responds by clicking one of the predefined replies (e.g., "I'm OK").
     *   **Trigger:** User B's response.
     *   **Point Logic:**
-        *   A small, predefined number of points (e.g., 1 point) is awarded to User B's **Ping Points** wallet. This rewards their promptness.
-        *   The event status is updated to `responded`.
-*   **Data Stored in Event:** `ping_id`, `title`, `status` (`pending_response`, `responded`).
+        *   A new event of type `PING_RESPONSE` is created.
+        *   Points defined in the ping template are awarded to User B's **Ping Points** wallet.
+*   **Data Stored in Event:** Template data from `ping_templates` including `title`, `description`, `points`, `icon`.
 
 ### 3.5. Message-Only & Wisdom Events
 
@@ -96,10 +96,10 @@ Pings are conditional and only award points upon a specific response.
 *   **Action:** User A sends a "Wisdom" message to User B.
 *   **Notification:** User B receives a push notification with the message content.
 *   **Point Logic:** The points defined in the chosen `wisdom_template` are added to User B's **Wisdom Points** balance.
-*   **Data Stored in Event:** `template_id`, `title`, `description`, `points`.
+*   **Data Stored in Event:** Template data from `wisdom_templates` including `title`, `description`, `points`.
 
 #### Don't Panic
 *   **Action:** User A sends a "Don't Panic" message to User B.
 *   **Notification:** User B receives a push notification with the message content.
-*   **Point Logic:** A fixed number of points (currently 1) is added to User B's **Don't Panic Points** balance. (This will be updated to use a template system in the future).
-*   **Data Stored in Event:** `message_id`, `title`. 
+*   **Point Logic:** The points defined in the chosen `dont_panic_template` are added to User B's **Don't Panic Points** balance.
+*   **Data Stored in Event:** Template data from `dont_panic_templates` including `title`, `description`, `points`. 
