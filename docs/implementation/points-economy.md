@@ -10,6 +10,8 @@ All point-based interactions are recorded as immutable **events** in a central l
 
 To ensure fast and efficient access to user balances, a separate **wallet** table stores the *current, aggregated totals* for each user. This wallet is automatically updated by the database whenever a new event is recorded, meaning we get the benefits of a full audit trail without sacrificing performance.
 
+**Important Implementation Note:** All point values are looked up from template tables on the server side via the `handle_event_points` database trigger function. The client only sends `template_id` references, never point values directly. This ensures security and consistency.
+
 ---
 
 ## 2. User Wallets
@@ -22,7 +24,7 @@ The primary balances are:
     *   Example Balance: `{ "kindness": 4, "support": 5, "humor": 7 }`
 *   **Favor Points (Level 1):** A single balance of points earned by completing favors for a partner. These points can then be "spent" to request new favors.
 *   **Wisdom Points (Level 2):** Points earned by receiving "Wisdom" messages.
-*   **Ping Points (Level 2):** Points earned by promptly responding to a "Ping."
+*   **Ping Points (Level 2):** Points earned by responding to a "Ping" (response feature not yet implemented in UI).
 *   **Don't Panic Points (Level 2):** Points earned from receiving a "Don't Panic" message.
 *   **Hornet Stings (Level 3):** A running total of negative points received from Hornets. This is purely for tracking and accountability.
 
@@ -35,11 +37,12 @@ This section details how each user action affects the wallet balances.
 ### 3.1. Appreciation Events
 *   **Action:** User A sends an Appreciation Badge to User B.
 *   **Trigger:** Immediate.
-*   **Notification:** User B receives a push notification: *"You've received a 'Kindness' badge from [User A's Name]!"*
+*   **Notification:** User B receives a push notification with the template's notification_text.
 *   **Point Logic:**
-    *   The `points` associated with the badge is added to User B's **Appreciation Points** wallet, under the corresponding category.
-    *   Example: A "Kindness" badge with `points` of 4 adds 4 points to the `kindness` balance in User B's wallet.
-*   **Data Stored in Event:** `category_id`, `badge_id`, `title`, `points`, `points_icon`, `point_unit`.
+    *   Points are looked up from `appreciation_templates` table using template_id.
+    *   Points are added to User B's **Appreciation Points** wallet under the corresponding category.
+    *   Example: A "Kindness" badge with 4 points adds 4 to the `kindness` balance in User B's wallet.
+*   **Data Stored in Event:** `template_id` and `category_id` referencing `appreciation_templates` table.
 
 ### 3.2. Favor Events
 Favors have a multi-step lifecycle to ensure fairness and clarity for both partners.
@@ -50,56 +53,62 @@ Favors have a multi-step lifecycle to ensure fairness and clarity for both partn
     *   **Point Logic:** No points are transferred yet. An event of type `FAVOR_REQUEST` is created with a `PENDING` status.
 
 *   **Action 2: Response (by User B)**
-    *   User B can either accept or decline the favor request.
-    *   **Notification:** User A receives a push notification informing them of the decision.
+    *   User B can either accept or decline the favor request from the timeline.
+    *   **Notification:** Currently no notification is sent for accept/decline actions.
     *   **Point Logic:** 
-        *   If accepted, a new event of type `FAVOR_ACCEPTED` is created with status `ACCEPTED`.
-        *   If declined, a new event of type `FAVOR_DECLINED` is created with status `DECLINED`.
+        *   If accepted, the original event is updated to type `FAVOR_ACCEPTED` with status `ACCEPTED`.
+        *   If declined, the original event is updated to type `FAVOR_DECLINED` with status `DECLINED`.
         *   No points are transferred at this stage.
 
 *   **Action 3: Confirmation (by User A)**
     *   After User B has performed the favor, User A (the original requester) must confirm that it was done.
-    *   **Trigger:** User A clicks the "Mark as Complete" button.
-    *   **Notification:** User B receives a final confirmation: *"Your favor 'Bring Me Coffee' was marked complete. You earned 5 points!"*
+    *   **Trigger:** User A clicks the "Mark as Complete" button in the timeline.
+    *   **Notification:** Currently no notification is sent for favor completion.
     *   **Point Logic:**
-        *   A new event of type `FAVOR_COMPLETED` is created with status `COMPLETED`.
-        *   The specified points are now officially transferred from User A's balance to User B's balance in the `wallets` table.
-*   **Data Stored in Event:** Template data from `favor_templates` including `category_id`, `title`, `description`, `points`, `icon`, `points_icon`, `notification_text`.
+        *   The original event is updated to type `FAVOR_COMPLETED` with status `COMPLETED`.
+        *   Points are looked up from `favor_templates` table using template_id.
+        *   Points are added to User B's favor_points balance (who completed the favor).
+*   **Data Stored in Event:** `template_id` referencing `favor_templates` table.
 
 ### 3.3. Hornet Events
 *   **Action:** User A sends a Hornet to User B.
-*   **Trigger:** Immediate, after user confirmation.
-*   **Notification:** User B receives a push notification: *"[User A's Name] has sent you a 'Hornet Alert'."*
+*   **Trigger:** Immediate, after user confirmation dialog.
+*   **Notification:** User B receives a push notification with the hornet message.
 *   **Point Logic:**
-    *   The negative point value of the Hornet is added to User B's **Hornet Stings** balance.
-    *   This action also triggers the cancellation of a corresponding number of positive badges, which will be handled by application logic (not a direct database transaction).
-*   **Data Stored in Event:** Template data from `hornet_templates` including `title`, `description`, `severity`, `points`.
+    *   The negative point value is looked up from `hornet_templates` table using template_id.
+    *   Points are added to User B's **Hornet Stings** balance (negative accumulation).
+    *   Note: The UI shows "cancels X positive badges" but actual badge cancellation is not implemented.
+*   **Data Stored in Event:** `template_id` referencing `hornet_templates` table.
 
 ### 3.4. Ping Events
 Pings are conditional and only award points upon a specific response.
 
 *   **Action 1: Send Ping**
     *   User A sends a Ping to User B.
-    *   **Notification:** User B receives a high-priority push notification with the ping message.
+    *   **Notification:** User B receives a push notification with the ping message.
     *   **Point Logic:** No points are exchanged. An event of type `PING` is created.
 *   **Action 2: Respond to Ping**
-    *   User B responds by clicking one of the predefined replies (e.g., "I'm OK").
-    *   **Trigger:** User B's response.
-    *   **Point Logic:**
-        *   A new event of type `PING_RESPONSE` is created.
-        *   Points defined in the ping template are awarded to User B's **Ping Points** wallet.
-*   **Data Stored in Event:** Template data from `ping_templates` including `title`, `description`, `points`, `icon`.
+    *   Currently, ping response functionality is not implemented in the UI.
+    *   **When implemented:** User B would respond by clicking a reply option.
+    *   **Point Logic (when implemented):**
+        *   A new event of type `PING_RESPONSE` would be created.
+        *   Points from `ping_templates` would be awarded to the responding user's **Ping Points** wallet.
+*   **Data Stored in Event:** `template_id` referencing `ping_templates` table.
 
 ### 3.5. Message-Only & Wisdom Events
 
 #### Relationship Wisdom
 *   **Action:** User A sends a "Wisdom" message to User B.
-*   **Notification:** User B receives a push notification with the message content.
-*   **Point Logic:** The points defined in the chosen `wisdom_template` are added to User B's **Wisdom Points** balance.
-*   **Data Stored in Event:** Template data from `wisdom_templates` including `title`, `description`, `points`.
+*   **Notification:** User B receives a push notification with the wisdom message.
+*   **Point Logic:** 
+    *   Points are looked up from `wisdom_templates` table using template_id.
+    *   Points are added to User B's **Wisdom Points** balance.
+*   **Data Stored in Event:** `template_id` referencing `wisdom_templates` table.
 
 #### Don't Panic
 *   **Action:** User A sends a "Don't Panic" message to User B.
-*   **Notification:** User B receives a push notification with the message content.
-*   **Point Logic:** The points defined in the chosen `dont_panic_template` are added to User B's **Don't Panic Points** balance.
-*   **Data Stored in Event:** Template data from `dont_panic_templates` including `title`, `description`, `points`. 
+*   **Notification:** User B receives a push notification with the calming message.
+*   **Point Logic:** 
+    *   Points are looked up from `dont_panic_templates` table using template_id.
+    *   Points are added to User B's **Don't Panic Points** balance.
+*   **Data Stored in Event:** `template_id` referencing `dont_panic_templates` table. 
