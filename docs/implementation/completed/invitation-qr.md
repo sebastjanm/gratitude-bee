@@ -17,13 +17,7 @@ The QR code feature provides an easy way for partners to connect. Users can disp
    - Shows invite code below QR for manual entry fallback
    - Includes share functionality for both QR image and text link
 
-2. **QRScannerModal** (`/components/QRScannerModal.tsx`)
-   - Currently **commented out** in partner-link.tsx
-   - Instructs users to use their phone's native camera
-   - No in-app camera functionality implemented
-   - Would provide step-by-step instructions if enabled
-
-3. **Partner Link Screen** (`/app/(auth)/partner-link.tsx`)
+2. **Partner Link Screen** (`/app/(auth)/partner-link.tsx`)
    - Main screen for partner connection during onboarding
    - Shows "Connected!" state if already connected
    - Two connection methods:
@@ -32,7 +26,7 @@ The QR code feature provides an easy way for partners to connect. Users can disp
    - "I'll do this later" skip option
    - Shows loading state while fetching profile
 
-4. **Invite Route** (`/app/invite/[code].tsx`)
+3. **Invite Route** (`/app/invite/[code].tsx`)
    - Dynamic route that handles deep links
    - If logged in: Automatically connects partners
    - If not logged in: Stores code in AsyncStorage and redirects to auth
@@ -63,7 +57,6 @@ The QR code feature provides an easy way for partners to connect. Users can disp
 - **QR Code Generation**: ✅ Fully implemented
 - **Deep Link Handling**: ✅ Fully implemented
 - **Manual Code Entry**: ✅ Fully implemented
-- **QR Scanner Modal**: ❌ Commented out (not in use)
 - **Connection Status**: ✅ Shows partner names when connected
 
 ### Libraries Used

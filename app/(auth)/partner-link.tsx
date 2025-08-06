@@ -17,7 +17,6 @@ import { supabase } from '@/utils/supabase';
 import { useSession } from '@/providers/SessionProvider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCodeModal from '@/components/QRCodeModal';
-// import QRScannerModal from '@/components/QRScannerModal';
 import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
 
 export default function PartnerLinkScreen() {
@@ -29,7 +28,6 @@ export default function PartnerLinkScreen() {
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [partnerName, setPartnerName] = useState('');
   const [isQRModalVisible, setQRModalVisible] = useState(false);
-  // const [isScannerVisible, setScannerVisible] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -85,7 +83,6 @@ export default function PartnerLinkScreen() {
       
       setPartnerName(data.partnerName);
       setIsConnected(true);
-      // if (isScannerVisible) setScannerVisible(false);
       
       setTimeout(() => {
         Alert.alert(
@@ -121,11 +118,6 @@ export default function PartnerLinkScreen() {
           inviteCode={inviteCode}
           inviteLink={inviteLink}
         />
-        {/* <QRScannerModal
-          visible={isScannerVisible}
-          onClose={() => setScannerVisible(false)}
-          onCodeScanned={handleConnectWithCode}
-        /> */}
         <View style={styles.successContainer}>
           <View style={styles.successIcon}>
             <CheckCircle color="#4ECDC4" size={48} />
