@@ -273,10 +273,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.backgroundElevated,
     borderRadius: BorderRadius.md,
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md,
     marginBottom: Spacing.md,
     borderWidth: 1,
     borderColor: Colors.border,
+    height: Layout.buttonHeight.md,
   },
   inputIcon: {
     marginRight: Spacing.md,
@@ -284,6 +284,8 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     ...ComponentStyles.text.body,
+    height: '100%',
+    paddingVertical: 0,
   },
   eyeIcon: {
     padding: Spacing.xs,
@@ -297,7 +299,6 @@ const styles = StyleSheet.create({
   },
   authButton: {
     ...ComponentStyles.button.primary,
-    paddingVertical: Spacing.md,
     ...Shadows.md,
   },
   disabledButton: {

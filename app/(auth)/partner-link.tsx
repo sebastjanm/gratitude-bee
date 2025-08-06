@@ -18,6 +18,7 @@ import { useSession } from '@/providers/SessionProvider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCodeModal from '@/components/QRCodeModal';
 // import QRScannerModal from '@/components/QRScannerModal';
+import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
 
 export default function PartnerLinkScreen() {
   const { session } = useSession();
@@ -225,7 +226,7 @@ export default function PartnerLinkScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF8F0',
+    backgroundColor: Colors.background,
   },
   content: {
     flex: 1,
@@ -307,10 +308,8 @@ const styles = StyleSheet.create({
     borderColor: '#FF8C42',
   },
   qrButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#666',
-    marginLeft: 8,
+    ...ComponentStyles.button.text.secondary,
+    marginLeft: Spacing.sm,
   },
   divider: {
     flexDirection: 'row',
@@ -332,31 +331,25 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   input: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#333',
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.lg,
+    height: Layout.buttonHeight.md,
+    ...ComponentStyles.text.body,
     textAlign: 'center',
     letterSpacing: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    ...Shadows.sm,
   },
   connectButton: {
-    backgroundColor: '#FF8C42',
-    borderRadius: 16,
-    paddingVertical: 16,
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.md,
+    height: Layout.buttonHeight.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#FF8C42',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    ...Shadows.md,
     shadowRadius: 8,
     elevation: 6,
   },
@@ -366,10 +359,8 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
   connectButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: 'white',
-    marginRight: 8,
+    ...ComponentStyles.button.text.primary,
+    marginRight: Spacing.sm,
   },
   skipButton: {
     alignItems: 'center',
@@ -377,9 +368,9 @@ const styles = StyleSheet.create({
     marginTop: 'auto',
   },
   skipButtonText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#999',
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.textTertiary,
     textAlign: 'center',
   },
   successContainer: {

@@ -15,6 +15,7 @@ import { router } from 'expo-router';
 import { ArrowLeft, Mail, CircleCheck as CheckCircle } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MockAuth } from '@/utils/mockAuth';
+import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
@@ -76,7 +77,7 @@ export default function ForgotPasswordScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <TouchableOpacity style={[styles.backIcon, { top: insets.top }]} onPress={handleBackToSignIn}>
-        <ArrowLeft color="#666" size={24} />
+        <ArrowLeft color={Colors.textSecondary} size={Layout.iconSize.lg} />
       </TouchableOpacity>
       
       <KeyboardAvoidingView
@@ -93,7 +94,7 @@ export default function ForgotPasswordScreen() {
 
           <View style={styles.form}>
             <View style={styles.inputContainer}>
-              <Mail color="#666" size={20} style={styles.inputIcon} />
+              <Mail color={Colors.textSecondary} size={Layout.iconSize.md} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
                 placeholder="Enter your email address"
@@ -131,7 +132,7 @@ export default function ForgotPasswordScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF8F0',
+    backgroundColor: Colors.background,
   },
   headerBar: {
     paddingHorizontal: 24,
@@ -171,57 +172,48 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    marginBottom: 24,
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    marginBottom: Spacing.lg,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: Colors.border,
+    height: Layout.buttonHeight.md,
   },
   inputIcon: {
-    marginRight: 12,
+    marginRight: Spacing.md,
   },
   input: {
     flex: 1,
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#333',
+    ...ComponentStyles.text.body,
+    height: '100%',
+    paddingVertical: 0,
   },
   resetButton: {
-    backgroundColor: '#FF8C42',
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    shadowColor: '#FF8C42',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    ...ComponentStyles.button.primary,
+    ...Shadows.md,
   },
   disabledButton: {
-    backgroundColor: '#CCC',
+    backgroundColor: Colors.gray300,
     shadowOpacity: 0,
     elevation: 0,
   },
   resetButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: 'white',
+    ...ComponentStyles.button.text.primary,
   },
   footer: {
     alignItems: 'center',
   },
   footerText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
-    marginBottom: 8,
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.sm,
   },
   footerLink: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#FF8C42',
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.primary,
   },
   successContainer: {
     flex: 1,
@@ -233,46 +225,35 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   successTitle: {
-    fontSize: 24,
-    fontFamily: 'Inter-Bold',
-    color: '#333',
-    marginBottom: 16,
+    ...ComponentStyles.text.h2,
+    marginBottom: Spacing.md,
     textAlign: 'center',
   },
   successSubtitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
+    ...ComponentStyles.text.body,
+    color: Colors.textSecondary,
     textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 22,
+    marginBottom: Spacing.lg,
+    lineHeight: Typography.fontSize.base * 1.4,
   },
   emailText: {
-    fontFamily: 'Inter-SemiBold',
-    color: '#FF8C42',
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.primary,
   },
   instructionText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#999',
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.textTertiary,
     textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 40,
+    lineHeight: Typography.fontSize.sm * 1.4,
+    marginBottom: Spacing['2xl'],
   },
   backButton: {
-    backgroundColor: '#FF8C42',
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    shadowColor: '#FF8C42',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    ...ComponentStyles.button.primary,
+    paddingHorizontal: Spacing.xl,
+    ...Shadows.md,
   },
   backButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: 'white',
+    ...ComponentStyles.button.text.primary,
   },
 });
