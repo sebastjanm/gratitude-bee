@@ -1,20 +1,21 @@
-# Supabase Realtime Features Guide for GratitudeBee
+# Supabase Realtime Features Implementation
 
 ## Overview
 
-Supabase Realtime provides three main features that we can leverage in GratitudeBee:
+Gratitude Bee uses all three Supabase Realtime features in the chat functionality:
 
-1. **Postgres Changes** - Listen to database changes (INSERT, UPDATE, DELETE)
-2. **Broadcast** - Send low-latency messages between clients
-3. **Presence** - Track and synchronize user state (online/offline, typing)
+1. **Postgres Changes** - Listen to database changes (INSERT, UPDATE)
+2. **Broadcast** - Send low-latency typing indicators
+3. **Presence** - Track online/offline status
 
-## Current Implementation
+## Current Implementation in chat.tsx
 
-### ✅ Postgres Changes (Currently Used)
-We use Postgres Changes for real-time message updates:
+### ✅ Postgres Changes
+Used for real-time updates of messages and user status:
 
+1. **New Messages** - Listens for INSERT events on messages table
 ```typescript
-const channel = supabase
+const messageChannel = supabase
   .channel(`messages:${conversationId}`)
   .on('postgres_changes', {
     event: 'INSERT',
@@ -22,42 +23,69 @@ const channel = supabase
     table: 'messages',
     filter: `conversation_id=eq.${conversationId}`,
   }, (payload) => {
-    // Handle new message
+    // Adds new messages to the UI (except own messages to avoid duplicates)
   })
   .subscribe();
 ```
 
-**Pros:**
-- Automatic sync with database
-- Works with RLS policies
-- Persistent message storage
+2. **User Last Seen Updates** - Listens for UPDATE events on users table
+```typescript
+const userChannel = supabase
+  .channel(`user:${participant.id}`)
+  .on('postgres_changes', {
+    event: 'UPDATE',
+    schema: 'public',
+    table: 'users',
+    filter: `id=eq.${participant.id}`,
+  }, (payload) => {
+    // Updates partner's last_seen timestamp in the header
+  })
+  .subscribe();
+```
 
-**Cons:**
-- Higher latency than Broadcast
-- Not suitable for ephemeral data
-
-## Recommended Enhancements
-
-### 1. Add Presence for Online Status
+### ✅ Broadcast
+Used for typing indicators with low latency:
 
 ```typescript
-// In messages.tsx
-const presenceChannel = supabase.channel(`presence:${conversationId}`);
+const typingChannel = supabase
+  .channel(`typing:${conversationId}`)
+  .on('broadcast', { event: 'typing' }, ({ payload }) => {
+    if (payload.user_id !== myUserId) {
+      setIsPartnerTyping(payload.is_typing);
+      // Auto-hide after 3 seconds with timeout
+    }
+  })
+  .subscribe();
+```
 
-// Track current user's presence
-presenceChannel
+**Sending typing status:**
+- Debounced to avoid excessive messages
+- Sends true when user starts typing
+- Sends false after 2 seconds of inactivity or when text is cleared
+
+### ✅ Presence
+Used for real-time online/offline status:
+
+```typescript
+const presenceChannel = supabase
+  .channel(`presence:${conversationId}`)
   .on('presence', { event: 'sync' }, () => {
+    // Check if partner is in presence state
     const state = presenceChannel.presenceState();
-    // Update UI with online users
+    const partnerPresence = Object.values(state).find(
+      (presence: any) => presence[0]?.user_id === participant.id
+    );
+    setIsPartnerOnline(!!partnerPresence);
   })
-  .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-    // User came online
+  .on('presence', { event: 'join' }, ({ newPresences }) => {
+    // Partner came online
   })
-  .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-    // User went offline
+  .on('presence', { event: 'leave' }, ({ leftPresences }) => {
+    // Partner went offline
   })
   .subscribe(async (status) => {
     if (status === 'SUBSCRIBED') {
+      // Track own presence
       await presenceChannel.track({
         user_id: myUserId,
         online_at: new Date().toISOString(),
@@ -66,112 +94,40 @@ presenceChannel
   });
 ```
 
-### 2. Add Broadcast for Typing Indicators
+## Implementation Details
 
-```typescript
-// Create a broadcast channel
-const typingChannel = supabase.channel(`typing:${conversationId}`);
+### Connection Status Handling
+- Shows "Connecting..." banner when disconnected
+- Animated pulsing dot for visual feedback
+- Auto-reconnect after 5 seconds
 
-// Send typing status
-const sendTypingStatus = (isTyping: boolean) => {
-  typingChannel.send({
-    type: 'broadcast',
-    event: 'typing',
-    payload: { 
-      user_id: myUserId,
-      typing: isTyping,
-      timestamp: new Date().toISOString()
-    }
-  });
-};
+### Channel Management
+- All channels are properly cleaned up on unmount
+- Typing status is set to false when leaving chat
+- Each channel uses unique names with conversation ID
 
-// Listen for typing events
-typingChannel
-  .on('broadcast', { event: 'typing' }, ({ payload }) => {
-    if (payload.user_id !== myUserId) {
-      setPartnerTyping(payload.typing);
-      
-      // Auto-hide typing indicator after 3 seconds
-      if (payload.typing) {
-        setTimeout(() => setPartnerTyping(false), 3000);
-      }
-    }
-  })
-  .subscribe();
-```
+### UI Integration
+1. **Online Status**: Green dot on avatar + "Online" text
+2. **Typing Indicator**: Built-in GiftedChat typing bubble
+3. **Connection Status**: Yellow banner at top when disconnected
+4. **Last Seen**: Shows time since last activity when offline
 
-### 3. Combine All Features
+### Performance Optimizations
+1. **Typing Debouncing**: 2-second timeout prevents spam
+2. **Last Seen Updates**: Only updates every 30 seconds while chat is open
+3. **Optimistic Updates**: Messages appear instantly before server confirmation
+4. **Channel Reuse**: Typing status uses same channel for sending/receiving
 
-```typescript
-// Complete real-time setup for messages screen
-useEffect(() => {
-  if (!conversationId || !myUserId) return;
+## Current Limitations
 
-  // 1. Postgres Changes for messages
-  const messageChannel = supabase
-    .channel(`messages:${conversationId}`)
-    .on('postgres_changes', {
-      event: 'INSERT',
-      schema: 'public',
-      table: 'messages',
-      filter: `conversation_id=eq.${conversationId}`,
-    }, handleNewMessage)
-    .subscribe();
+1. **Read Receipts**: Not implemented (no "seen" status for messages)
+2. **Multiple Device Support**: Presence only tracks one device per user
+3. **Offline Message Queue**: Messages fail if sent while disconnected
+4. **Image Sharing**: URI field exists but not used in current UI
 
-  // 2. Presence for online status
-  const presenceChannel = supabase
-    .channel(`presence:${conversationId}`)
-    .on('presence', { event: 'sync' }, handlePresenceSync)
-    .on('presence', { event: 'join' }, handleUserJoin)
-    .on('presence', { event: 'leave' }, handleUserLeave)
-    .subscribe(async (status) => {
-      if (status === 'SUBSCRIBED') {
-        await presenceChannel.track({ user_id: myUserId });
-      }
-    });
+## Security Considerations
 
-  // 3. Broadcast for typing
-  const typingChannel = supabase
-    .channel(`typing:${conversationId}`)
-    .on('broadcast', { event: 'typing' }, handleTypingEvent)
-    .subscribe();
-
-  return () => {
-    supabase.removeChannel(messageChannel);
-    supabase.removeChannel(presenceChannel);
-    supabase.removeChannel(typingChannel);
-  };
-}, [conversationId, myUserId]);
-```
-
-## Implementation Priority
-
-1. **Phase 1** (Current): Postgres Changes for messages ✅
-2. **Phase 2**: Add Presence for online/offline status
-3. **Phase 3**: Add Broadcast for typing indicators
-4. **Phase 4**: Add read receipts using UPDATE events
-
-## Best Practices
-
-1. **Use unique channel names** to avoid conflicts
-2. **Always clean up channels** in useEffect cleanup
-3. **Handle connection states** (SUBSCRIBED, TIMED_OUT, etc.)
-4. **Implement reconnection logic** for better reliability
-5. **Use appropriate feature for each use case**:
-   - Postgres Changes: Persistent data (messages, reactions)
-   - Broadcast: Ephemeral data (typing, cursor position)
-   - Presence: User state (online/offline, active status)
-
-## Performance Considerations
-
-1. **Limit subscriptions**: Don't create too many channels
-2. **Use filters**: Filter Postgres Changes to reduce payload
-3. **Debounce typing**: Don't send typing status on every keystroke
-4. **Clean up**: Always remove channels when unmounting
-
-## Security
-
-1. **RLS Policies**: Postgres Changes respect RLS
-2. **Channel Names**: Use UUIDs in channel names for security
-3. **Payload Validation**: Always validate incoming payloads
-4. **User Authentication**: Verify user identity in payloads
+1. **Channel Names**: Use conversation IDs to prevent unauthorized access
+2. **User Verification**: Always check user_id in payloads
+3. **RLS Policies**: All database changes respect Row Level Security
+4. **Presence Data**: Only tracks user_id and timestamp, no sensitive data
