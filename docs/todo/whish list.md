@@ -1,0 +1,2 @@
+- [ ] Idea: Create a "družinska sreča" plant feature that needs regular watering
+- [ ] Homepage: Add more Lottie animations for `calculateEngagementStage`

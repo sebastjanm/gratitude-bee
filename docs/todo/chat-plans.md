@@ -2,6 +2,16 @@
 
 This document outlines future enhancements and improvements for the chat system.
 
+## Priority Features from Version 0.2
+
+### Emoji Support in Chat
+- **Priority:** High
+- **Status:** Not implemented
+- Add emoji picker component
+- Support emoji rendering in chat bubbles
+- Consider emoji reactions to messages (already covered in Phase 2)
+- Ensure proper emoji display across platforms
+
 ## Technical Debt
 
 ### Current Limitations
