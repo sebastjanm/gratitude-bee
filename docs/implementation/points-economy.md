@@ -8,6 +8,13 @@ This document details the internal economy of the Gratitude Bee app, including h
 
 All point-based interactions are recorded as immutable **events** in a central ledger. This ledger is the absolute source of truth for every action taken in the app.
 
+The events table stores:
+- `sender_id` and `receiver_id` (user references)
+- `event_type` (APPRECIATION, FAVOR_REQUEST, HORNET, PING, etc.)
+- `status` (PENDING, ACCEPTED, DECLINED, COMPLETED)
+- `content` (JSONB containing template_id and other event-specific data)
+- `reaction` (emoji reactions added to events)
+
 To ensure fast and efficient access to user balances, a separate **wallet** table stores the *current, aggregated totals* for each user. This wallet is automatically updated by the database whenever a new event is recorded, meaning we get the benefits of a full audit trail without sacrificing performance.
 
 **Important Implementation Note:** All point values are looked up from template tables on the server side via the `handle_event_points` database trigger function. The client only sends `template_id` references, never point values directly. This ensures security and consistency.
