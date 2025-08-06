@@ -14,8 +14,8 @@ Create a new table named `notifications` in the Supabase database. This table wi
 ```sql
 CREATE TABLE notifications (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    recipient_id UUID NOT NULL REFERENCES profiles(id),
-    sender_id UUID NOT NULL REFERENCES profiles(id),
+    recipient_id UUID NOT NULL REFERENCES users(id),
+    sender_id UUID NOT NULL REFERENCES users(id),
     type TEXT NOT NULL,
     content JSONB NOT NULL,
     read BOOLEAN DEFAULT FALSE,

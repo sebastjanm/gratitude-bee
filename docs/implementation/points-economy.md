@@ -37,9 +37,9 @@ This section details how each user action affects the wallet balances.
 *   **Trigger:** Immediate.
 *   **Notification:** User B receives a push notification: *"You've received a 'Kindness' badge from [User A's Name]!"*
 *   **Point Logic:**
-    *   The `beeCount` associated with the badge is added to User B's **Appreciation Points** wallet, under the corresponding category.
-    *   Example: A "Kindness" badge with a `beeCount` of 4 adds 4 points to the `kindness` balance in User B's wallet.
-*   **Data Stored in Event:** `category_id`, `badge_id`, `title`, `beeCount`.
+    *   The `points` associated with the badge is added to User B's **Appreciation Points** wallet, under the corresponding category.
+    *   Example: A "Kindness" badge with `points` of 4 adds 4 points to the `kindness` balance in User B's wallet.
+*   **Data Stored in Event:** `category_id`, `badge_id`, `title`, `points`, `points_icon`, `point_unit`.
 
 ### 3.2. Favor Events
 Favors have a multi-step lifecycle to ensure fairness and clarity for both partners.

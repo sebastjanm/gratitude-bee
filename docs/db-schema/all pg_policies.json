@@ -1,0 +1,352 @@
+[
+  {
+    "schemaname": "public",
+    "tablename": "users",
+    "policyname": "Users can view profiles of their conversation partners",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(id IN ( SELECT get_my_conversation_partners.user_id\n   FROM get_my_conversation_partners() get_my_conversation_partners(user_id)))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "messages",
+    "policyname": "Users can read messages in their conversations",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(conversation_id IN ( SELECT get_my_conversations.conversation_id\n   FROM get_my_conversations() get_my_conversations(conversation_id)))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "users",
+    "policyname": "Users can view their own and their partner's profile",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "((auth.uid() = id) OR (auth.uid() = partner_id))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "users",
+    "policyname": "Users can update their own profile",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "UPDATE",
+    "qual": "(auth.uid() = id)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "wallets",
+    "policyname": "Users can view their own and their partner's wallet",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "((auth.uid() = user_id) OR (user_id = ( SELECT users.partner_id\n   FROM users\n  WHERE (users.id = auth.uid()))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "wallets",
+    "policyname": "Users can create their own wallet",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "(auth.uid() = user_id)"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "events",
+    "policyname": "Users can view events they sent or received",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "((auth.uid() = sender_id) OR (auth.uid() = receiver_id))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "events",
+    "policyname": "Users can create their own events",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "(auth.uid() = sender_id)"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "events",
+    "policyname": "Users can update status on events they received",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "UPDATE",
+    "qual": "(auth.uid() = receiver_id)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "conversations",
+    "policyname": "Users can access conversations they are a member of",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(id IN ( SELECT get_my_conversations.conversation_id\n   FROM get_my_conversations() get_my_conversations(conversation_id)))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "notifications",
+    "policyname": "Users can view their own notifications",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(auth.uid() = recipient_id)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "notifications",
+    "policyname": "Users can update their own notifications (to mark as read)",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "UPDATE",
+    "qual": "(auth.uid() = recipient_id)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "notifications",
+    "policyname": "Allow service_role to insert notifications",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "true"
+  },
+  {
+    "schemaname": "storage",
+    "tablename": "objects",
+    "policyname": "authenticated_users_can_view_chat_images",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "((bucket_id = 'chat_images'::text) AND (( SELECT messages.conversation_id\n   FROM messages\n  WHERE (messages.id = ((storage.foldername(objects.name))[2])::uuid)) IN ( SELECT get_my_conversations.conversation_id\n   FROM get_my_conversations() get_my_conversations(conversation_id))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "storage",
+    "tablename": "objects",
+    "policyname": "authenticated_users_can_upload_chat_images",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "((bucket_id = 'chat_images'::text) AND (((storage.foldername(name))[1])::uuid = auth.uid()) AND (((storage.foldername(name))[2])::uuid IN ( SELECT get_my_conversations.conversation_id\n   FROM get_my_conversations() get_my_conversations(conversation_id))))"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "appreciation_templates",
+    "policyname": "Allow admins full access",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "ALL",
+    "qual": "is_admin(auth.uid())",
+    "with_check": "is_admin(auth.uid())"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "appreciation_templates",
+    "policyname": "Allow public read access",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "true",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "favor_templates",
+    "policyname": "Allow admins full access",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "ALL",
+    "qual": "is_admin(auth.uid())",
+    "with_check": "is_admin(auth.uid())"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "favor_templates",
+    "policyname": "Allow public read access",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "true",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "hornet_templates",
+    "policyname": "Allow admins full access",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "ALL",
+    "qual": "is_admin(auth.uid())",
+    "with_check": "is_admin(auth.uid())"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "hornet_templates",
+    "policyname": "Allow public read access",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "true",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "users",
+    "policyname": "Allow postgres to create user profiles via trigger",
+    "permissive": "PERMISSIVE",
+    "roles": "{postgres}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "wallets",
+    "policyname": "Allow postgres to create wallets via trigger",
+    "permissive": "PERMISSIVE",
+    "roles": "{postgres}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "messages",
+    "policyname": "Users can send messages in their conversations",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "((sender_id = auth.uid()) AND (conversation_id IN ( SELECT get_my_conversations.conversation_id\n   FROM get_my_conversations() get_my_conversations(conversation_id))))"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "wisdom_templates",
+    "policyname": "Allow admins full access",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "ALL",
+    "qual": "is_admin(auth.uid())",
+    "with_check": "is_admin(auth.uid())"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "wisdom_templates",
+    "policyname": "Allow public read access",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "true",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "dont_panic_templates",
+    "policyname": "Allow admins full access",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "ALL",
+    "qual": "is_admin(auth.uid())",
+    "with_check": "is_admin(auth.uid())"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "dont_panic_templates",
+    "policyname": "Allow public read access",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "true",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ping_templates",
+    "policyname": "Allow admins full access",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "ALL",
+    "qual": "is_admin(auth.uid())",
+    "with_check": "is_admin(auth.uid())"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "ping_templates",
+    "policyname": "Allow public read access",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "true",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "conversation_participants",
+    "policyname": "Users can see all participants in their own conversations",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(conversation_id IN ( SELECT get_my_conversations.conversation_id\n   FROM get_my_conversations() get_my_conversations(conversation_id)))",
+    "with_check": null
+  },
+  {
+    "schemaname": "storage",
+    "tablename": "objects",
+    "policyname": "authenticated_users_can_view_avatars",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(bucket_id = 'avatars'::text)",
+    "with_check": null
+  },
+  {
+    "schemaname": "storage",
+    "tablename": "objects",
+    "policyname": "user_can_upload_own_avatar",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "((bucket_id = 'avatars'::text) AND (auth.uid() = ((storage.foldername(name))[1])::uuid))"
+  },
+  {
+    "schemaname": "storage",
+    "tablename": "objects",
+    "policyname": "user_can_update_own_avatar",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "UPDATE",
+    "qual": "((bucket_id = 'avatars'::text) AND (auth.uid() = ((storage.foldername(name))[1])::uuid))",
+    "with_check": null
+  },
+  {
+    "schemaname": "storage",
+    "tablename": "objects",
+    "policyname": "user_can_delete_own_avatar",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "DELETE",
+    "qual": "((bucket_id = 'avatars'::text) AND (auth.uid() = ((storage.foldername(name))[1])::uuid))",
+    "with_check": null
+  }
+]
