@@ -51,9 +51,9 @@ The chat system is a real-time, one-on-one messaging feature between connected p
    - Runs after every message INSERT
    - Keeps conversation list preview current
 
-#### Storage (Prepared but not implemented in UI)
-- **chat-images** bucket configured with RLS
-- URI field in messages table ready for image support
+#### Storage
+- **chat-images** bucket exists in database (not used)
+- URI field exists in messages table (not used)
 
 ### Frontend
 
@@ -61,7 +61,7 @@ The chat system is a real-time, one-on-one messaging feature between connected p
 - `@tanstack/react-query` - Server state management
 - `react-native-gifted-chat` - Chat UI components
 - `date-fns` - Timestamp formatting
-- `expo-image-picker` - Ready for future image support
+- `expo-image-picker` - Installed but not used
 
 #### State Management
 Uses React Query's `useInfiniteQuery` for:
@@ -154,14 +154,20 @@ Tracks online/offline status:
    - Online status updates in real-time
    - Last seen updates every 30 seconds
 
-## Current Limitations
+## Current State
 
-1. **No Image Support** - URI field exists but UI not implemented
-2. **No Read Receipts** - Messages don't show "seen" status
-3. **No Offline Queue** - Messages fail if sent while disconnected
-4. **Single Device** - Presence tracks only one device per user
-5. **No Message Deletion** - Once sent, messages are permanent
-6. **Fixed to One Partner** - No group chats or multiple conversations
+### What's Implemented
+- Text-only messaging between partners
+- Real-time message delivery
+- Online/offline presence tracking
+- Typing indicators
+- Last seen timestamps
+- Message history with pagination
+- Optimistic updates for sent messages
+
+### Database Fields Not Used
+- `messages.uri` field exists but images not implemented
+- `chat-images` storage bucket configured but not used
 
 ## Security
 
@@ -174,27 +180,6 @@ Tracks online/offline status:
    - Channel names include conversation IDs
    - User IDs verified in all payloads
    - No sensitive data in presence/broadcast
-
-## Future Enhancements (From Plans)
-
-### Phase 1: Image Messaging
-- Add image picker to input toolbar
-- Compress images before upload
-- Store in chat-images bucket
-- Display inline with tap to expand
-
-### Phase 2: Additional Features
-- Read receipts (mark messages as seen)
-- Message reactions
-- Voice messages
-- File sharing
-- Message search
-
-### Phase 3: Advanced Features
-- End-to-end encryption
-- Message editing/deletion
-- Reply to specific messages
-- Rich link previews
 
 ## Debugging
 
