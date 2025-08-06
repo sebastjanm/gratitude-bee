@@ -1,6 +1,6 @@
 # Gratitude Bee - Analytics Implementation
 
-This document describes how analytics work in Gratitude Bee. All analytics calculations are performed by a Supabase database function called `get_user_analytics`.
+This document describes the analytics feature in Gratitude Bee. Analytics calculations are performed by a Supabase database function called `get_user_analytics`.
 
 ## Data Source
 
@@ -19,47 +19,42 @@ The analytics feature uses:
 
 ## Time Periods
 
-Users can filter analytics by:
+Users can filter analytics by selecting one of four time periods:
 - **Today**: Current day only
 - **Week**: Current week (Monday to Sunday)
 - **Month**: Current calendar month
 - **All Time**: All historical data
 
-## Calculated Metrics
+## Displayed Metrics
 
-### Main Stats
-1. **Total Sent**: Count of events where user is sender_id
-2. **Total Received**: Count of events where user is receiver_id
-3. **Current Streak**: Consecutive days of sending appreciations (calculated from all-time data, shows 0 if last appreciation was more than 1 day ago)
-4. **Longest Streak**: Maximum consecutive days of sending appreciations ever achieved
-5. **Daily Average**: Total sent divided by number of days in the period
+### Main Stats (4 metric cards)
+1. **Total Sent**: Count of all events where user is sender_id
+2. **Total Received**: Count of all events where user is receiver_id
+3. **Current Streak**: Consecutive days of sending appreciations (shows "X days" with subtitle showing best streak)
+4. **Daily Average**: Average number of events sent per day in the selected period
 
-### Category Stats
-Shows breakdown by appreciation category:
-- **Sent count**: How many times user sent each category
-- **Received count**: How many times user received each category
-
-### Time-Based Breakdowns
-Different visualizations based on selected period:
-- **Today**: Hourly breakdown
-- **Week**: Daily breakdown
-- **Month**: Weekly breakdown
-- **All Time**: Monthly breakdown
-
-### Insights (varies by period)
-- **Most Active Day**: Day of week with most sent events (not shown for 'today')
-- **Your Favorite**: Category you send most often
-- **Partner's Favorite**: Category you receive most often
-- **Balance Score**: Ratio of sent to received as percentage (min/max * 100)
+### Category Breakdown
+Shows a list of all appreciation categories with:
+- **Category name** with colored indicator
+- **Sent count**: Number of times user sent this category
+- **Received count**: Number of times user received this category
 
 ## Data Flow
 
-1. User opens Analytics screen
-2. Frontend calls `supabase.rpc('get_user_analytics', { p_user_id, p_period })`
-3. Database function queries events table with date filters
-4. Function calculates all metrics server-side
-5. Returns JSON with main_stats, category_stats, breakdown_data, and insights
-6. Frontend displays the formatted data
+1. User opens Analytics screen (defaults to 'month' view)
+2. User can switch between time periods using filter buttons
+3. Frontend calls `supabase.rpc('get_user_analytics', { p_user_id, p_period })`
+4. Database function queries events table with date filters
+5. Function calculates metrics server-side
+6. Returns JSON with `main_stats` and `category_stats`
+7. Frontend displays the data in cards and lists
+
+## UI Components
+
+- **Header**: Back button, chart icon, title "Analytics & Progress"
+- **Filter buttons**: 4 period options with icons (Clock, Calendar, CalendarRange, Infinity)
+- **Stats Grid**: 2x2 grid of metric cards with icons and values
+- **Category List**: Vertical list of categories with sent/received counts
 
 ## Performance
 
