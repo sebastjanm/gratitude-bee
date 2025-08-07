@@ -224,28 +224,29 @@ export default function AppreciationModal({
               ]}
               onPress={() => setSelectedBadge(badge)}
               activeOpacity={0.7}>
-              <View style={styles.badgeCardHeader}>
-                <View style={styles.badgeIconAndTitle}>
+              <View style={styles.badgeCardContent}>
+                {/* Points in top-right corner */}
+                <View style={styles.badgePointsContainer}>
+                  <Text style={styles.badgePointsText}>
+                    {badge.points} {badge.points_icon}
+                  </Text>
+                </View>
+                
+                {/* Icon and Title in row */}
+                <View style={styles.badgeMainRow}>
                   <View style={styles.badgeIconContainer}>
                     <Text style={styles.badgeEmoji}>{badge.icon || '🐝'}</Text>
                   </View>
-                  <View style={styles.badgeTitleContainer}>
+                  <View style={styles.badgeTextContainer}>
                     <Text style={styles.badgeTitle}>{badge.title}</Text>
-                    <View style={styles.badgeCountRow}>
-                      <Text style={styles.badgeCountText}>
-                        {badge.points} {badge.points_icon}
-                      </Text>
-                    </View>
+                    <Text style={styles.badgeDescription}>{badge.description}</Text>
                   </View>
                 </View>
-              </View>
-              
-              <Text style={styles.badgeDescription}>{badge.description}</Text>
-              
-              <View style={styles.badgeFooter}>
+                
+                {/* Selected indicator */}
                 {selectedBadge?.id === badge.id && (
                   <View style={styles.selectedIndicator}>
-                    <Sparkles color={category.color} size={16} />
+                    <Sparkles color={category.color} size={14} />
                     <Text style={[styles.selectedText, { color: category.color }]}>Selected</Text>
                   </View>
                 )}
@@ -428,71 +429,72 @@ const styles = StyleSheet.create({
   },
   badgeCard: {
     ...ComponentStyles.card,
-    padding: Spacing.lg,
-    marginBottom: Spacing.md,
-    borderWidth: 2,
-    borderColor: 'transparent',
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    minHeight: 72,
   },
   selectedBadgeCard: {
     borderColor: Colors.primary,
-    backgroundColor: Colors.backgroundAlt,
+    backgroundColor: Colors.primary + '08',
+    borderWidth: 2,
   },
-  badgeCardHeader: {
+  badgeCardContent: {
+    position: 'relative',
+  },
+  badgePointsContainer: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: Colors.primary + '15',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.md,
+    zIndex: 1,
+  },
+  badgePointsText: {
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.primary,
+  },
+  badgeMainRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.md,
-  },
-  badgeIconAndTitle: {
-    flexDirection: 'row',
-    flex: 1,
-    alignItems: 'center',
+    paddingRight: 60, // Space for points badge
   },
   badgeIconContainer: {
-    width: 48,
-    height: 48,
+    width: 40,
+    height: 40,
     borderRadius: BorderRadius.full,
     backgroundColor: Colors.backgroundAlt,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: Spacing.md,
-    borderWidth: 2,
-    borderColor: Colors.border,
   },
   badgeEmoji: {
-    fontSize: Typography.fontSize.xl,
+    fontSize: Typography.fontSize.lg,
   },
-  badgeTitleContainer: {
+  badgeTextContainer: {
     flex: 1,
   },
   badgeTitle: {
     fontSize: Typography.fontSize.base,
     fontFamily: Typography.fontFamily.semiBold,
     color: Colors.textPrimary,
-    marginBottom: Spacing.xs,
-  },
-  badgeCountRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  badgeCountText: {
-    fontSize: Typography.fontSize.sm,
-    fontFamily: Typography.fontFamily.bold,
-    color: Colors.primary,
+    marginBottom: 2,
   },
   badgeDescription: {
-    ...ComponentStyles.text.caption,
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.regular,
     color: Colors.textSecondary,
-    lineHeight: Typography.lineHeight.relaxed,
-    marginLeft: 64,
-    marginBottom: Spacing.sm,
-  },
-  badgeFooter: {
-    alignItems: 'flex-start',
-    marginLeft: 64,
+    lineHeight: Typography.lineHeight.tight,
   },
   selectedIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginTop: Spacing.xs,
+    paddingLeft: 40 + Spacing.md, // Align with text
   },
   selectedText: {
     fontSize: Typography.fontSize.xs,
