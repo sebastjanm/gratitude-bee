@@ -332,16 +332,13 @@ const styles = StyleSheet.create({
     ...Shadows.lg,
   },
   fixedSendButton: {
-    borderRadius: BorderRadius.lg,
-    paddingVertical: Spacing.md,
+    ...ComponentStyles.button.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     ...Shadows.lg,
   },
   fixedSendButtonText: {
-    fontSize: Typography.fontSize.base,
-    fontFamily: Typography.fontFamily.semiBold,
-    color: Colors.white,
+    ...ComponentStyles.button.text.primary,
   },
 });

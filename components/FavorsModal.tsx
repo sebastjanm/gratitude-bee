@@ -696,9 +696,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
   },
   sendCustomButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: BorderRadius.lg,
-    paddingVertical: Spacing.md,
+    ...ComponentStyles.button.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -709,9 +707,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.gray400,
   },
   sendCustomButtonText: {
-    fontSize: Typography.fontSize.base,
-    fontFamily: Typography.fontFamily.semiBold,
-    color: Colors.white,
+    ...ComponentStyles.button.text.primary,
     marginLeft: Spacing.sm,
   },
   fixedSendButtonContainer: {
@@ -722,16 +718,13 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.border,
   },
   fixedSendButton: {
-    borderRadius: BorderRadius.lg,
-    paddingVertical: Spacing.md,
+    ...ComponentStyles.button.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
   fixedSendButtonText: {
-    fontSize: Typography.fontSize.base,
-    fontFamily: Typography.fontFamily.semiBold,
-    color: Colors.white,
+    ...ComponentStyles.button.text.primary,
     marginLeft: Spacing.sm,
   },
 });

@@ -13,6 +13,8 @@
  * 10. Good design is as little design as possible
  */
 
+import { Platform } from 'react-native';
+
 // Color System - Minimal, functional, high contrast
 export const Colors = {
   // Primary Colors - Reduced saturation for sophistication
@@ -59,12 +61,24 @@ export const Colors = {
 
 // Typography - Clear hierarchy, excellent readability
 export const Typography = {
-  // Font Families
+  // Font Families - Force consistent rendering across Android devices
   fontFamily: {
-    regular: 'Inter-Regular',
-    medium: 'Inter-Medium',
-    semiBold: 'Inter-SemiBold',
-    bold: 'Inter-Bold',
+    regular: Platform.select({
+      ios: 'Inter-Regular',
+      android: 'Roboto',  // Force Roboto on all Android devices including EMUI
+    }) as string,
+    medium: Platform.select({
+      ios: 'Inter-Medium',
+      android: 'Roboto-Medium',
+    }) as string,
+    semiBold: Platform.select({
+      ios: 'Inter-SemiBold',
+      android: 'Roboto-Medium',  // Android doesn't have SemiBold, use Medium
+    }) as string,
+    bold: Platform.select({
+      ios: 'Inter-Bold',
+      android: 'Roboto-Bold',
+    }) as string,
   },
   
   // Font Sizes - Clear scale

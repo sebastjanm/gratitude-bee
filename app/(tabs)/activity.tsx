@@ -80,6 +80,8 @@ const reactionIcons: { [key: string]: string } = {
   love: '❤️',
   thumbs_up: '👍',
   smile: '😊',
+  adore: '🥰',
+  heart_hands: '🫶',
   sad: '😢',
   pray: '🙏',
   why: '🤔',
@@ -198,7 +200,7 @@ export default function TimelineScreen() {
         return;
       }
       
-      const positiveReactions = { 'love': '❤️', 'thumbs_up': '👍', 'smile': '😊' };
+      const positiveReactions = { 'love': '❤️', 'thumbs_up': '👍', 'smile': '😊', 'adore': '🥰', 'heart_hands': '🫶' };
       const negativeReactions = { 'sad': '😢', 'pray': '🙏', 'why': '🤔' };
       
       setCurrentReactionOptions(event.isNegative ? negativeReactions : positiveReactions);

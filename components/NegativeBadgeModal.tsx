@@ -416,8 +416,8 @@ const styles = StyleSheet.create({
     ...Shadows.lg,
   },
   fixedSendButton: {
-    borderRadius: BorderRadius.lg,
-    paddingVertical: Spacing.md,
+    ...ComponentStyles.button.primary,
+    backgroundColor: Colors.error,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -429,9 +429,7 @@ const styles = StyleSheet.create({
     tintColor: 'white',
   },
   fixedSendButtonText: {
-    fontSize: Typography.fontSize.base,
-    fontFamily: Typography.fontFamily.semiBold,
-    color: Colors.white,
+    ...ComponentStyles.button.text.primary,
     marginLeft: Spacing.sm,
   },
   optionEmoji: {

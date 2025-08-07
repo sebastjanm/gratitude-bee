@@ -311,6 +311,7 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xl,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
+    ...Shadows.lg,
   },
   buttonImage: {
     width: 24,
@@ -318,16 +319,14 @@ const styles = StyleSheet.create({
     tintColor: 'white',
   },
   fixedSendButton: {
-    borderRadius: BorderRadius.lg,
-    paddingVertical: Spacing.md,
+    ...ComponentStyles.button.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    ...Shadows.lg,
   },
   fixedSendButtonText: {
-    fontSize: Typography.fontSize.base,
-    fontFamily: Typography.fontFamily.semiBold,
-    color: Colors.white,
+    ...ComponentStyles.button.text.primary,
     marginLeft: Spacing.sm,
   },
 }); 

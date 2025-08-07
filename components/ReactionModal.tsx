@@ -63,6 +63,7 @@ const ReactionModal: React.FC<ReactionModalProps> = ({ isVisible, onClose, event
                   key={key}
                   style={styles.reactionButton}
                   onPress={() => handleReaction(key)}
+                  activeOpacity={0.7}
                 >
                   <Text style={styles.reactionEmoji}>{emoji}</Text>
                 </TouchableOpacity>
@@ -83,48 +84,48 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalView: {
+    ...ComponentStyles.card,
     margin: Spacing.lg,
-    backgroundColor: Colors.backgroundElevated,
-    borderRadius: BorderRadius.xl,
     padding: Spacing.xl,
     alignItems: 'center',
-    ...Shadows.lg,
+    minWidth: 280,
+    maxWidth: 320,
   },
   modalText: {
-    marginBottom: Spacing.md,
+    ...ComponentStyles.text.h3,
+    marginBottom: Spacing.lg,
     textAlign: 'center',
-    fontSize: Typography.fontSize.lg,
-    fontFamily: Typography.fontFamily.semiBold,
-    color: Colors.textPrimary,
   },
   reactionsContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
   },
   reactionButton: {
-    margin: Spacing.md,
-    padding: Spacing.md,
+    width: 56,
+    height: 56,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.backgroundSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: Colors.border,
   },
   reactionEmoji: {
-    fontSize: 30,
+    fontSize: Typography.fontSize['2xl'],
   },
   closeButton: {
-    marginTop: Spacing.lg,
-    backgroundColor: Colors.primary,
-    borderRadius: BorderRadius.xl,
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    ...Shadows.sm,
+    ...ComponentStyles.button.secondary,
+    marginTop: Spacing.sm,
+    minWidth: 120,
   },
   closeButtonText: {
-    color: Colors.white,
-    fontFamily: Typography.fontFamily.bold,
-    fontSize: Typography.fontSize.base,
-    textAlign: 'center',
+    ...ComponentStyles.button.text.secondary,
   },
 });
 
