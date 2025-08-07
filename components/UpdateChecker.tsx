@@ -21,9 +21,11 @@ export default function UpdateChecker() {
 
   useEffect(() => {
     const versionInfo = getAppVersion();
-    setCurrentVersion(versionInfo.updateId !== 'No OTA' 
-      ? `Update: ${versionInfo.updateId.slice(0, 8)}...` 
-      : 'Development Build');
+    // Show more details about the current state
+    const updateStatus = versionInfo.updateId !== 'No OTA' 
+      ? `OTA: ${versionInfo.updateId.slice(0, 8)}...` 
+      : 'Base Build (No OTA)';
+    setCurrentVersion(`v${versionInfo.version} • ${updateStatus}`);
   }, []);
 
   const checkForUpdates = async () => {
