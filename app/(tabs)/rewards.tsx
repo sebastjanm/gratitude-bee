@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Modal,
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -31,6 +32,7 @@ interface Badge {
   description: string;
   icon: any;
   color: string;
+  points?: number;
   isNegative?: boolean;
   cancelledBadges?: string[];
   isEmojiIcon?: boolean;
@@ -192,6 +194,7 @@ export default function RewardsScreen() {
           description: description,
           icon: icon || meta.icon,
           color: color || categoryColor || '#6B7280',
+          points: content.points || (event.event_type === 'APPRECIATION' ? 1 : 0),
           isNegative: event.event_type === 'HORNET',
           isEmojiIcon: isEmojiIcon,
         };
@@ -300,39 +303,64 @@ export default function RewardsScreen() {
         </ScrollView>
       </View>
 
-      <ScrollView style={styles.badgesList} showsVerticalScrollIndicator={false}>
+      <View style={styles.badgesList}>
         {filteredBadges.length > 0 ? (
-          filteredBadges.map((badge) => {
-            const BadgeIcon = badge.icon;
-            const isEmoji = typeof badge.icon === 'string';
-            return (
-              <View key={badge.id} style={[
-                styles.badgeCard,
-                badge.isNegative && styles.negativeBadgeCard
-              ]}>
-                <View style={styles.badgeContent}>
-                  <View style={[
-                    styles.badgeIcon,
-                    { backgroundColor: badge.color },
-                    badge.isNegative && styles.negativeBadgeIcon
-                  ]}>
-                    {isEmoji ? (
-                      <Text style={styles.emojiIcon}>{badge.icon}</Text>
-                    ) : (
-                      <BadgeIcon color="white" size={24} />
-                    )}
-                  </View>
-                  <View style={styles.badgeTextContent}>
-                    <Text style={styles.badgeName}>{badge.name}</Text>
-                    <Text style={styles.badgeDescription}>{badge.description}</Text>
-                    <Text style={styles.badgeDate}>
-                      {badge.isNegative ? 'Sent' : 'Earned'} on {new Date(badge.earnedDate).toLocaleDateString()}
-                    </Text>
+          <FlashList
+            data={filteredBadges}
+            renderItem={({ item: badge }) => {
+              const BadgeIcon = badge.icon;
+              const isEmoji = typeof badge.icon === 'string';
+              return (
+                <View style={[
+                  styles.badgeCard,
+                  badge.isNegative && styles.negativeBadgeCard
+                ]}>
+                  <View style={styles.badgeContent}>
+                    <View style={[
+                      styles.badgeIcon,
+                      { backgroundColor: badge.color },
+                      badge.isNegative && styles.negativeBadgeIcon
+                    ]}>
+                      {isEmoji ? (
+                        <Text style={styles.emojiIcon}>{badge.icon}</Text>
+                      ) : (
+                        <BadgeIcon color="white" size={24} />
+                      )}
+                    </View>
+                    <View style={styles.badgeTextContent}>
+                      <Text style={styles.badgeName} numberOfLines={1} ellipsizeMode="tail">
+                        {badge.name || 'Badge'}
+                      </Text>
+                      <Text style={styles.badgeDescription} numberOfLines={2} ellipsizeMode="tail">
+                        {badge.description}
+                      </Text>
+                      <Text style={styles.badgeDate} numberOfLines={1} ellipsizeMode="tail">
+                        {badge.isNegative ? 'Sent' : 'Earned'} • {new Date(badge.earnedDate).toLocaleDateString()}
+                      </Text>
+                    </View>
+                    {/* Points indicator on the right side */}
+                    {badge.points ? (
+                      <View style={[
+                        styles.badgePointsContainer,
+                        badge.isNegative && styles.negativeBadgePointsContainer
+                      ]}>
+                        <Text style={[
+                          styles.badgePointsText,
+                          badge.isNegative && styles.negativeBadgePointsText
+                        ]}>
+                          {badge.isNegative ? `-${Math.abs(badge.points)}` : `+${badge.points}`} pts
+                        </Text>
+                      </View>
+                    ) : null}
                   </View>
                 </View>
-              </View>
-            );
-          })
+              );
+            }}
+            keyExtractor={(item) => item.id}
+            estimatedItemSize={110} // Based on our minHeight + margins
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.flashListContent}
+          />
         ) : (
           <View style={styles.emptyState}>
             <Award color="#ccc" size={48} />
@@ -342,7 +370,7 @@ export default function RewardsScreen() {
             </Text>
           </View>
         )}
-      </ScrollView>
+      </View>
     </>
   );
 
@@ -448,10 +476,9 @@ export default function RewardsScreen() {
                   activeOpacity={0.7}
                   onPress={() => isUnlocked && setSelectedAchievement(achievement)}
                   disabled={!isUnlocked}
-                >
-                  <View style={styles.badgeContent}>
-                    <View style={{ position: 'relative' }}>
-                    {isUnlocked ? (
+              >
+                <View style={{ position: 'relative' }}>
+                  {isUnlocked ? (
                     <LinearGradient
                       colors={[achievement.color, achievement.color + 'DD']}
                       start={{ x: 0, y: 0 }}
@@ -465,21 +492,19 @@ export default function RewardsScreen() {
                     </LinearGradient>
                   ) : (
                     <LinearGradient
-                      colors={['#F5F5F7', '#E8E8ED']}
+                      colors={[Colors.gray100, Colors.gray200]}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 1 }}
                       style={[styles.badgeCircle, styles.badgeLocked]}
                     >
-                      {/* Simple Lock Icon */}
                       <View style={styles.lockedIconContainer}>
                         <Lock 
-                          color="#9CA3AF" 
+                          color={Colors.gray400} 
                           size={20} 
                           strokeWidth={2}
                         />
                       </View>
                       
-                      {/* Subtle progress hint - just a faint colored border */}
                       {progress > 20 && (
                         <View style={[
                           styles.progressHint,
@@ -495,30 +520,27 @@ export default function RewardsScreen() {
                   {/* Checkmark for Unlocked */}
                   {isUnlocked && (
                     <View style={styles.checkmarkBadge}>
-                      <CheckCircle color="#fff" size={12} />
+                      <CheckCircle color={Colors.white} size={12} />
                     </View>
                   )}
-                    </View>
-                    
-                    <Text style={[
-                      styles.badgeName,
-                      !isUnlocked && styles.badgeNameLocked,
-                      isUnlocked && { color: achievement.color }
-                    ]}>
-                      {achievement.name}
-                    </Text>
-                  </View>
-                  
-                  {/* Points for unlocked, progress for locked */}
-                  <View style={styles.badgeFooter}>
-                    {isUnlocked ? (
-                      <Text style={styles.badgePoints}>+{achievement.reward?.replace(' bonus points', '')}</Text>
-                    ) : (
-                      <Text style={styles.badgeProgress}>
-                        {achievement.progress}/{achievement.target}
-                      </Text>
-                    )}
-                  </View>
+                </View>
+                
+                <Text style={[
+                  styles.achievementName,
+                  !isUnlocked && styles.achievementNameLocked,
+                  isUnlocked && { color: achievement.color }
+                ]}>
+                  {achievement.name}
+                </Text>
+                
+                {/* Points for unlocked, progress for locked */}
+                {isUnlocked ? (
+                  <Text style={styles.achievementPoints}>+{achievement.reward?.replace(' bonus points', '')}</Text>
+                ) : (
+                  <Text style={styles.achievementProgress}>
+                    {achievement.progress}/{achievement.target}
+                  </Text>
+                )}
                 </TouchableOpacity>
               </View>
             );
@@ -893,44 +915,71 @@ const styles = StyleSheet.create({
   },
   badgesList: {
     flex: 1,
-    paddingHorizontal: Layout.screenPadding,
     paddingTop: Spacing.lg,
+  },
+  flashListContent: {
+    paddingHorizontal: Layout.screenPadding,
+    paddingBottom: Spacing.xl,
   },
   badgeCard: {
     ...ComponentStyles.card,
     marginBottom: Spacing.md,
     borderWidth: 2,
     borderColor: Colors.border,
+    minHeight: 90,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.md,
+  },
+  badgePointsContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingLeft: Spacing.sm,
+    flexShrink: 0,
+  },
+  badgePointsText: {
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.success,
   },
   badgeContent: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   badgeIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: Spacing.md,
+    flexShrink: 0,
   },
   badgeTextContent: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'flex-start',  // Ensure children are left-aligned
   },
   badgeName: {
-    fontSize: Typography.fontSize.base,
+    fontSize: Typography.fontSize.base,  // 16px for better visibility
     fontFamily: Typography.fontFamily.semiBold,
     color: Colors.textPrimary,
-    marginBottom: Spacing.xs,
+    marginBottom: 2,
+    textAlign: 'left',
   },
   badgeDescription: {
-    ...ComponentStyles.text.body,
+    fontSize: Typography.fontSize.xs,  // 12px
+    fontFamily: Typography.fontFamily.regular,
     color: Colors.textSecondary,
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.xs,  // Medium spacing before date
+    lineHeight: Typography.fontSize.xs * 1.4,
+    textAlign: 'left',
   },
   badgeDate: {
-    ...ComponentStyles.text.caption,
+    fontSize: Typography.fontSize.xs,  // 12px
+    fontFamily: Typography.fontFamily.regular,
     color: Colors.textTertiary,
+    lineHeight: Typography.fontSize.xs * 1.2,
+    textAlign: 'left',
   },
   negativeBadgeCard: {
     borderLeftWidth: 4,
@@ -941,8 +990,14 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: Colors.error + '40',
   },
+  negativeBadgePointsContainer: {
+    // Same as regular container
+  },
+  negativeBadgePointsText: {
+    color: Colors.error,
+  },
   emojiIcon: {
-    fontSize: 20,
+    fontSize: 22,
   },
   emptyText: {
     ...Typography.body,
@@ -1062,26 +1117,14 @@ const styles = StyleSheet.create({
     padding: Spacing.xs,
   },
   achievementBadge: {
-    backgroundColor: 'white',
-    borderRadius: 12,
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.lg,
     padding: Spacing.sm,
+    paddingVertical: Spacing.md,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
+    ...Shadows.sm,
     height: 150,
     justifyContent: 'space-between',
-  },
-  badgeContent: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badgeFooter: {
-    height: 20,
-    justifyContent: 'flex-end',
   },
   badgeCircle: {
     width: 60,
@@ -1089,13 +1132,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: Spacing.xs,
     position: 'relative',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 5,
   },
   badgeUnlocked: {
     backgroundColor: Colors.primary + '15',
@@ -1126,38 +1163,35 @@ const styles = StyleSheet.create({
     bottom: -2,
     right: -2,
     backgroundColor: Colors.success,
-    borderRadius: 8,
+    borderRadius: BorderRadius.sm * 2,
     width: 16,
     height: 16,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#fff',
+    borderColor: Colors.white,
   },
-  badgeName: {
-    ...ComponentStyles.text.caption,
+  achievementName: {
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.semiBold,
     textAlign: 'center',
-    fontFamily: 'Inter-SemiBold',
     marginTop: Spacing.xs,
-    fontSize: 11,
-    maxWidth: 80,
-    lineHeight: 14,
+    paddingHorizontal: Spacing.xs,
   },
-  badgeNameLocked: {
+  achievementNameLocked: {
     color: Colors.textTertiary,
-    fontFamily: 'Inter-Regular',
-    fontStyle: 'italic',
+    fontFamily: Typography.fontFamily.regular,
   },
-  badgePoints: {
-    fontSize: 10,
+  achievementPoints: {
+    fontSize: Typography.fontSize.xs,
     color: Colors.success,
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: Typography.fontFamily.semiBold,
     textAlign: 'center',
   },
-  badgeProgress: {
-    fontSize: 10,
+  achievementProgress: {
+    fontSize: Typography.fontSize.xs,
     color: Colors.textTertiary,
-    fontFamily: 'Inter-Regular',
+    fontFamily: Typography.fontFamily.regular,
     textAlign: 'center',
   },
   rewardBadge: {

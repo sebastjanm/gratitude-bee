@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -548,42 +549,31 @@ export default function TimelineScreen() {
         {renderSimpleFilters()}
       </View>
 
-      <ScrollView 
-        style={styles.timeline} 
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
-        }
-        onScroll={({ nativeEvent }) => {
-          const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
-          const paddingToBottom = 20;
-          if (layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom) {
-            if (!loadingMore && hasMore && !loading) {
-              fetchEvents();
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+        </View>
+      ) : (
+        <View style={styles.timeline}>
+          <FlashList
+            data={filteredEvents}
+            ListHeaderComponent={
+              !loading && filter === 'all' ? (
+                <ActivitySummary 
+                  data={summaryData}
+                  onInsightPress={(insight) => {
+                    // Handle insight tap - could navigate or show tips
+                    console.log('Insight tapped:', insight);
+                  }}
+                />
+              ) : null
             }
-          }
-        }}
-        scrollEventThrottle={400}
-      >
-        {!loading && filter === 'all' && (
-          <ActivitySummary 
-            data={summaryData}
-            onInsightPress={(insight) => {
-              // Handle insight tap - could navigate or show tips
-              console.log('Insight tapped:', insight);
-            }}
-          />
-        )}
-        
-        {loading ? (
-          <ActivityIndicator size="large" color={Colors.primary} style={{ marginTop: 50 }} />
-        ) : filteredEvents.length > 0 ? (
-          filteredEvents.map((event, index) => {
+            renderItem={({ item: event, index }) => {
             const { partnerName, badgeName, description, timestamp, icon: Icon, color, type, status, eventType, isEmojiIcon, reaction } = event;
             const isLast = index === filteredEvents.length - 1;
         
             return (
-              <View key={event.id} style={styles.timelineItem}>
+              <View style={styles.timelineItem}>
                 <View style={styles.timelineMarker}>
                   <View style={[
                     styles.timelineIcon,
@@ -607,8 +597,23 @@ export default function TimelineScreen() {
                     styles.eventCard,
                     event.isNegative && styles.negativeEventCard
                   ]}>
+                    {/* Reaction badge as overlay */}
+                    {reaction && (
+                      <View style={styles.reactionBadge}>
+                        <Text style={styles.reactionBadgeIcon}>{reactionIcons[reaction]}</Text>
+                      </View>
+                    )}
                     <View style={styles.cardContent}>
-                      <Text style={styles.eventTypeTag}>{formatEventType(event.eventType)}</Text>
+                      <View style={styles.cardTopRow}>
+                        <Text style={styles.eventTypeTag}>{formatEventType(event.eventType)}</Text>
+                        <View style={[styles.cardTopRight, reaction && styles.cardTopRightWithReaction]}>
+                          {event.content?.points && (
+                            <View style={styles.pointsContainer}>
+                              <Text style={styles.pointsText}>{event.content.points} {event.content.points_icon}</Text>
+                            </View>
+                          )}
+                        </View>
+                      </View>
                       <View style={styles.cardHeader}>
                         <Text style={styles.eventTitle} numberOfLines={2}>
                           {event.badgeName}
@@ -678,35 +683,45 @@ export default function TimelineScreen() {
                           {event.type === 'sent' ? `${event.partnerName}` : `${event.partnerName}`}
                         </Text>
                       </View>
-                      <View style={styles.footerRight}>
-                        <Text style={styles.eventTime}>{formatTimestamp(event.timestamp)}</Text>
-                        {reaction && <Text style={styles.reactionIcon}>{reactionIcons[reaction]}</Text>}
-                        {event.content?.points && (
-                          <View style={styles.pointsContainer}>
-                            <Text style={styles.pointsText}>{event.content.points} {event.content.points_icon}</Text>
-                          </View>
-                        )}
-                      </View>
+                      <Text style={styles.eventTime}>{formatTimestamp(event.timestamp)}</Text>
                     </View>
                   </View>
                 </TouchableOpacity>
               </View>
             );
-          })
-        ) : (
-          <View style={styles.emptyState}>
-            <Calendar color="#ccc" size={48} />
-            <Text style={styles.emptyStateText}>
-              No events match your filter
-            </Text>
-            <Text style={styles.emptyStateSubtext}>
-              Try selecting different filters or start sending badges!
-            </Text>
-          </View>
-        )}
-        
-        {loadingMore && <ActivityIndicator size="small" color={Colors.primary} style={{ marginVertical: 20 }} />}
-      </ScrollView>
+          }}
+            keyExtractor={(item) => item.id}
+            estimatedItemSize={150}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
+            }
+            onEndReached={() => {
+              if (!loadingMore && hasMore && !loading) {
+                fetchEvents();
+              }
+            }}
+            onEndReachedThreshold={0.1}
+            ListEmptyComponent={
+              <View style={styles.emptyState}>
+                <Calendar color="#ccc" size={48} />
+                <Text style={styles.emptyStateText}>
+                  No events match your filter
+                </Text>
+                <Text style={styles.emptyStateSubtext}>
+                  Try selecting different filters or start sending badges!
+                </Text>
+              </View>
+            }
+            ListFooterComponent={
+              loadingMore ? (
+                <ActivityIndicator size="small" color={Colors.primary} style={{ marginVertical: 20 }} />
+              ) : null
+            }
+            contentContainerStyle={styles.flashListContent}
+          />
+        </View>
+      )}
       <ReactionModal 
         isVisible={isReactionModalVisible}
         onClose={() => {
@@ -796,9 +811,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: Layout.screenPadding,
     paddingTop: Spacing.lg,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  flashListContent: {
+    paddingBottom: Spacing.xl,
+  },
   timelineItem: {
     flexDirection: 'row',
     marginBottom: Spacing.lg,
+    paddingRight: Spacing.sm,  // More padding to prevent badge cutoff
   },
   timelineMarker: {
     alignItems: 'center',
@@ -820,11 +844,14 @@ const styles = StyleSheet.create({
   },
   timelineContent: {
     flex: 1,
+    marginRight: Spacing.xs,  // More margin to ensure reaction badge is fully visible
   },
   eventCard: {
     ...ComponentStyles.card,
     borderWidth: 2,
     borderColor: Colors.border,
+    position: 'relative',
+    overflow: 'visible',
   },
   cardContent: {
     padding: Spacing.xs,
@@ -843,17 +870,16 @@ const styles = StyleSheet.create({
     marginRight: Spacing.xs,
   },
   eventTypeTag: {
-
     color: Colors.textSecondary,
     paddingHorizontal: 0,
-    paddingVertical: 10,
+    paddingVertical: 4,  // Match pointsContainer vertical padding
     borderRadius: BorderRadius.md,
     fontSize: Typography.fontSize.xs,
     fontFamily: Typography.fontFamily.regular,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     overflow: 'hidden',
-    alignSelf: 'flex-start',
+    alignSelf: 'center',  // Center align with points
   },
   eventDescription: {
     ...ComponentStyles.text.body,
@@ -877,7 +903,7 @@ const styles = StyleSheet.create({
   cardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     paddingVertical: 10,
   },
   directionContainer: {
@@ -1035,5 +1061,37 @@ const styles = StyleSheet.create({
   reactionIcon: {
     fontSize: Typography.fontSize.base,
     marginLeft: 8,
-  }
+  },
+  reactionBadge: {
+    position: 'absolute',
+    top: -10,
+    right: -10,
+    backgroundColor: Colors.white,
+    borderRadius: BorderRadius.full,
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: Colors.border,
+    zIndex: 1,
+    ...Shadows.md,
+  },
+  reactionBadgeIcon: {
+    fontSize: 20,
+  },
+  cardTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.xs,
+  },
+  cardTopRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  cardTopRightWithReaction: {
+    marginRight: 20,  // Extra space when reaction badge is present
+  },
 });

@@ -37,7 +37,8 @@
       "Bash(do echo \"=== $file ===\")",
       "Bash(true)",
       "Bash(done)",
-      "Bash(npm start)"
+      "Bash(npm start)",
+      "Bash(npm install:*)"
     ],
     "deny": []
   },
