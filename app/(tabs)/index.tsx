@@ -245,7 +245,8 @@ export default function HomeScreen() {
     const { data: eventData, error } = await supabase.from('events').insert(eventPayload).select().single();
 
     if (error) {
-      Alert.alert('Error', 'Could not send the badge. Please try again.');
+      console.error('Error sending badge:', error);
+      Alert.alert('Error', `Could not send the badge: ${error.message}`);
     } else {
       Alert.alert(
         'Badge Sent! 🎉',
@@ -328,7 +329,8 @@ export default function HomeScreen() {
     ]);
   
     if (error) {
-      Alert.alert('Error', 'Could not send the favor request. Please try again.');
+      console.error('Error sending favor:', error);
+      Alert.alert('Error', `Could not send the favor request: ${error.message}`);
     } else {
       Alert.alert(
         'Favor Requested! 🙏',
@@ -461,7 +463,8 @@ export default function HomeScreen() {
     const { data: eventData, error } = await supabase.from('events').insert(eventPayload).select().single();
 
     if (error) {
-      Alert.alert('Error', 'Could not send wisdom. Please try again.');
+      console.error('Error sending wisdom:', error);
+      Alert.alert('Error', `Could not send wisdom: ${error.message}`);
     } else {
       Alert.alert('Wisdom Sent!', 'Your partner has received your wise words.');
       

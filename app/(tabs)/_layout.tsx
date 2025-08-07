@@ -76,21 +76,22 @@ export default function TabLayout() {
             tabBarHideOnKeyboard: true,
           }}
         />
-        <Tabs.Screen
-          name="rewards"
-          options={{
-            title: 'Rewards',
-            tabBarIcon: ({ color, size, focused }) => (
-              <AnimatedIcon icon={Trophy} color={color} size={size} focused={focused} />
-            ),
-          }}
-        />
+
         <Tabs.Screen
           name="activity"
           options={{
             title: 'Activity',
             tabBarIcon: ({ color, size, focused }) => (
               <AnimatedIcon icon={Activity} color={color} size={size} focused={focused} />
+            ),
+          }}
+        />
+                <Tabs.Screen
+          name="rewards"
+          options={{
+            title: 'Rewards',
+            tabBarIcon: ({ color, size, focused }) => (
+              <AnimatedIcon icon={Trophy} color={color} size={size} focused={focused} />
             ),
           }}
         />
