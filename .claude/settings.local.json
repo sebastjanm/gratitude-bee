@@ -38,7 +38,10 @@
       "Bash(true)",
       "Bash(done)",
       "Bash(npm start)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(gh release create:*)",
+      "Bash(gh release delete:*)",
+      "Bash(eas update:*)"
     ],
     "deny": []
   },
