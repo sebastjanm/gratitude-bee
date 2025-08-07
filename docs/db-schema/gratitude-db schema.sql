@@ -1,6 +1,37 @@
 -- WARNING: This schema is for context only and is not meant to be run.
 -- Table order and constraints may not be valid for execution.
 
+CREATE TABLE public.achievement_definitions (
+  type text NOT NULL,
+  name text NOT NULL,
+  description text NOT NULL,
+  icon_name text NOT NULL,
+  target integer NOT NULL,
+  reward_points integer DEFAULT 0,
+  category text NOT NULL,
+  event_type text,
+  count_field text DEFAULT 'sender',
+  CONSTRAINT achievement_definitions_pkey PRIMARY KEY (type)
+);
+CREATE TABLE public.achievement_rewards_log (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  user_id uuid,
+  achievement_type text NOT NULL,
+  points_awarded integer NOT NULL,
+  awarded_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT achievement_rewards_log_pkey PRIMARY KEY (id),
+  CONSTRAINT achievement_rewards_log_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
+);
+CREATE TABLE public.achievements (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  user_id uuid,
+  achievement_type text NOT NULL,
+  unlocked_at timestamp without time zone,
+  progress integer DEFAULT 0,
+  target integer NOT NULL,
+  CONSTRAINT achievements_pkey PRIMARY KEY (id),
+  CONSTRAINT achievements_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
+);
 CREATE TABLE public.appreciation_templates (
   id text NOT NULL,
   category_id text NOT NULL,
@@ -13,6 +44,18 @@ CREATE TABLE public.appreciation_templates (
   notification_text text,
   is_active boolean DEFAULT true,
   CONSTRAINT appreciation_templates_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.categories (
+  id text NOT NULL,
+  name text NOT NULL,
+  icon_name text NOT NULL,
+  color text NOT NULL,
+  sort_order integer DEFAULT 0,
+  category_type text NOT NULL CHECK (category_type = ANY (ARRAY['appreciation'::text, 'favor'::text, 'special'::text])),
+  is_active boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT categories_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.conversation_participants (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -53,8 +96,8 @@ CREATE TABLE public.events (
   content jsonb,
   reaction text,
   CONSTRAINT events_pkey PRIMARY KEY (id),
-  CONSTRAINT events_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES public.users(id),
-  CONSTRAINT events_receiver_id_fkey FOREIGN KEY (receiver_id) REFERENCES public.users(id)
+  CONSTRAINT events_receiver_id_fkey FOREIGN KEY (receiver_id) REFERENCES public.users(id),
+  CONSTRAINT events_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES public.users(id)
 );
 CREATE TABLE public.favor_templates (
   id text NOT NULL,

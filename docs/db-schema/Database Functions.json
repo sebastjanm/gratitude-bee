@@ -1,0 +1,98 @@
+[
+  {
+    "Name": "add_achievement",
+    "Arguments": "p_type text, p_name text, p_description text, p_icon_name text, p_target integer, p_reward_points integer, p_category text, p_event_type text, p_count_field text DEFAULT 'sender'::text",
+    "Return type": "void",
+    "Security": "Invoker"
+  },
+  {
+    "Name": "admin_login",
+    "Arguments": "email_input text, password_input text",
+    "Return type": "TABLE(id uuid, email character varying, custom_token text, full_name text)",
+    "Security": "Definer"
+  },
+  {
+    "Name": "distribute_achievement_reward",
+    "Arguments": "",
+    "Return type": "trigger",
+    "Security": "Invoker"
+  },
+  {
+    "Name": "get_daily_stats",
+    "Arguments": "p_user_id uuid",
+    "Return type": "TABLE(sent_today bigint, received_today bigint, favor_points integer, appreciation_points integer)",
+    "Security": "Invoker"
+  },
+  {
+    "Name": "get_my_conversation_partners",
+    "Arguments": "",
+    "Return type": "TABLE(user_id uuid)",
+    "Security": "Definer"
+  },
+  {
+    "Name": "get_my_conversations",
+    "Arguments": "",
+    "Return type": "TABLE(conversation_id uuid)",
+    "Security": "Definer"
+  },
+  {
+    "Name": "get_or_create_conversation",
+    "Arguments": "user_one_id uuid, user_two_id uuid",
+    "Return type": "uuid",
+    "Security": "Definer"
+  },
+  {
+    "Name": "get_user_analytics",
+    "Arguments": "p_user_id uuid, p_period text DEFAULT 'month'::text",
+    "Return type": "jsonb",
+    "Security": "Definer"
+  },
+  {
+    "Name": "get_user_profile_stats",
+    "Arguments": "p_user_id uuid",
+    "Return type": "jsonb",
+    "Security": "Definer"
+  },
+  {
+    "Name": "handle_event_points",
+    "Arguments": "",
+    "Return type": "trigger",
+    "Security": "Definer"
+  },
+  {
+    "Name": "handle_new_message",
+    "Arguments": "",
+    "Return type": "trigger",
+    "Security": "Definer"
+  },
+  {
+    "Name": "handle_new_user",
+    "Arguments": "",
+    "Return type": "trigger",
+    "Security": "Definer"
+  },
+  {
+    "Name": "is_admin",
+    "Arguments": "user_id uuid DEFAULT auth.uid()",
+    "Return type": "boolean",
+    "Security": "Definer"
+  },
+  {
+    "Name": "is_participant",
+    "Arguments": "p_conversation_id uuid, p_user_id uuid",
+    "Return type": "boolean",
+    "Security": "Definer"
+  },
+  {
+    "Name": "send_push_notification",
+    "Arguments": "",
+    "Return type": "trigger",
+    "Security": "Definer"
+  },
+  {
+    "Name": "update_achievement_progress",
+    "Arguments": "",
+    "Return type": "trigger",
+    "Security": "Invoker"
+  }
+]

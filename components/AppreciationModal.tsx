@@ -11,9 +11,10 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { X, Heart, Star, Smile, Compass, MessageCircle, Sparkles } from 'lucide-react-native';
+import { X, Sparkles, Heart } from 'lucide-react-native';
 import { supabase } from '@/utils/supabase';
 import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
+import { useCategories } from '@/hooks/useCategories';
 
 const { width } = Dimensions.get('window');
 
@@ -62,15 +63,27 @@ export default function AppreciationModal({
   onSendBadge,
 }: AppreciationModalProps) {
   const [categories, setCategories] = useState<SubCategory[]>([]);
+  const [badges, setBadges] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedBadge, setSelectedBadge] = useState<BadgeOption | null>(null);
+  
+  // Fetch categories from database
+  const { data: dbCategories, isLoading: categoriesLoading } = useCategories('appreciation');
 
   useEffect(() => {
     if (visible) {
       fetchAppreciationTemplates();
     }
   }, [visible]);
+
+  useEffect(() => {
+    // Group badges by category when both data sources are ready
+    if (dbCategories && badges.length > 0) {
+      const groupedData = groupBadgesByCategory(badges, dbCategories);
+      setCategories(groupedData);
+    }
+  }, [dbCategories, badges]);
 
   const fetchAppreciationTemplates = async () => {
     setLoading(true);
@@ -80,21 +93,25 @@ export default function AppreciationModal({
       Alert.alert('Error', 'Could not fetch appreciation badges.');
       console.error(error);
     } else {
-      const groupedData = groupBadgesByCategory(data);
-      setCategories(groupedData);
+      setBadges(data || []);
     }
     setLoading(false);
   };
   
   // This function will group the flat list of badges from the DB into categories
-  const groupBadgesByCategory = (badges: any[]): SubCategory[] => {
-      const categoryMap: { [key: string]: SubCategory } = {
-          support: { id: 'support', name: 'Support', icon: Star, color: '#4ECDC4', badges: [] },
-          kindness: { id: 'kindness', name: 'Kindness', icon: Heart, color: '#FF6B9D', badges: [] },
-          humor: { id: 'humor', name: 'Humor', icon: Smile, color: '#FFD93D', badges: [] },
-          adventure: { id: 'adventure', name: 'Adventure', icon: Compass, color: '#6BCF7F', badges: [] },
-          words: { id: 'words', name: 'Love Notes', icon: MessageCircle, color: '#A8E6CF', badges: [] },
-      };
+  const groupBadgesByCategory = (badges: any[], categories: any[]): SubCategory[] => {
+      const categoryMap: { [key: string]: SubCategory } = {};
+      
+      // Initialize categories from database
+      categories.forEach(cat => {
+          categoryMap[cat.id] = {
+              id: cat.id,
+              name: cat.name,
+              icon: cat.icon,
+              color: cat.color,
+              badges: []
+          };
+      });
 
       badges.forEach(badge => {
           if (categoryMap[badge.category_id]) {
@@ -138,7 +155,7 @@ export default function AppreciationModal({
 
   const renderCategorySelection = () => (
     <View style={styles.categorySelection}>
-      {loading ? (
+      {(loading || categoriesLoading) ? (
         <ActivityIndicator size="large" color={Colors.primary} style={{ flex: 1 }}/>
       ) : (
         <ScrollView style={styles.categoriesList} showsVerticalScrollIndicator={false}>
