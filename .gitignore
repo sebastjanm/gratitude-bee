@@ -20,3 +20,6 @@ expo-env.d.ts
 # Expo managed workflow: ignore native folders
 /android
 /ios
+
+# EAS Update build output
+dist/
