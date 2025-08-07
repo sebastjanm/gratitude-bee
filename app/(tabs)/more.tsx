@@ -38,6 +38,7 @@ import { supabase } from '@/utils/supabase';
 import Constants from 'expo-constants';
 import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getAppVersion } from '@/utils/app-version';
 
 interface MenuSection {
   id: string;
@@ -66,6 +67,8 @@ export default function MoreScreen() {
 
   const appVersion = Constants.expoConfig?.version ?? 'N/A';
   const buildNumber = Constants.nativeBuildVersion ?? 'N/A';
+  const versionInfo = getAppVersion();
+  const updateId = versionInfo.updateId !== 'No OTA' ? `OTA: ${versionInfo.updateId.slice(0, 8)}...` : 'Dev Build';
 
   useEffect(() => {
     if (session) {
@@ -220,7 +223,7 @@ export default function MoreScreen() {
         { title: 'Terms of Service', icon: FileText, action: () => router.push('/(more)/terms') },
         { title: 'Privacy Policy', icon: Shield, action: () => router.push('/(more)/privacy') },
         { title: 'Impressum', icon: Info, action: () => router.push('/(more)/impressum') },
-        { title: 'Version', subtitle: `${appVersion} (Build ${buildNumber})`, icon: Info },
+        { title: 'Version', subtitle: `${appVersion} (${buildNumber}) • ${updateId}`, icon: Info },
       ],
     },
   ];
