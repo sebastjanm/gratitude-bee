@@ -89,9 +89,11 @@ const styles = StyleSheet.create({
   modalView: {
     ...ComponentStyles.card,
     margin: Spacing.lg,
-    padding: Spacing.xl,
+    padding: Spacing.lg,
+    paddingTop: Spacing.xl,
+    paddingBottom: Spacing.xl,
     alignItems: 'center',
-    minWidth: 280,
+    width: '90%',
     maxWidth: 320,
   },
   modalText: {
@@ -101,23 +103,26 @@ const styles = StyleSheet.create({
   },
   reactionsContainer: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: Spacing.sm,
     marginBottom: Spacing.md,
+    marginHorizontal: -Spacing.xs, // Compensate for button margins
+    maxWidth: 280, // Limit width to prevent overflow
   },
   reactionButton: {
-    width: 56,
-    height: 56,
+    width: 48, // Reduced from 56 to fit better
+    height: 48,
     borderRadius: BorderRadius.full,
     backgroundColor: Colors.backgroundSecondary,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: Colors.border,
+    margin: Spacing.xs, // Space between buttons
   },
   reactionEmoji: {
-    fontSize: Typography.fontSize['2xl'],
+    fontSize: Typography.fontSize.xl, // Reduced from 2xl to fit better
   },
   closeButton: {
     ...ComponentStyles.button.secondary,
