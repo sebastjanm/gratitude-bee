@@ -31,7 +31,8 @@ import {
   Video,
   Settings,
   CircleHelp as HelpCircleIcon,
-  Lock
+  Lock,
+  RefreshCw
 } from 'lucide-react-native';
 import { useSession } from '@/providers/SessionProvider';
 import { supabase } from '@/utils/supabase';
@@ -200,6 +201,7 @@ export default function MoreScreen() {
       color: '#8B5CF6',
       items: [
         { title: 'Invite Partner', subtitle: 'Send connection request', icon: Smartphone, action: () => router.push('/connect-partner') },
+        { title: 'Check for Updates', subtitle: 'Check for app updates', icon: RefreshCw, action: () => router.push('/check-updates') },
         { title: 'Realtime Diagnostic', subtitle: 'Test WebSocket connection', icon: Wrench, action: () => router.push('/realtime-diagnostic') },
       ],
     },
