@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/utils/supabase';
+import { realtimeManager } from '@/utils/realtime-manager';
 import { useSession } from '@/providers/SessionProvider';
 import { ChevronLeft, HelpCircle as HelpCircleIcon } from 'lucide-react-native';
 import { formatDistanceToNow } from 'date-fns';
@@ -223,87 +224,97 @@ export default function MessagesScreen() {
     };
   }, [participant]);
 
-  // Subscribe to new messages, typing, and presence
+  // Subscribe to new messages, typing, and presence with improved reconnection
   useEffect(() => {
     if (!conversationId || !myUserId || !participant) return;
 
     setConnectionStatus('connecting');
 
-    // Messages channel for new messages
-    const messageChannel = supabase
-      .channel(`messages:${conversationId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `conversation_id=eq.${conversationId}`,
-        },
-        (payload) => {
-          const newMessage = payload.new as ChatMessage;
+    // Messages channel for new messages with auto-reconnect
+    const messageChannel = realtimeManager.getChannel(`messages:${conversationId}`);
+    
+    messageChannel.on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `conversation_id=eq.${conversationId}`,
+      },
+      (payload) => {
+        const newMessage = payload.new as ChatMessage;
+        
+        // Only add if it's not from the current user (to avoid duplicates)
+        if (newMessage.sender_id !== myUserId) {
+          queryClient.setQueryData(['messages', conversationId], (oldData: any) => {
+            if (!oldData || !oldData.pages) return oldData;
+            
+            // Add to the first page (newest messages)
+            const newPages = [...oldData.pages];
+            newPages[0] = [newMessage, ...newPages[0]];
+            
+            return {
+              ...oldData,
+              pages: newPages,
+            };
+          });
+        }
+      }
+    );
+
+    // Subscribe with reconnection logic
+    realtimeManager.subscribeWithReconnect(
+      messageChannel,
+      () => setConnectionStatus('connected'),
+      () => setConnectionStatus('disconnected')
+    );
+
+    // Typing channel for typing indicators with auto-reconnect
+    const typingChannel = realtimeManager.getChannel(`typing:${conversationId}`);
+    
+    typingChannel.on(
+      'broadcast',
+      { event: 'typing' },
+      ({ payload }) => {
+        if (payload.user_id !== myUserId) {
+          setIsPartnerTyping(payload.is_typing);
           
-          // Only add if it's not from the current user (to avoid duplicates)
-          if (newMessage.sender_id !== myUserId) {
-            queryClient.setQueryData(['messages', conversationId], (oldData: any) => {
-              if (!oldData || !oldData.pages) return oldData;
-              
-              // Add to the first page (newest messages)
-              const newPages = [...oldData.pages];
-              newPages[0] = [newMessage, ...newPages[0]];
-              
-              return {
-                ...oldData,
-                pages: newPages,
-              };
-            });
+          // Clear existing timeout
+          if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+          }
+          
+          // Auto-hide typing indicator after 3 seconds
+          if (payload.is_typing) {
+            typingTimeoutRef.current = setTimeout(() => {
+              setIsPartnerTyping(false);
+            }, 3000) as unknown as NodeJS.Timeout;
           }
         }
-      )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          setConnectionStatus('connected');
-        } else if (status === 'TIMED_OUT' || status === 'CLOSED') {
-          setConnectionStatus('disconnected');
-        }
-      });
+      }
+    );
+    
+    realtimeManager.subscribeWithReconnect(typingChannel);
 
-    // Typing channel for typing indicators
-    const typingChannel = supabase
-      .channel(`typing:${conversationId}`)
-      .on(
-        'broadcast',
-        { event: 'typing' },
-        ({ payload }) => {
-          if (payload.user_id !== myUserId) {
-            setIsPartnerTyping(payload.is_typing);
-            
-            // Clear existing timeout
-            if (typingTimeoutRef.current) {
-              clearTimeout(typingTimeoutRef.current);
-            }
-            
-            // Auto-hide typing indicator after 3 seconds
-            if (payload.is_typing) {
-              typingTimeoutRef.current = setTimeout(() => {
-                setIsPartnerTyping(false);
-              }, 3000) as unknown as NodeJS.Timeout;
-            }
-          }
-        }
-      )
-      .subscribe();
-
-    // Presence channel for online/offline status
-    const presenceChannel = supabase
-      .channel(`presence:${conversationId}`)
+    // Presence channel for online/offline status with auto-reconnect
+    const presenceChannel = realtimeManager.getChannel(`presence:${conversationId}`);
+    
+    presenceChannel
       .on('presence', { event: 'sync' }, () => {
         const state = presenceChannel.presenceState();
-        // Check if partner is online
-        const partnerPresence = Object.values(state).find(
+        // Check if partner is online (on any device)
+        const partnerPresences = Object.values(state).filter(
           (presence: any) => presence[0]?.user_id === participant.id
         );
-        setIsPartnerOnline(!!partnerPresence);
+        setIsPartnerOnline(partnerPresences.length > 0);
+        
+        // Log if multiple devices detected (for debugging)
+        const myPresences = Object.values(state).filter(
+          (presence: any) => presence[0]?.user_id === myUserId
+        );
+        if (myPresences.length > 1) {
+          console.log(`Multiple devices detected for current user: ${myPresences.length} devices`);
+        }
       })
       .on('presence', { event: 'join' }, ({ key, newPresences }) => {
         // Check if the joining user is our partner
@@ -316,33 +327,45 @@ export default function MessagesScreen() {
         if (leftPresences[0]?.user_id === participant.id) {
           setIsPartnerOnline(false);
         }
-      })
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          // Track our own presence
-          await presenceChannel.track({
-            user_id: myUserId,
-            online_at: new Date().toISOString(),
-          });
-        } else if (status === 'TIMED_OUT' || status === 'CLOSED') {
-          setConnectionStatus('disconnected');
-        }
       });
 
+    // Subscribe with presence tracking
+    realtimeManager.subscribeWithReconnect(
+      presenceChannel,
+      async () => {
+        // Track our own presence with device ID when connected
+        const { getDeviceId } = await import('@/utils/device-id');
+        const deviceId = await getDeviceId();
+        
+        await presenceChannel.track({
+          user_id: myUserId,
+          device_id: deviceId,
+          online_at: new Date().toISOString(),
+        });
+      },
+      () => {
+        // Connection lost
+        console.log('Presence channel disconnected');
+      }
+    );
+
     return () => {
-      supabase.removeChannel(messageChannel);
-      supabase.removeChannel(typingChannel);
-      supabase.removeChannel(presenceChannel);
+      // Use RealtimeManager to properly clean up channels
+      realtimeManager.removeChannel(`messages:${conversationId}`);
+      realtimeManager.removeChannel(`typing:${conversationId}`);
+      realtimeManager.removeChannel(`presence:${conversationId}`);
+      
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
       if (typingDebounceRef.current) {
         clearTimeout(typingDebounceRef.current);
       }
+      
       // Send typing false on unmount
       if (lastTypingStatusRef.current && conversationId && myUserId) {
-        const typingChannel = supabase.channel(`typing:${conversationId}`);
-        typingChannel.send({
+        const cleanupTypingChannel = supabase.channel(`typing-cleanup:${conversationId}`);
+        cleanupTypingChannel.send({
           type: 'broadcast',
           event: 'typing',
           payload: {
@@ -351,6 +374,8 @@ export default function MessagesScreen() {
             timestamp: new Date().toISOString(),
           },
         });
+        // Remove cleanup channel after sending
+        setTimeout(() => supabase.removeChannel(cleanupTypingChannel), 100);
       }
     };
   }, [conversationId, myUserId, participant, queryClient]);
@@ -483,7 +508,8 @@ export default function MessagesScreen() {
     if (lastTypingStatusRef.current === isTyping) return;
     lastTypingStatusRef.current = isTyping;
 
-    const typingChannel = supabase.channel(`typing:${conversationId}`);
+    // Use the managed typing channel from RealtimeManager
+    const typingChannel = realtimeManager.getChannel(`typing:${conversationId}`);
     typingChannel.send({
       type: 'broadcast',
       event: 'typing',

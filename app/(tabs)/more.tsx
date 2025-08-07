@@ -197,6 +197,7 @@ export default function MoreScreen() {
       color: '#8B5CF6',
       items: [
         { title: 'Invite Partner', subtitle: 'Send connection request', icon: Smartphone, action: () => router.push('/connect-partner') },
+        { title: 'Realtime Diagnostic', subtitle: 'Test WebSocket connection', icon: Wrench, action: () => router.push('/realtime-diagnostic') },
       ],
     },
     {
