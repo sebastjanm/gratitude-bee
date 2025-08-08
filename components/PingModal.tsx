@@ -195,7 +195,7 @@ export default function PingModal({
                       selectedPing?.id === ping.id && styles.selectedPingCard,
                       { borderLeftColor: ping.color },
                     ]}
-                    onPress={() => setSelectedPing(ping)}
+                    onPress={() => setSelectedPing(selectedPing?.id === ping.id ? null : ping)}
                     activeOpacity={0.7}>
                     <View style={styles.pingCardContent}>
                       <View style={[styles.pingIcon, { backgroundColor: ping.color + '20' }]}>

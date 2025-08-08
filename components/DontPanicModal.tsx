@@ -198,7 +198,7 @@ export default function DontPanicModal({
                           styles.selectedOptionCard,
                         { borderLeftColor: option.color },
                       ]}
-                      onPress={() => setSelectedOption(option)}
+                      onPress={() => setSelectedOption(selectedOption?.id === option.id ? null : option)}
                       activeOpacity={0.7}>
                       <View style={styles.optionCardContent}>
                         {/* Icon on the left */}

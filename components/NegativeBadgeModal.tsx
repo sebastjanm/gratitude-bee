@@ -12,7 +12,7 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
-import { X, Zap, CircleAlert as AlertCircle, Bomb } from 'lucide-react-native';
+import { X, Zap, CircleAlert as AlertCircle, Bomb, Sparkles } from 'lucide-react-native';
 import { supabase } from '@/utils/supabase';
 import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
 
@@ -107,22 +107,23 @@ export default function NegativeBadgeModal({
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
       <View style={styles.container}>
-        <ScrollView style={styles.contentWrapper} showsVerticalScrollIndicator={false}>
-          <View style={styles.header}>
-            <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-              <X color={Colors.textSecondary} size={24} />
-            </TouchableOpacity>
-            <View style={styles.heroIcon}>
-              <Image source={require('../assets/images/hornet.png')} style={styles.heroImage} />
+        <View style={{ flex: 1 }}>
+          <ScrollView style={styles.contentWrapper} showsVerticalScrollIndicator={false}>
+            <View style={styles.header}>
+              <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+                <X color={Colors.textSecondary} size={24} />
+              </TouchableOpacity>
+              <View style={styles.heroIcon}>
+                <Image source={require('../assets/images/hornet.png')} style={styles.heroImage} />
+              </View>
+              <Text style={styles.heroTitle}>Accountability Hornet</Text>
+              <Text style={styles.heroSubtitle}>
+                Sometimes relationships need honest feedback. But be careful, it can be a double edged sword.
+              </Text>
             </View>
-            <Text style={styles.heroTitle}>Accountability Hornet</Text>
-            <Text style={styles.heroSubtitle}>
-              Sometimes relationships need honest feedback. But be careful, it can be a double edged sword.
-            </Text>
-          </View>
 
-          <View style={styles.content}>
-            <View style={styles.optionsSection}>
+            <View style={styles.content}>
+              <View style={styles.optionsSection}>
               {loading ? (
                 <ActivityIndicator size="large" color="#FF4444" />
               ) : (
@@ -136,50 +137,39 @@ export default function NegativeBadgeModal({
                           selectedOption?.id === option.id && styles.selectedOptionCard,
                           { borderLeftColor: option.color }
                         ]}
-                        onPress={() => setSelectedOption(option)}
+                        onPress={() => setSelectedOption(selectedOption?.id === option.id ? null : option)}
                         activeOpacity={0.7}>
-                        <View style={styles.optionHeader}>
+                        <View style={styles.optionCardContent}>
+                          {/* Icon on the left */}
                           <View style={[styles.optionIcon, { backgroundColor: option.color + '20' }]}>
                             <Text style={styles.optionEmoji}>{option.icon}</Text>
                           </View>
-                          <View style={styles.optionInfo}>
-                            <View style={styles.optionTitleRow}>
-                              <Text style={styles.optionCount}>{option.count}</Text>
-                              <Text style={styles.optionTitle}>{option.title}</Text>
+                          
+                          {/* Content on the right */}
+                          <View style={styles.optionRightContent}>
+                            <View style={styles.optionHeader}>
+                              <View style={styles.optionInfo}>
+                                <Text style={styles.optionTitle} numberOfLines={1}>{option.title}</Text>
+                                <Text style={styles.optionDescription} numberOfLines={2}>{option.description}</Text>
+                              </View>
+                              <View style={styles.optionPoints}>
+                                <Text style={styles.optionCount}>-{option.count}</Text>
+                              </View>
                             </View>
-                            <Text style={styles.optionDescription}>{option.description}</Text>
+                            
+                            {selectedOption?.id === option.id && (
+                              <View style={styles.selectedIndicator}>
+                                <Sparkles color={option.color} size={14} />
+                                <Text style={[styles.selectedText, { color: option.color }]}>Selected</Text>
+                              </View>
+                            )}
                           </View>
                         </View>
-                        
-                        {selectedOption?.id === option.id && (
-                          <View style={styles.selectedIndicator}>
-                            <View style={[styles.selectedDot, { backgroundColor: option.color }]} />
-                            <Text style={[styles.selectedText, { color: option.color }]}>Selected</Text>
-                          </View>
-                        )}
                       </TouchableOpacity>
                     );
                   })}
                 </View>
               )}
-            </View>
-
-            <View style={styles.messageSection}>
-              <Text style={styles.sectionTitle}>Optional message:</Text>
-              <Text style={styles.sectionSubtitle}>
-                Explain the situation that prompted this hornet
-              </Text>
-              <TextInput
-                style={styles.messageInput}
-                placeholder="Explain why you're sending this hornet..."
-                value={message}
-                onChangeText={setMessage}
-                multiline
-                numberOfLines={3}
-                maxLength={200}
-                textAlignVertical="top"
-              />
-              <Text style={styles.characterCount}>{message.length}/200</Text>
             </View>
 
             <View style={styles.tipSection}>
@@ -190,7 +180,21 @@ export default function NegativeBadgeModal({
               </Text>
             </View>
           </View>
-        </ScrollView>
+          </ScrollView>
+          
+          {selectedOption && (
+            <View style={styles.messageSection}>
+              <Text style={styles.messageLabel}>Personal note</Text>
+              <TextInput
+                style={styles.messageInput}
+                placeholder="Explain why you're sending this hornet..."
+                value={message}
+                onChangeText={setMessage}
+                maxLength={100}
+              />
+            </View>
+          )}
+        </View>
 
         {selectedOption && (
           <View style={styles.fixedSendButtonContainer}>
@@ -297,90 +301,106 @@ const styles = StyleSheet.create({
   optionCard: {
     backgroundColor: Colors.backgroundElevated,
     borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
     borderWidth: 2,
     borderColor: 'transparent',
     borderLeftWidth: 4,
-    ...Shadows.md,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   selectedOptionCard: {
     borderColor: Colors.error,
     backgroundColor: Colors.error + '10',
   },
-  optionHeader: {
+  optionCardContent: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+  },
+  optionRightContent: {
+    flex: 1,
+  },
+  optionHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    flex: 1,
   },
   optionIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: Spacing.md,
+    flexShrink: 0,
   },
   optionInfo: {
     flex: 1,
-  },
-  optionTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  optionCount: {
-    fontSize: Typography.fontSize.xl,
-    fontFamily: Typography.fontFamily.bold,
-    color: Colors.error,
     marginRight: Spacing.sm,
-    minWidth: 40,
+    justifyContent: 'center',
   },
   optionTitle: {
-    fontSize: Typography.fontSize.base,
+    fontSize: Typography.fontSize.lg,
     fontFamily: Typography.fontFamily.semiBold,
     color: Colors.textPrimary,
-    flex: 1,
+    marginBottom: Spacing.xs,
   },
   optionDescription: {
     fontSize: Typography.fontSize.sm,
     fontFamily: Typography.fontFamily.regular,
     color: Colors.textSecondary,
     lineHeight: Typography.lineHeight.tight,
+    marginTop: 2,
+  },
+  optionPoints: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.error + '15',
+    borderRadius: BorderRadius.sm,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    flexShrink: 0,
+  },
+  optionCount: {
+    fontSize: Typography.fontSize.base,
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.error,
   },
   selectedIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  selectedDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 6,
+    marginTop: Spacing.sm,
   },
   selectedText: {
     fontSize: Typography.fontSize.xs,
     fontFamily: Typography.fontFamily.semiBold,
+    marginLeft: Spacing.xs,
   },
   messageSection: {
-    marginBottom: 32,
+    paddingHorizontal: Layout.screenPadding,
+    paddingVertical: Spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  messageLabel: {
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.xs,
   },
   messageInput: {
     backgroundColor: Colors.backgroundElevated,
     borderRadius: BorderRadius.md,
-    padding: Spacing.md,
-    fontSize: Typography.fontSize.base,
+    padding: Spacing.sm,
+    fontSize: Typography.fontSize.sm,
     fontFamily: Typography.fontFamily.regular,
     color: Colors.textPrimary,
     borderWidth: 1,
     borderColor: Colors.border,
-    minHeight: 100,
-    marginBottom: Spacing.sm,
-  },
-  characterCount: {
-    fontSize: Typography.fontSize.xs,
-    fontFamily: Typography.fontFamily.regular,
-    color: Colors.textTertiary,
-    textAlign: 'right',
   },
   tipSection: {
     backgroundColor: Colors.gray100,
@@ -403,17 +423,11 @@ const styles = StyleSheet.create({
     lineHeight: Typography.lineHeight.tight,
   },
   fixedSendButtonContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: Colors.background,
     paddingHorizontal: Layout.screenPadding,
     paddingVertical: Spacing.lg,
     paddingBottom: Spacing.xl,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
-    ...Shadows.lg,
   },
   fixedSendButton: {
     ...ComponentStyles.button.primary,
@@ -433,6 +447,6 @@ const styles = StyleSheet.create({
     marginLeft: Spacing.sm,
   },
   optionEmoji: {
-    fontSize: 24,
+    fontSize: 20,
   }
 });

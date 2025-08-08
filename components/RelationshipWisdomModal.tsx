@@ -177,7 +177,7 @@ export default function RelationshipWisdomModal({
                 styles.selectedWisdomCard,
               { borderLeftColor: wisdom.color },
             ]}
-            onPress={() => setSelectedWisdom(wisdom)}
+            onPress={() => setSelectedWisdom(selectedWisdom?.id === wisdom.id ? null : wisdom)}
             activeOpacity={0.7}>
             <View style={styles.wisdomCardContent}>
               <View style={[styles.wisdomIcon, { backgroundColor: wisdom.color + '20' }]}>
