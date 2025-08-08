@@ -314,7 +314,7 @@ export default function AppreciationModal({
               <View style={styles.headerContent}>
                 <Text style={styles.headerTitle}>Send Appreciation</Text>
                 <Text style={styles.headerSubtitle}>
-                  Recognize your partner by sending a badge from one of the categories below.
+                  Show your partner how much you appreciate them
                 </Text>
               </View>
               <TouchableOpacity onPress={handleClose} style={styles.closeButton}>

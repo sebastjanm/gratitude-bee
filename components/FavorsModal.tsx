@@ -311,7 +311,7 @@ export default function FavorsModal({
               <View style={styles.headerContent}>
                 <Text style={styles.headerTitle}>Request a Favor</Text>
                 <Text style={styles.headerSubtitle}>
-                  Use your favor points to ask for help. Your partner earns them when the favor is done.
+                  Use your favor points to ask for help.
                 </Text>
               </View>
               <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
@@ -324,7 +324,7 @@ export default function FavorsModal({
 
             {selectedFavor && (
               <View style={styles.messageSection}>
-                <Text style={styles.messageLabel}>Add a personal message (optional)</Text>
+                <Text style={styles.messageLabel}>Personal note</Text>
                 <TextInput
                   style={styles.messageInput}
                   placeholder="Please and thank you! 🙏"
@@ -332,7 +332,6 @@ export default function FavorsModal({
                   onChangeText={setCustomMessage}
                   maxLength={100}
                 />
-                <Text style={styles.characterCount}>{customMessage.length}/100</Text>
               </View>
             )}
           </View>
