@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { X, HandHeart, Coffee, ShoppingCart, Car, Home as HomeIcon, Utensils, Gift, Plus, Coins } from 'lucide-react-native';
+import { X, HandHeart, Coffee, ShoppingCart, Car, Home as HomeIcon, Utensils, Gift, Plus, Coins, Sparkles } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '@/utils/supabase';
 import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
@@ -167,9 +167,9 @@ export default function FavorsModal({
           <Plus color={Colors.primary} size={24} />
         </View>
         <View style={styles.customFavorContent}>
-          <Text style={styles.customFavorTitle}>Create Custom Favor</Text>
+          <Text style={styles.customFavorTitle}>Special Request</Text>
           <Text style={styles.customFavorDescription}>
-            Ask for something specific with custom points
+            Ask for something unique or specific
           </Text>
         </View>
       </TouchableOpacity>
@@ -197,26 +197,33 @@ export default function FavorsModal({
               ]}
               onPress={() => setSelectedFavor(favor)}
               activeOpacity={0.7}>
-              <View style={styles.favorCardHeader}>
+              <View style={styles.favorCardContent}>
+                {/* Icon on the left */}
                 <View style={[styles.favorIcon, { backgroundColor: categoryColor + '20' }]}>
                   <Text style={styles.favorEmoji}>{favor.icon}</Text>
                 </View>
-                <View style={styles.favorInfo}>
-                  <Text style={styles.favorTitle} numberOfLines={1}>{favor.title}</Text>
-                  <Text style={styles.favorDescription} numberOfLines={2}>{favor.description}</Text>
-                </View>
-                <View style={styles.favorPoints}>
-                  <Coins color={Colors.warning} size={16} />
-                  <Text style={styles.favorPointsText}>{favor.points}</Text>
+                
+                {/* Content on the right */}
+                <View style={styles.favorRightContent}>
+                  <View style={styles.favorHeader}>
+                    <View style={styles.favorInfo}>
+                      <Text style={styles.favorTitle} numberOfLines={1}>{favor.title}</Text>
+                      <Text style={styles.favorDescription} numberOfLines={2}>{favor.description}</Text>
+                    </View>
+                    <View style={styles.favorPoints}>
+                      <Coins color={Colors.warning} size={16} />
+                      <Text style={styles.favorPointsText}>{favor.points}</Text>
+                    </View>
+                  </View>
+                  
+                  {isSelected && (
+                    <View style={styles.selectedIndicator}>
+                      <Sparkles color={categoryColor} size={14} />
+                      <Text style={[styles.selectedText, { color: categoryColor }]}>Selected</Text>
+                    </View>
+                  )}
                 </View>
               </View>
-              
-              {isSelected && (
-                <View style={styles.selectedIndicator}>
-                  <View style={[styles.selectedDot, { backgroundColor: categoryColor }]} />
-                  <Text style={[styles.selectedText, { color: categoryColor }]}>Selected</Text>
-                </View>
-              )}
             </TouchableOpacity>
           );
         })
@@ -230,9 +237,12 @@ export default function FavorsModal({
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => setShowCustomFavor(false)}>
-          <Text style={styles.backButtonText}>← Back</Text>
+          <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.customFormTitle}>Create Custom Favor</Text>
+        <View style={styles.customFormTitleContainer}>
+          <Text style={styles.customFormTitle}>Special Request</Text>
+          <Text style={styles.customFormSubtitle}>Ask for something not in the categories</Text>
+        </View>
       </View>
 
       <View style={styles.formSection}>
@@ -242,60 +252,51 @@ export default function FavorsModal({
           placeholder="e.g., Pick up my dry cleaning"
           value={customFavorTitle}
           onChangeText={setCustomFavorTitle}
-          maxLength={50}
+          maxLength={150}
         />
-        <Text style={styles.characterCount}>{customFavorTitle.length}/50</Text>
+        <Text style={styles.characterCount}>{customFavorTitle.length}/150</Text>
       </View>
 
       <View style={styles.formSection}>
-        <Text style={styles.formLabel}>Favor Points (1-20)</Text>
-        <View style={styles.pointsSelector}>
-          {[5, 8, 10, 12, 15].map((points) => (
+        <Text style={styles.formLabel}>How many points is this worth?</Text>
+        <View style={styles.pointsGrid}>
+          {[5, 10, 15, 25, 50, 100].map((points) => (
             <TouchableOpacity
               key={points}
               style={[
-                styles.pointsOption,
-                customFavorPoints === points && styles.selectedPointsOption,
+                styles.pointsGridItem,
+                customFavorPoints === points && styles.selectedPointsGridItem,
               ]}
               onPress={() => setCustomFavorPoints(points)}>
-              <Coins color={customFavorPoints === points ? Colors.white : Colors.warning} size={16} />
               <Text style={[
-                styles.pointsOptionText,
-                customFavorPoints === points && styles.selectedPointsOptionText,
+                styles.pointsGridText,
+                customFavorPoints === points && styles.selectedPointsGridText,
               ]}>
                 {points}
               </Text>
+              <View style={styles.pointsIconContainer}>
+                <Coins color={customFavorPoints === points ? Colors.white : Colors.warning} size={14} />
+              </View>
             </TouchableOpacity>
           ))}
         </View>
       </View>
 
-      <View style={styles.formSection}>
-        <Text style={styles.formLabel}>Additional details (optional)</Text>
-        <TextInput
-          style={[styles.textInput, styles.multilineInput]}
-          placeholder="Any specific instructions or details..."
-          value={customMessage}
-          onChangeText={setCustomMessage}
-          multiline
-          numberOfLines={3}
-          maxLength={150}
-        />
-        <Text style={styles.characterCount}>{customMessage.length}/150</Text>
-      </View>
 
-      <TouchableOpacity
-        style={[
-          styles.sendCustomButton,
-          !customFavorTitle.trim() && styles.disabledButton,
-        ]}
-        onPress={handleSendCustomFavor}
-        disabled={!customFavorTitle.trim()}>
-        <HandHeart color={Colors.white} size={20} />
-        <Text style={styles.sendCustomButtonText}>
-          Request Favor ({customFavorPoints} points)
-        </Text>
-      </TouchableOpacity>
+      <View style={styles.sendCustomButtonContainer}>
+        <TouchableOpacity
+          style={[
+            styles.sendCustomButton,
+            !customFavorTitle.trim() && styles.disabledButton,
+          ]}
+          onPress={handleSendCustomFavor}
+          disabled={!customFavorTitle.trim()}>
+          <HandHeart color={Colors.white} size={20} />
+          <Text style={styles.sendCustomButtonText}>
+            Request Favor ({customFavorPoints} points)
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -518,7 +519,15 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary,
     backgroundColor: Colors.background,
   },
-  favorCardHeader: {
+  favorCardContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  favorRightContent: {
+    flex: 1,
+  },
+  favorHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     flex: 1,
@@ -575,17 +584,12 @@ const styles = StyleSheet.create({
   selectedIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: Spacing.sm,
-  },
-  selectedDot: {
-    width: 8,
-    height: 8,
-    borderRadius: BorderRadius.sm,
-    marginRight: Spacing.sm,
+    marginTop: Spacing.xs,
   },
   selectedText: {
     fontSize: Typography.fontSize.xs,
     fontFamily: Typography.fontFamily.semiBold,
+    marginLeft: Spacing.xs,
   },
   messageSection: {
     paddingHorizontal: Layout.screenPadding,
@@ -624,20 +628,36 @@ const styles = StyleSheet.create({
   customFormHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.xl,
+    paddingTop: Spacing.xl,
+    paddingBottom: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    marginBottom: Spacing.lg,
+    marginHorizontal: -Layout.screenPadding,
+    paddingHorizontal: Layout.screenPadding,
   },
   backButton: {
-    padding: Spacing.sm,
-    marginRight: Spacing.md,
-    marginLeft: -Spacing.sm,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.sm,
   },
   backButtonText: {
-    fontSize: Typography.fontSize.base,
+    fontSize: Typography.fontSize.xl,
     fontFamily: Typography.fontFamily.medium,
     color: Colors.textSecondary,
   },
+  customFormTitleContainer: {
+    flex: 1,
+  },
   customFormTitle: {
     ...ComponentStyles.text.h3,
+    marginBottom: 2,
+  },
+  customFormSubtitle: {
+    ...ComponentStyles.text.caption,
+    color: Colors.textSecondary,
   },
   formSection: {
     marginBottom: Spacing.xl,
@@ -695,13 +715,54 @@ const styles = StyleSheet.create({
   selectedPointsOptionText: {
     color: Colors.white,
   },
+  pointsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: Spacing.md,
+    marginHorizontal: -Spacing.xs,
+  },
+  pointsGridItem: {
+    width: '30%',
+    aspectRatio: 1.5,
+    margin: '1.66%',
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    backgroundColor: Colors.backgroundElevated,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+  },
+  selectedPointsGridItem: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  pointsGridText: {
+    fontSize: Typography.fontSize.lg,
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.xs,
+  },
+  selectedPointsGridText: {
+    color: Colors.white,
+  },
+  pointsIconContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  sendCustomButtonContainer: {
+    paddingVertical: Spacing.lg,
+    marginTop: 'auto',
+  },
   sendCustomButton: {
     ...ComponentStyles.button.primary,
+    height: 'auto',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.xl,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 'auto',
-    marginBottom: Spacing.xl,
+    ...Shadows.lg,
   },
   disabledButton: {
     backgroundColor: Colors.gray400,
