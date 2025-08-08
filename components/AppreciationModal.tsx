@@ -44,6 +44,8 @@ interface SubCategoryItem {
 interface SubCategory {
   id: string;
   name: string;
+  description?: string;
+  tagline?: string;
   icon: any;
   color: string;
   badges: BadgeOption[];
@@ -107,6 +109,8 @@ export default function AppreciationModal({
           categoryMap[cat.id] = {
               id: cat.id,
               name: cat.name,
+              description: cat.description,
+              tagline: cat.tagline,
               icon: cat.icon,
               color: cat.color,
               badges: []
@@ -173,7 +177,7 @@ export default function AppreciationModal({
                 <View style={styles.categoryInfo}>
                   <Text style={styles.categoryName}>{category.name}</Text>
                   <Text style={styles.categoryBadgeCount}>
-                    {category.badges.length} appreciation options
+                    {getCategoryDescription(category)}
                   </Text>
                 </View>
                 <View style={styles.categoryArrow}>
@@ -187,6 +191,24 @@ export default function AppreciationModal({
     </View>
   );
 
+  // Short tagline in the header
+  const getCategoryHeaderSubtext = (category: SubCategory): string => {
+    // Use database tagline if available, otherwise show badge count
+    return category.tagline || `${category.badges.length} ways to appreciate`;
+  };
+
+  // Description on category selection cards
+  const getCategoryDescription = (category: SubCategory): string => {
+    // Use database description if available, otherwise show count
+    if (category.description) {
+      return category.description;
+    }
+    const badgeCount = category.badges.length;
+    if (badgeCount === 0) return 'No badges available';
+    if (badgeCount === 1) return '1 appreciation option';
+    return `${badgeCount} appreciation options`;
+  };
+
   const renderBadgeSelection = () => {
     const category = categories.find(c => c.id === selectedCategory);
     if (!category) return null;
@@ -199,20 +221,18 @@ export default function AppreciationModal({
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => setSelectedCategory(null)}>
-            <Text style={styles.backButtonText}>← Back</Text>
+            <Text style={styles.backButtonText}>←</Text>
           </TouchableOpacity>
           <View style={styles.categoryHeaderInfo}>
             <View style={[styles.categoryHeaderIcon, { backgroundColor: category.color + '20' }]}>
-              <IconComponent color={category.color} size={20} />
+              <IconComponent color={category.color} size={24} />
             </View>
-            <Text style={styles.categoryHeaderName}>{category.name}</Text>
+            <View style={styles.categoryHeaderTextContainer}>
+              <Text style={styles.categoryHeaderName}>{category.name}</Text>
+              <Text style={styles.categoryHeaderSubtitle}>{getCategoryHeaderSubtext(category)}</Text>
+            </View>
           </View>
         </View>
-
-        <Text style={styles.badgeSelectionTitle}>Choose Your Badge</Text>
-        <Text style={styles.badgeSelectionSubtitle}>
-          Each badge carries different meaning and value
-        </Text>
 
         <ScrollView style={styles.badgesList} showsVerticalScrollIndicator={false}>
           {category.badges.map((badge) => (
@@ -222,38 +242,45 @@ export default function AppreciationModal({
                 styles.badgeCard,
                 selectedBadge?.id === badge.id && styles.selectedBadgeCard,
               ]}
-              onPress={() => setSelectedBadge(badge)}
+              onPress={() => setSelectedBadge(selectedBadge?.id === badge.id ? null : badge)}
               activeOpacity={0.7}>
               <View style={styles.badgeCardContent}>
-                {/* Points in top-right corner */}
-                <View style={styles.badgePointsContainer}>
-                  <Text style={styles.badgePointsText}>
-                    {badge.points} {badge.points_icon}
-                  </Text>
+                {/* Icon on the left */}
+                <View style={styles.badgeIconContainer}>
+                  <Text style={styles.badgeEmoji}>{badge.icon || '🐝'}</Text>
                 </View>
                 
-                {/* Icon and Title in row */}
-                <View style={styles.badgeMainRow}>
-                  <View style={styles.badgeIconContainer}>
-                    <Text style={styles.badgeEmoji}>{badge.icon || '🐝'}</Text>
-                  </View>
+                {/* Content on the right */}
+                <View style={styles.badgeRightContent}>
+                  {/* Points badge at the top - only show when selected */}
+                  {selectedBadge?.id === badge.id && (
+                    <View style={styles.badgePointsRow}>
+                      <View style={styles.badgePointsContainer}>
+                        <Text style={styles.badgePointsText}>
+                          {badge.points} {badge.points_icon}
+                        </Text>
+                      </View>
+                    </View>
+                  )}
+                  
+                  {/* Title and Description */}
                   <View style={styles.badgeTextContainer}>
                     <Text style={styles.badgeTitle} numberOfLines={1} ellipsizeMode="tail">
                       {badge.title}
                     </Text>
                     <Text style={styles.badgeDescription} numberOfLines={2} ellipsizeMode="tail">
-                      {badge.description}
+                      {badge.description || ' '}
                     </Text>
                   </View>
+                  
+                  {/* Selected indicator */}
+                  {selectedBadge?.id === badge.id && (
+                    <View style={styles.selectedIndicator}>
+                      <Sparkles color={category.color} size={14} />
+                      <Text style={[styles.selectedText, { color: category.color }]}>Selected</Text>
+                    </View>
+                  )}
                 </View>
-                
-                {/* Selected indicator */}
-                {selectedBadge?.id === badge.id && (
-                  <View style={styles.selectedIndicator}>
-                    <Sparkles color={category.color} size={14} />
-                    <Text style={[styles.selectedText, { color: category.color }]}>Selected</Text>
-                  </View>
-                )}
               </View>
             </TouchableOpacity>
           ))}
@@ -267,7 +294,7 @@ export default function AppreciationModal({
               activeOpacity={0.8}>
               <Heart color="white" size={20} />
               <Text style={styles.sendButtonText}>
-                Send "{selectedBadge.title}" Badge
+                Send Appreciation
               </Text>
             </TouchableOpacity>
           </View>
@@ -389,15 +416,23 @@ const styles = StyleSheet.create({
   badgeHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: Spacing.lg,
+    paddingTop: Spacing.xl,
+    paddingBottom: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
     marginBottom: Spacing.lg,
+    marginHorizontal: -Layout.screenPadding,
+    paddingHorizontal: Layout.screenPadding,
   },
   backButton: {
-    padding: Spacing.sm,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.sm,
   },
   backButtonText: {
-    fontSize: Typography.fontSize.base,
+    fontSize: Typography.fontSize.xl,
     fontFamily: Typography.fontFamily.medium,
     color: Colors.textSecondary,
   },
@@ -405,28 +440,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    justifyContent: 'center',
-    marginRight: 40,
   },
   categoryHeaderIcon: {
-    width: 32,
-    height: 32,
+    width: 40,
+    height: 40,
     borderRadius: BorderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: Spacing.sm,
   },
+  categoryHeaderTextContainer: {
+    flex: 1,
+  },
   categoryHeaderName: {
     ...ComponentStyles.text.h3,
+    marginBottom: 2,
   },
-  badgeSelectionTitle: {
-    ...ComponentStyles.text.h2,
-    marginBottom: Spacing.sm,
-  },
-  badgeSelectionSubtitle: {
+  categoryHeaderSubtitle: {
     ...ComponentStyles.text.caption,
     color: Colors.textSecondary,
-    marginBottom: Spacing.lg,
   },
   badgesList: {
     flex: 1,
@@ -437,7 +469,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
     borderWidth: 1.5,
     borderColor: Colors.border,
-    minHeight: 72,
+    minHeight: 80,
   },
   selectedBadgeCard: {
     borderColor: Colors.primary,
@@ -445,12 +477,32 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   badgeCardContent: {
-    position: 'relative',
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  badgeIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.backgroundAlt,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.md,
+  },
+  badgeEmoji: {
+    fontSize: Typography.fontSize.xl,
+  },
+  badgeRightContent: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  badgePointsRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: Spacing.xs,
   },
   badgePointsContainer: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
     backgroundColor: Colors.primary + '15',
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
@@ -459,29 +511,11 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary + '30',
     minWidth: 50,
     alignItems: 'center',
-    zIndex: 1,
   },
   badgePointsText: {
     fontSize: Typography.fontSize.xs,
     fontFamily: Typography.fontFamily.bold,
     color: Colors.primary,
-  },
-  badgeMainRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingRight: 70, // Increased space for points badge
-  },
-  badgeIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: BorderRadius.full,
-    backgroundColor: Colors.backgroundAlt,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: Spacing.md,
-  },
-  badgeEmoji: {
-    fontSize: Typography.fontSize.lg,
   },
   badgeTextContainer: {
     flex: 1,
@@ -497,12 +531,12 @@ const styles = StyleSheet.create({
     fontFamily: Typography.fontFamily.regular,
     color: Colors.textSecondary,
     lineHeight: Typography.lineHeight.tight,
+    minHeight: Typography.lineHeight.tight * 2, // Dynamic height for 2 lines
   },
   selectedIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: Spacing.xs,
-    paddingLeft: 40 + Spacing.md, // Align with text
   },
   selectedText: {
     fontSize: Typography.fontSize.xs,
@@ -514,7 +548,9 @@ const styles = StyleSheet.create({
   },
   sendButton: {
     ...ComponentStyles.button.primary,
+    height: 'auto',
     paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.xl,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

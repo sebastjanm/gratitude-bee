@@ -34,6 +34,8 @@ const iconMap: Record<string, any> = {
 export interface Category {
   id: string;
   name: string;
+  description?: string;
+  tagline?: string;
   icon_name: string;
   icon: any; // React component
   color: string;
