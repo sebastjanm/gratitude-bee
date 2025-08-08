@@ -42,7 +42,8 @@
       "Bash(gh release create:*)",
       "Bash(gh release delete:*)",
       "Bash(eas update:*)",
-      "Bash(psql:*)"
+      "Bash(psql:*)",
+      "Bash(git stash:*)"
     ],
     "deny": []
   },
