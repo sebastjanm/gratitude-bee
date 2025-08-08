@@ -43,7 +43,10 @@
       "Bash(gh release delete:*)",
       "Bash(eas update:*)",
       "Bash(psql:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(npx supabase functions serve:*)",
+      "Bash(npx supabase functions:*)",
+      "Bash(git restore:*)"
     ],
     "deny": []
   },
