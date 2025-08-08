@@ -15,6 +15,7 @@ import { X, HandHeart, Coffee, ShoppingCart, Car, Home as HomeIcon, Utensils, Gi
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '@/utils/supabase';
 import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
+import { useCategories } from '@/hooks/useCategories';
 
 const { width } = Dimensions.get('window');
 
@@ -27,12 +28,18 @@ interface FavorOption {
   icon: string;
 }
 
-const categoryDetails = {
-  all: { name: 'All Favors', icon: HandHeart, color: Colors.primary },
-  food: { name: 'Food & Drinks', icon: Coffee, color: '#8B4513' },
-  errands: { name: 'Errands', icon: ShoppingCart, color: '#4ECDC4' },
-  help: { name: 'Home Help', icon: HomeIcon, color: '#FFEAA7' },
-  treats: { name: 'Treats', icon: Gift, color: '#FF69B4' },
+// Icon mapping for categories from database
+const categoryIcons: { [key: string]: any } = {
+  'food': Coffee,
+  'food_drinks': Coffee,
+  'errands': ShoppingCart,
+  'shopping': ShoppingCart,
+  'help': HomeIcon,
+  'home_help': HomeIcon,
+  'treats': Gift,
+  'affection': HandHeart,
+  'pets': HomeIcon,
+  'chores': HomeIcon,
 };
 
 interface FavorsModalProps {
@@ -56,6 +63,9 @@ export default function FavorsModal({
   const [showCustomFavor, setShowCustomFavor] = useState(false);
   const [customFavorTitle, setCustomFavorTitle] = useState('');
   const [customFavorPoints, setCustomFavorPoints] = useState(5);
+  
+  // Fetch categories from database
+  const { data: categories, isLoading: categoriesLoading } = useCategories('favor');
 
   useEffect(() => {
     if (visible) {
@@ -115,47 +125,64 @@ export default function FavorsModal({
     }
   };
 
-  const renderCategoryFilter = () => (
-    <View style={styles.categoryFilterContainer}>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.categoryFilter}
-        contentContainerStyle={styles.categoryFilterContent}
-        decelerationRate="fast"
-        snapToInterval={88} // Width of button + margin
-        snapToAlignment="start">
-        {Object.entries(categoryDetails).map(([id, { name, icon, color }]) => {
-          const IconComponent = icon;
-          const isSelected = selectedCategory === id;
-          return (
-            <TouchableOpacity
-              key={id}
-              style={[
-                styles.categoryFilterItem,
-                isSelected && styles.selectedCategoryFilter,
-              ]}
-              onPress={() => setSelectedCategory(id)}
-              activeOpacity={0.7}>
-              <IconComponent
-                color={isSelected ? Colors.white : Colors.textSecondary}
-                size={16}
-                strokeWidth={isSelected ? 2.5 : 2}
-              />
-              <Text
+  const renderCategoryFilter = () => {
+    if (!categories || categoriesLoading) return null;
+    
+    // Build categoryDetails from database
+    const categoryDetails: any = {
+      all: { name: 'All Favors', icon: HandHeart, color: Colors.primary }
+    };
+    
+    categories.forEach(cat => {
+      categoryDetails[cat.id] = {
+        name: cat.name,
+        icon: categoryIcons[cat.id] || HandHeart,
+        color: cat.color
+      };
+    });
+
+    return (
+      <View style={styles.categoryFilterContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.categoryFilter}
+          contentContainerStyle={styles.categoryFilterContent}
+          decelerationRate="fast"
+          snapToInterval={88} // Width of button + margin
+          snapToAlignment="start">
+          {Object.entries(categoryDetails).map(([id, { name, icon, color }]) => {
+            const IconComponent = icon;
+            const isSelected = selectedCategory === id;
+            return (
+              <TouchableOpacity
+                key={id}
                 style={[
-                  styles.categoryFilterText,
-                  isSelected && styles.selectedCategoryFilterText,
+                  styles.categoryFilterItem,
+                  isSelected && styles.selectedCategoryFilter,
                 ]}
-                numberOfLines={2}>
-                {name}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
-    </View>
-  );
+                onPress={() => setSelectedCategory(id)}
+                activeOpacity={0.7}>
+                <IconComponent
+                  color={isSelected ? Colors.white : Colors.textSecondary}
+                  size={16}
+                  strokeWidth={isSelected ? 2.5 : 2}
+                />
+                <Text
+                  style={[
+                    styles.categoryFilterText,
+                    isSelected && styles.selectedCategoryFilterText,
+                  ]}
+                  numberOfLines={2}>
+                  {name}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
+    );
+  };
 
   const renderFavorsList = () => (
     <ScrollView style={styles.favorsList} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20, flexGrow: 1 }}>
@@ -186,7 +213,8 @@ export default function FavorsModal({
         </View>
       ) : (
         filteredFavors.map((favor) => {
-          const categoryColor = categoryDetails[favor.category_id]?.color || Colors.primary;
+          const category = categories?.find(c => c.id === favor.category_id);
+          const categoryColor = category?.color || Colors.primary;
           const isSelected = selectedFavor?.id === favor.id;
           return (
             <TouchableOpacity
@@ -340,7 +368,7 @@ export default function FavorsModal({
         {selectedFavor && !showCustomFavor && (
           <View style={styles.fixedSendButtonContainer}>
             <TouchableOpacity
-              style={[styles.fixedSendButton, { backgroundColor: categoryDetails[selectedFavor.category_id]?.color || Colors.primary }]}
+              style={[styles.fixedSendButton, { backgroundColor: categories?.find(c => c.id === selectedFavor.category_id)?.color || Colors.primary }]}
               onPress={handleSendFavor}
               activeOpacity={0.8}>
               <HandHeart color={Colors.white} size={20} />

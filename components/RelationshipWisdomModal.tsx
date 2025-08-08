@@ -11,9 +11,10 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { X, CheckCircle } from 'lucide-react-native';
+import { X, CheckCircle, Heart, MessageCircle, Users, TreePine, Sparkles } from 'lucide-react-native';
 import { supabase } from '@/utils/supabase'; // Assuming supabase client is here
 import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
+import { useCategories } from '@/hooks/useCategories';
 
 const { width } = Dimensions.get('window');
 
@@ -23,6 +24,7 @@ interface WisdomOption {
   description: string;
   icon: string;
   color: string;
+  category_id?: string;
 }
 
 interface RelationshipWisdomModalProps {
@@ -30,6 +32,14 @@ interface RelationshipWisdomModalProps {
   onClose: () => void;
   onSendWisdom: (wisdom: WisdomOption) => void;
 }
+
+// Icon mapping for categories from database
+const categoryIcons: { [key: string]: any } = {
+  'wisdom-love': Heart,
+  'wisdom-communication': MessageCircle,
+  'wisdom-conflict': Users,
+  'wisdom-growth': TreePine,
+};
 
 export default function RelationshipWisdomModal({
   visible,
@@ -39,6 +49,10 @@ export default function RelationshipWisdomModal({
   const [wisdomOptions, setWisdomOptions] = useState<WisdomOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedWisdom, setSelectedWisdom] = useState<WisdomOption | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  
+  // Fetch categories from database
+  const { data: categories, isLoading: categoriesLoading } = useCategories('wisdom');
 
   useEffect(() => {
     const fetchWisdomTemplates = async () => {
@@ -47,7 +61,7 @@ export default function RelationshipWisdomModal({
         try {
           const { data, error } = await supabase
             .from('wisdom_templates')
-            .select('*')
+            .select('*, category_id')
             .eq('is_active', true);
 
           if (error) throw error;
@@ -65,8 +79,14 @@ export default function RelationshipWisdomModal({
   }, [visible]);
 
 
+  // Filter templates by selected category
+  const filteredWisdomOptions = wisdomOptions.filter(wisdom => 
+    selectedCategory === 'all' || wisdom.category_id === selectedCategory
+  );
+
   const handleClose = () => {
     setSelectedWisdom(null);
+    setSelectedCategory('all');
     onClose();
   };
 
@@ -75,6 +95,65 @@ export default function RelationshipWisdomModal({
       onSendWisdom(selectedWisdom);
       handleClose();
     }
+  };
+
+  const renderCategoryFilter = () => {
+    if (!categories || categoriesLoading) return null;
+    
+    // Build categoryDetails from database
+    const categoryDetails: any = {
+      all: { name: 'All', icon: Sparkles, color: Colors.primary }
+    };
+    
+    categories.forEach(cat => {
+      categoryDetails[cat.id] = {
+        name: cat.name,
+        icon: categoryIcons[cat.id] || Sparkles,
+        color: cat.color
+      };
+    });
+
+    return (
+      <View style={styles.categoryFilterContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.categoryFilter}
+          contentContainerStyle={styles.categoryFilterContent}
+          decelerationRate="fast"
+          snapToInterval={88} // Width of button + margin
+          snapToAlignment="start">
+          {Object.entries(categoryDetails).map(([id, { name, icon, color }]) => {
+            const IconComponent = icon;
+            const isSelected = selectedCategory === id;
+            return (
+              <TouchableOpacity
+                key={id}
+                style={[
+                  styles.categoryFilterItem,
+                  isSelected && styles.selectedCategoryFilter,
+                ]}
+                onPress={() => setSelectedCategory(id)}
+                activeOpacity={0.7}>
+                <IconComponent
+                  color={isSelected ? Colors.white : Colors.textSecondary}
+                  size={16}
+                  strokeWidth={isSelected ? 2.5 : 2}
+                />
+                <Text
+                  style={[
+                    styles.categoryFilterText,
+                    isSelected && styles.selectedCategoryFilterText,
+                  ]}
+                  numberOfLines={2}>
+                  {name}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
+    );
   };
 
   const renderContent = () => {
@@ -89,7 +168,7 @@ export default function RelationshipWisdomModal({
 
     return (
       <View style={styles.wisdomGrid}>
-        {wisdomOptions.map((wisdom) => (
+        {filteredWisdomOptions.map((wisdom) => (
           <TouchableOpacity
             key={wisdom.id}
             style={[
@@ -138,6 +217,8 @@ export default function RelationshipWisdomModal({
               Sometimes relationships just need a little wisdom, compromise, and understanding.
             </Text>
           </View>
+
+          {renderCategoryFilter()}
 
           <View style={styles.wisdomSection}>
             {renderContent()}
@@ -311,6 +392,60 @@ const styles = StyleSheet.create({
     fontFamily: Typography.fontFamily.regular,
     color: Colors.textSecondary,
     lineHeight: Typography.lineHeight.tight,
+  },
+  categoryFilterContainer: {
+    paddingBottom: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    position: 'relative',
+  },
+  categoryFilter: {
+    paddingTop: Spacing.md,
+  },
+  categoryFilterContent: {
+    paddingHorizontal: Layout.screenPadding,
+    paddingVertical: Spacing.xs,
+  },
+  categoryFilterItem: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.md,
+    width: 88,
+    minHeight: 60,
+    marginRight: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+    paddingVertical: Spacing.sm,
+  },
+  selectedCategoryFilter: {
+    backgroundColor: '#8B5CF6',
+    borderColor: '#8B5CF6',
+    shadowColor: '#8B5CF6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+    transform: [{ scale: 1.02 }],
+  },
+  categoryFilterText: {
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: Typography.lineHeight.tight,
+    paddingHorizontal: Spacing.xs,
+  },
+  selectedCategoryFilterText: {
+    color: Colors.white,
   },
   buttonImage: {
     width: 24,

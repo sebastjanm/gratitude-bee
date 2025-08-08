@@ -10,9 +10,10 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
-import { X, Phone, MessageSquare, Clock, CircleCheck as CheckCircle, Shell } from 'lucide-react-native';
+import { X, Phone, MessageSquare, Clock, CircleCheck as CheckCircle, Shell, Briefcase, Heart, Users, AlertTriangle, Sparkles } from 'lucide-react-native';
 import { supabase } from '@/utils/supabase';
 import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
+import { useCategories } from '@/hooks/useCategories';
 
 const { width } = Dimensions.get('window');
 
@@ -34,11 +35,14 @@ interface DontPanicModalProps {
   onSend: (template: DontPanicTemplate) => void;
 }
 
-const panicTriggers = [
-  { icon: Phone, text: "Stressful call", color: "#EF4444" },
-  { icon: Shell, text: "Jobs situation", color: "#8B5CF6" },
-  { icon: Clock, text: "Anxiety moment", color: "#8B5CF6" },
-];
+// Icon mapping for categories from database
+const categoryIcons: { [key: string]: any } = {
+  'panic-call': Phone,
+  'panic-work': Briefcase,
+  'panic-anxiety': Clock,
+  'panic-health': Heart,
+  'panic-family': Users,
+};
 
 export default function DontPanicModal({
   visible,
@@ -49,6 +53,10 @@ export default function DontPanicModal({
   const [templates, setTemplates] = useState<DontPanicTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  
+  // Fetch categories from database
+  const { data: categories, isLoading: categoriesLoading } = useCategories('dontpanic');
 
   useEffect(() => {
     const fetchTemplates = async () => {
@@ -57,7 +65,7 @@ export default function DontPanicModal({
           setLoading(true);
           const { data, error } = await supabase
             .from('dont_panic_templates')
-            .select('*')
+            .select('*, category_id')
             .eq('is_active', true);
 
           if (error) {
@@ -75,9 +83,15 @@ export default function DontPanicModal({
     fetchTemplates();
   }, [visible]);
 
+  // Filter templates by selected category
+  const filteredTemplates = templates.filter(template => 
+    selectedCategory === 'all' || template.category_id === selectedCategory
+  );
+
 
   const handleClose = () => {
     setSelectedOption(null);
+    setSelectedCategory('all');
     onClose();
   };
 
@@ -86,6 +100,65 @@ export default function DontPanicModal({
       onSend(selectedOption);
       handleClose();
     }
+  };
+
+  const renderCategoryFilter = () => {
+    if (!categories || categoriesLoading) return null;
+    
+    // Build categoryDetails from database
+    const categoryDetails: any = {
+      all: { name: 'All', icon: AlertTriangle, color: Colors.primary }
+    };
+    
+    categories.forEach(cat => {
+      categoryDetails[cat.id] = {
+        name: cat.name,
+        icon: categoryIcons[cat.id] || AlertTriangle,
+        color: cat.color
+      };
+    });
+
+    return (
+      <View style={styles.categoryFilterContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.categoryFilter}
+          contentContainerStyle={styles.categoryFilterContent}
+          decelerationRate="fast"
+          snapToInterval={88} // Width of button + margin
+          snapToAlignment="start">
+          {Object.entries(categoryDetails).map(([id, { name, icon, color }]) => {
+            const IconComponent = icon;
+            const isSelected = selectedCategory === id;
+            return (
+              <TouchableOpacity
+                key={id}
+                style={[
+                  styles.categoryFilterItem,
+                  isSelected && styles.selectedCategoryFilter,
+                ]}
+                onPress={() => setSelectedCategory(id)}
+                activeOpacity={0.7}>
+                <IconComponent
+                  color={isSelected ? Colors.white : Colors.textSecondary}
+                  size={16}
+                  strokeWidth={isSelected ? 2.5 : 2}
+                />
+                <Text
+                  style={[
+                    styles.categoryFilterText,
+                    isSelected && styles.selectedCategoryFilterText,
+                  ]}
+                  numberOfLines={2}>
+                  {name}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
+    );
   };
 
   return (
@@ -105,23 +178,9 @@ export default function DontPanicModal({
             </Text>
           </View>
 
-          <View style={styles.content}>
-            <View style={styles.triggerSection}>
-              <View style={styles.triggerGrid}>
-                {panicTriggers.map((trigger, index) => {
-                  const IconComponent = trigger.icon;
-                  return (
-                    <View key={index} style={styles.triggerCard}>
-                      <View style={[styles.triggerIcon, { backgroundColor: trigger.color + '20' }]}>
-                        <IconComponent color={trigger.color} size={20} />
-                      </View>
-                      <Text style={styles.triggerText}>{trigger.text}</Text>
-                    </View>
-                  );
-                })}
-              </View>
-            </View>
+          {renderCategoryFilter()}
 
+          <View style={styles.content}>
             <View style={styles.optionsSection}>
               <Text style={styles.sectionTitle}>Choose Your Message</Text>
               
@@ -130,7 +189,7 @@ export default function DontPanicModal({
 
               {!loading && !error && (
                 <View style={styles.optionsGrid}>
-                  {templates.map((option) => (
+                  {filteredTemplates.map((option) => (
                     <TouchableOpacity
                       key={option.id}
                       style={[
@@ -142,21 +201,24 @@ export default function DontPanicModal({
                       onPress={() => setSelectedOption(option)}
                       activeOpacity={0.7}>
                       <View style={styles.optionCardContent}>
+                        {/* Icon on the left */}
                         <View style={[styles.optionIcon, { backgroundColor: option.color + '20' }]}>
                           <Text style={styles.optionEmoji}>{option.icon}</Text>
                         </View>
-                        <View style={styles.optionTextContainer}>
+                        
+                        {/* Content on the right */}
+                        <View style={styles.optionRightContent}>
                           <Text style={styles.optionTitle}>{option.title}</Text>
                           <Text style={styles.optionMessage}>"{option.description}"</Text>
+                          
+                          {selectedOption?.id === option.id && (
+                            <View style={styles.selectedIndicator}>
+                              <Sparkles color={option.color} size={14} />
+                              <Text style={[styles.selectedText, { color: option.color }]}>Selected</Text>
+                            </View>
+                          )}
                         </View>
                       </View>
-                      
-                      {selectedOption?.id === option.id && (
-                        <View style={styles.selectedIndicator}>
-                          <CheckCircle color={option.color} size={16} />
-                          <Text style={[styles.selectedText, { color: option.color }]}>Selected</Text>
-                        </View>
-                      )}
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -247,8 +309,59 @@ const styles = StyleSheet.create({
     paddingHorizontal: Layout.screenPadding,
     paddingTop: Spacing.lg,
   },
-  triggerSection: {
-    marginBottom: 32,
+  categoryFilterContainer: {
+    paddingBottom: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    position: 'relative',
+  },
+  categoryFilter: {
+    paddingTop: Spacing.md,
+  },
+  categoryFilterContent: {
+    paddingHorizontal: Layout.screenPadding,
+    paddingVertical: Spacing.xs,
+  },
+  categoryFilterItem: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.md,
+    width: 88,
+    minHeight: 60, // Increased for better text visibility
+    marginRight: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+    paddingVertical: Spacing.sm,
+  },
+  selectedCategoryFilter: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+    transform: [{ scale: 1.02 }],
+  },
+  categoryFilterText: {
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: Typography.lineHeight.tight,
+    paddingHorizontal: Spacing.xs,
+  },
+  selectedCategoryFilterText: {
+    color: Colors.white,
   },
   sectionTitle: {
     ...ComponentStyles.text.h3,
@@ -259,33 +372,6 @@ const styles = StyleSheet.create({
     fontFamily: Typography.fontFamily.regular,
     color: Colors.textSecondary,
     marginBottom: Spacing.md,
-  },
-  triggerGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  triggerCard: {
-    flex: 1,
-    backgroundColor: Colors.backgroundElevated,
-    borderRadius: BorderRadius.md,
-    padding: Spacing.md,
-    marginHorizontal: Spacing.xs,
-    alignItems: 'center',
-    ...Shadows.sm,
-  },
-  triggerIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  triggerText: {
-    fontSize: Typography.fontSize.xs,
-    fontFamily: Typography.fontFamily.medium,
-    color: Colors.textPrimary,
-    textAlign: 'center',
   },
   optionsSection: {
     marginBottom: 32,
@@ -309,7 +395,6 @@ const styles = StyleSheet.create({
   optionCardContent: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 12,
   },
   optionIcon: {
     width: 48,
@@ -322,7 +407,7 @@ const styles = StyleSheet.create({
   optionEmoji: {
     fontSize: 20,
   },
-  optionTextContainer: {
+  optionRightContent: {
     flex: 1,
   },
   optionTitle: {
@@ -341,7 +426,7 @@ const styles = StyleSheet.create({
   selectedIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: 64, // Align with text
+    marginTop: Spacing.xs,
   },
   selectedText: {
     fontSize: Typography.fontSize.xs,

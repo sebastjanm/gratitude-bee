@@ -12,7 +12,8 @@ import {
   ShoppingCart, 
   Home, 
   Gift, 
-  Coffee 
+  Coffee,
+  CheckSquare 
 } from 'lucide-react-native';
 
 // Icon name to component mapping
@@ -29,6 +30,7 @@ const iconMap: Record<string, any> = {
   'Home': Home,
   'Gift': Gift,
   'Coffee': Coffee,
+  'CheckSquare': CheckSquare,
 };
 
 export interface Category {

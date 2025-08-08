@@ -12,9 +12,10 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
-import { X, AlertTriangle, CircleCheck as CheckCircle } from 'lucide-react-native';
+import { X, AlertTriangle, CircleCheck as CheckCircle, Bell, Heart, Coffee, Home, Zap, Clock } from 'lucide-react-native';
 import { supabase } from '@/utils/supabase';
 import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
+import { useCategories } from '@/hooks/useCategories';
 
 export interface PingTemplate {
   id: string;
@@ -26,6 +27,7 @@ export interface PingTemplate {
   points_icon?: string;
   point_unit?: string;
   notification_text?: string;
+  category_id?: string;
 }
 
 interface PingModalProps {
@@ -33,6 +35,15 @@ interface PingModalProps {
   onClose: () => void;
   onSendPing: (template: PingTemplate) => void;
 }
+
+// Icon mapping for categories from database
+const categoryIcons: { [key: string]: any } = {
+  'ping-checkin': Bell,
+  'ping-urgent': AlertTriangle,
+  'ping-worried': Heart,
+  'ping-thinking': Heart,
+  'ping-reminder': Clock,
+};
 
 export default function PingModal({
   visible,
@@ -43,6 +54,10 @@ export default function PingModal({
   const [templates, setTemplates] = useState<PingTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  
+  // Fetch categories from database
+  const { data: categories, isLoading: categoriesLoading } = useCategories('ping');
 
   useEffect(() => {
     const fetchTemplates = async () => {
@@ -51,7 +66,7 @@ export default function PingModal({
           setLoading(true);
           const { data, error } = await supabase
             .from('ping_templates')
-            .select('*')
+            .select('*, category_id')
             .eq('is_active', true);
 
           if (error) {
@@ -70,8 +85,14 @@ export default function PingModal({
   }, [visible]);
 
 
+  // Filter templates by selected category
+  const filteredTemplates = templates.filter(template => 
+    selectedCategory === 'all' || template.category_id === selectedCategory
+  );
+
   const handleClose = () => {
     setSelectedPing(null);
+    setSelectedCategory('all');
     onClose();
   };
 
@@ -80,6 +101,65 @@ export default function PingModal({
       onSendPing(selectedPing);
       handleClose();
     }
+  };
+
+  const renderCategoryFilter = () => {
+    if (!categories || categoriesLoading) return null;
+    
+    // Build categoryDetails from database
+    const categoryDetails: any = {
+      all: { name: 'All', icon: Zap, color: Colors.primary }
+    };
+    
+    categories.forEach(cat => {
+      categoryDetails[cat.id] = {
+        name: cat.name,
+        icon: categoryIcons[cat.id] || Zap,
+        color: cat.color
+      };
+    });
+
+    return (
+      <View style={styles.categoryFilterContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.categoryFilter}
+          contentContainerStyle={styles.categoryFilterContent}
+          decelerationRate="fast"
+          snapToInterval={88} // Width of button + margin
+          snapToAlignment="start">
+          {Object.entries(categoryDetails).map(([id, { name, icon, color }]) => {
+            const IconComponent = icon;
+            const isSelected = selectedCategory === id;
+            return (
+              <TouchableOpacity
+                key={id}
+                style={[
+                  styles.categoryFilterItem,
+                  isSelected && styles.selectedCategoryFilter,
+                ]}
+                onPress={() => setSelectedCategory(id)}
+                activeOpacity={0.7}>
+                <IconComponent
+                  color={isSelected ? Colors.white : Colors.textSecondary}
+                  size={16}
+                  strokeWidth={isSelected ? 2.5 : 2}
+                />
+                <Text
+                  style={[
+                    styles.categoryFilterText,
+                    isSelected && styles.selectedCategoryFilterText,
+                  ]}
+                  numberOfLines={2}>
+                  {name}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
+    );
   };
 
   return (
@@ -99,13 +179,15 @@ export default function PingModal({
             </Text>
           </View>
 
+          {renderCategoryFilter()}
+
           <View style={styles.content}>
             <View style={styles.pingSection}>
               {loading && <ActivityIndicator color="#3B82F6" style={{ marginVertical: 20 }} />}
               {error && <Text style={styles.errorText}>Error fetching pings: {error}</Text>}
               {!loading && !error && (
               <View style={styles.pingGrid}>
-                {templates.map((ping) => (
+                {filteredTemplates.map((ping) => (
                   <TouchableOpacity
                     key={ping.id}
                     style={[
@@ -328,5 +410,59 @@ const styles = StyleSheet.create({
   fixedSendButtonText: {
     ...ComponentStyles.button.text.primary,
     marginLeft: Spacing.sm,
+  },
+  categoryFilterContainer: {
+    paddingBottom: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    position: 'relative',
+  },
+  categoryFilter: {
+    paddingTop: Spacing.md,
+  },
+  categoryFilterContent: {
+    paddingHorizontal: Layout.screenPadding,
+    paddingVertical: Spacing.xs,
+  },
+  categoryFilterItem: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.md,
+    width: 88,
+    minHeight: 60,
+    marginRight: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+    paddingVertical: Spacing.sm,
+  },
+  selectedCategoryFilter: {
+    backgroundColor: '#3B82F6',
+    borderColor: '#3B82F6',
+    shadowColor: '#3B82F6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+    transform: [{ scale: 1.02 }],
+  },
+  categoryFilterText: {
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: Typography.lineHeight.tight,
+    paddingHorizontal: Spacing.xs,
+  },
+  selectedCategoryFilterText: {
+    color: Colors.white,
   },
 }); 
