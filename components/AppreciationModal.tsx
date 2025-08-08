@@ -238,8 +238,12 @@ export default function AppreciationModal({
                     <Text style={styles.badgeEmoji}>{badge.icon || '🐝'}</Text>
                   </View>
                   <View style={styles.badgeTextContainer}>
-                    <Text style={styles.badgeTitle}>{badge.title}</Text>
-                    <Text style={styles.badgeDescription}>{badge.description}</Text>
+                    <Text style={styles.badgeTitle} numberOfLines={1} ellipsizeMode="tail">
+                      {badge.title}
+                    </Text>
+                    <Text style={styles.badgeDescription} numberOfLines={2} ellipsizeMode="tail">
+                      {badge.description}
+                    </Text>
                   </View>
                 </View>
                 
@@ -445,23 +449,27 @@ const styles = StyleSheet.create({
   },
   badgePointsContainer: {
     position: 'absolute',
-    top: 0,
-    right: 0,
+    top: -2,
+    right: -2,
     backgroundColor: Colors.primary + '15',
     paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
+    paddingVertical: 4,
     borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.primary + '30',
+    minWidth: 50,
+    alignItems: 'center',
     zIndex: 1,
   },
   badgePointsText: {
-    fontSize: Typography.fontSize.sm,
+    fontSize: Typography.fontSize.xs,
     fontFamily: Typography.fontFamily.bold,
     color: Colors.primary,
   },
   badgeMainRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingRight: 60, // Space for points badge
+    paddingRight: 70, // Increased space for points badge
   },
   badgeIconContainer: {
     width: 40,
