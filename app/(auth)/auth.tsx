@@ -14,9 +14,16 @@ import {
   Easing,
 } from 'react-native';
 import { router } from 'expo-router';
-import { Heart, Mail, Lock, User, Eye, EyeOff } from 'lucide-react-native';
+import { Heart, Mail, Lock, User, Eye, EyeOff, Check } from 'lucide-react-native';
 import { supabase } from '@/utils/supabase';
 import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles, A11y } from '@/utils/design-system';
+import { 
+  setRememberMe, 
+  getRememberMe, 
+  storeUserEmail, 
+  getStoredUserEmail,
+  clearAuthStorage 
+} from '@/utils/secureStorage';
 
 export default function AuthScreen() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -25,6 +32,7 @@ export default function AuthScreen() {
   const [displayName, setDisplayName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMeState] = useState(true); // Default to checked
   const [heartAnimation] = useState(new Animated.Value(1));
 
   useEffect(() => {
@@ -48,6 +56,23 @@ export default function AuthScreen() {
     };
     animateHeart();
   }, [heartAnimation]);
+
+  // Load stored preferences on mount
+  useEffect(() => {
+    const loadStoredPreferences = async () => {
+      const storedRememberMe = await getRememberMe();
+      setRememberMeState(storedRememberMe);
+      
+      if (storedRememberMe) {
+        const storedEmail = await getStoredUserEmail();
+        if (storedEmail) {
+          setEmail(storedEmail);
+        }
+      }
+    };
+    
+    loadStoredPreferences();
+  }, []);
 
   const handleAuth = async () => {
     if (!email || !password || (isSignUp && !displayName)) {
@@ -97,6 +122,14 @@ export default function AuthScreen() {
         if (error) {
           Alert.alert('Sign In Failed', error.message);
         } else {
+          // Store preferences if Remember Me is checked
+          await setRememberMe(rememberMe);
+          if (rememberMe) {
+            await storeUserEmail(email);
+          } else {
+            await clearAuthStorage();
+          }
+          
           router.replace('/(tabs)');
         }
       }
@@ -189,9 +222,24 @@ export default function AuthScreen() {
             </View>
 
             {!isSignUp && (
-              <TouchableOpacity onPress={handleForgotPassword}>
-                <Text style={styles.forgotPassword}>Forgot Password?</Text>
-              </TouchableOpacity>
+              <>
+                <TouchableOpacity 
+                  style={styles.rememberMeContainer}
+                  onPress={() => setRememberMeState(!rememberMe)}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
+                    {rememberMe && (
+                      <Check color={Colors.white} size={16} strokeWidth={3} />
+                    )}
+                  </View>
+                  <Text style={styles.rememberMeText}>Remember me</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={handleForgotPassword}>
+                  <Text style={styles.forgotPassword}>Forgot Password?</Text>
+                </TouchableOpacity>
+              </>
             )}
 
             <TouchableOpacity
@@ -289,6 +337,32 @@ const styles = StyleSheet.create({
   },
   eyeIcon: {
     padding: Spacing.xs,
+  },
+  rememberMeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+    marginTop: Spacing.sm,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 2,
+    borderColor: Colors.gray400,
+    backgroundColor: Colors.backgroundElevated,
+    marginRight: Spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxChecked: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  rememberMeText: {
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.textSecondary,
   },
   forgotPassword: {
     fontSize: Typography.fontSize.sm,

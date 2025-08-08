@@ -40,6 +40,7 @@ import Constants from 'expo-constants';
 import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout, ComponentStyles } from '@/utils/design-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAppVersion } from '@/utils/app-version';
+import { clearAuthStorage } from '@/utils/secureStorage';
 
 interface MenuSection {
   id: string;
@@ -145,6 +146,7 @@ export default function MoreScreen() {
           style: 'destructive',
           onPress: async () => {
             await supabase.auth.signOut();
+            await clearAuthStorage(); // Clear stored auth data
             setSession(null);
             router.replace('/auth');
           },
