@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import LottieView from 'lottie-react-native';
+import { Colors, Typography, Spacing, BorderRadius, Shadows, Layout } from '@/utils/design-system';
 
 // Define the structure for each engagement stage's content
 type StageContent = {
@@ -76,20 +77,16 @@ const EngagementCard = ({ stage }: EngagementCardProps) => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFF',
-    borderRadius: 20,
-    padding: 20,
-    marginHorizontal: 16,
-    marginBottom: 8,
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    marginHorizontal: Layout.screenPadding,
+    marginBottom: Spacing.xs,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-    borderWidth: 1,
-    borderColor: '#EFEFEF',
+    borderWidth: 2,
+    borderColor: Colors.border,
+    ...Shadows.sm,
   },
   lottie: {
     width: 80,
@@ -97,17 +94,19 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     flex: 1,
-    marginLeft: 16,
+    marginLeft: Spacing.md,
   },
   title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: Typography.fontSize.lg,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.textPrimary,
   },
   subtitle: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.textSecondary,
+    marginTop: Spacing.xs,
+    lineHeight: Typography.lineHeight.tight,
   },
 });
 

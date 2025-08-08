@@ -30,6 +30,7 @@ import TodayTip from '@/components/TodayTip';
 import PingModal, { PingTemplate } from '@/components/PingModal';
 import EngagementCard from '@/components/EngagementCard';
 import BraveryBadge from '@/components/BraveryBadge';
+import ActiveFavorsBanner from '@/components/ActiveFavorsBanner';
 import { supabase } from '@/utils/supabase';
 import { useSession } from '@/providers/SessionProvider';
 import { router } from 'expo-router';
@@ -250,7 +251,7 @@ export default function HomeScreen() {
     } else {
       Alert.alert(
         'Badge Sent! 🎉',
-        `Your "${badgeTitle}" appreciation has been sent to your partner.`,
+        `Your "${badgeTitle}" appreciation has been sent.`,
         [{ text: 'OK' }]
       );
       
@@ -604,7 +605,7 @@ export default function HomeScreen() {
           />
         }
       >
-        <View style={{ height: 20 }} />
+        <View style={{ height: 12 }} />
 
         {hasPartner === false && (
           <TouchableOpacity 
@@ -624,11 +625,16 @@ export default function HomeScreen() {
           </TouchableOpacity>
         )}
 
+        {hasPartner && session?.user?.id && (
+          <ActiveFavorsBanner 
+            userId={session.user.id} 
+            onFavorComplete={fetchStats}
+          />
+        )}
+ <View style={{ height: 12 }} />
         {engagementStage !== 'none' && hasPartner && (
           <EngagementCard stage={engagementStage} />
         )}
-
-
 
         <TouchableOpacity activeOpacity={0.8} onPress={toggleStatsExpansion}>
           <View style={styles.statsContainer}>
@@ -640,7 +646,7 @@ export default function HomeScreen() {
           </View>
         </TouchableOpacity>
 
-        <View style={{ height: 8 }} />
+        <View style={{ height: 4 }} />
 
         <QuickSendActions
           onShowAppreciationModal={() => setShowAppreciationModal(true)}
